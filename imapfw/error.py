@@ -1,0 +1,4 @@
+
+class NotDefinedInRascal(Exception):
+    pass
+

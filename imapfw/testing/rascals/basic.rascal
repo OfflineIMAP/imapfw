@@ -1,0 +1,50 @@
+
+MainConf = {
+    'concurrency_backend': 'multiprocessing',
+    'max_sync_accounts': 7,
+}
+
+UI = None
+
+def configure(ui):
+    global UI
+    UI = ui
+
+def preHook(actionName, params):
+    return actionName, params
+
+def postHook():
+    return 'postHook'
+
+def exceptionHook(error):
+    pass
+
+from imapfw.api import engines, controllers, types, drivers
+
+
+MaildirConfA = {
+    'path': '~/Maildir',
+    'max_connections': 9,
+}
+
+ImapConfA = {
+    'dns':      'imap.gmail.com',
+    'port':     '143',
+    'username': 'myname',
+    'max_connections': 11,
+}
+
+class MaildirA(types.Maildir):
+    conf = MaildirConfA
+    driver = drivers.Maildir
+
+class ImapA(types.Imap):
+    conf = ImapConfA
+    driver = drivers.Imap
+
+class AccountA(types.Account):
+    engine = engines.SyncAccount
+    left = MaildirA
+    right = ImapA
+
+# vim: syntax=python ts=4 expandtab :

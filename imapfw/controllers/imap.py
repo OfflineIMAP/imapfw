@@ -1,0 +1,3 @@
+
+class Imap(object):
+    pass

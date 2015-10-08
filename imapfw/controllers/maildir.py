@@ -1,0 +1,3 @@
+
+class Maildir(object):
+    pass

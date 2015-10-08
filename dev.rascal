@@ -1,0 +1,76 @@
+#
+# Used by me to development purposes.
+#
+
+MainConf = {
+
+    # Concurrency backend to use for the workers:
+    # - multiprocessing;
+    # - threading;
+    #
+    # Because most of the wait time is due to I/O (disk and network, there
+    # should be no visible performance differences.
+    #
+    # Be aware that the rascal gets COPIED into each worker. This means that
+    # any changed ressource (including global variable) after the call to
+    # configure() won't be updated for all the running code.
+    'concurrency_backend': 'multiprocessing',
+
+    # The number of concurrent workers for the accounts. Default is the number
+    # of accounts to sync.
+    'max_sync_accounts': 7,
+}
+
+UI = None
+
+def configure(ui):
+    global UI
+    UI = ui
+
+def preHook(actionName, params):
+    return actionName, params
+
+def postHook():
+    return 'postHook'
+
+def exceptionHook(error):
+    pass
+
+from imapfw.api import engines, controllers, types, drivers
+
+
+MaildirConfA = {
+    'path': '~/Maildir',
+    'max_connections': 9,
+}
+
+MaildirConfB = {
+    'path': '~/Maildir',
+    'max_connections': 9,
+}
+
+ImapConfA = {
+    'dns':      'imap.gmail.com',
+    'port':     '143',
+    'username': 'myname',
+    'max_connections': 11,
+}
+
+class MaildirA(types.Maildir):
+    conf = MaildirConfA
+    driver = drivers.Maildir # Default: drivers.Maildir.
+
+class MaildirB(types.Maildir):
+    conf = MaildirConfB
+    driver = drivers.Maildir # Default: drivers.Maildir.
+
+class ImapA(types.Imap):
+    conf = ImapConfA
+    driver = drivers.Imap # Default: drivers.Imap.
+
+class AccountA(types.Account):
+    engine = engines.SyncAccount # Default: engine.SyncAccount. (TODO)
+    left = MaildirA
+    right = MaildirB
+
+# vim: syntax=python ts=4 expandtab :
