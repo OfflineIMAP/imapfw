@@ -8,10 +8,11 @@ class SyncAccountEngineInterface(object):
 
 
 class SyncAccount(SyncAccountEngineInterface):
-    """
+    """Engine to sync an account.
 
     We have to compare the folder structures of both ends to know what folders
     to sync."""
+
     def __init__(self, ui, workerName, cls_account, leftDriver, rightDriver):
         self._ui = ui
         self._workerName = workerName

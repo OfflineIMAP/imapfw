@@ -57,5 +57,5 @@ def ConsumerRunner(runner, emitter):
         ui.debug(WRK, "runner ended")
     except Exception as e:
         ui.critical("%s got Exception", workerName)
-        emitter.interruptAll(str(e))
+        emitter.unkownInterruptionError(str(e))
 

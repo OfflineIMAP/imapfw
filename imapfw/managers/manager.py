@@ -115,6 +115,7 @@ getLongRequestResult() call. The returned value is CORRECT.
 import inspect
 
 from ..constants import WRK, EMT
+from ..error import InterruptionError
 
 
 class ManagerCallerInterface(object):
@@ -156,6 +157,19 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
 
     def manager_shouldServe(self):
         return not self._stopServing
+
+
+    def exposed_unkownInterruptionError(self, reason):
+        raise Exception("%s got following interruption: %s"%
+            (self.workerName, reason))
+
+
+    def exposed_interruptionError(self, reason):
+        raise InterruptionError("%s got following interruption: %s"%
+            (self.workerName, reason))
+
+    def exposed_stopServing(self):
+        self._stopServing = True
 
 
     def getEmitter(self):
@@ -282,11 +296,3 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
             name=self.workerName, target=target, args=args)
         self._worker.start()
         self.ui.debug(WRK, "%s started"% self.workerName)
-
-
-    def exposed_interruptAll(self, reason):
-        raise Exception("%s got following interruption: %s (Press CTRL+C)"%
-            (self.workerName, reason))
-
-    def exposed_stopServing(self):
-        self._stopServing = True

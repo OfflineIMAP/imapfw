@@ -74,6 +74,5 @@ tt = TT()
 e, r = tt.split()
 r.start(runner, (e,))
 
-print(dir(e))
 while r.serve_nowait():
     pass

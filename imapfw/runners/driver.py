@@ -24,4 +24,4 @@ def driverRunner(ui, rascal, workerName, callerEmitter, driverReceiver):
         ui.debug(WRK, "runner ended")
     except Exception as e:
         ui.critical("%s got Exception", workerName)
-        callerEmitter.interruptAll(str(e))
+        callerEmitter.unkownInterruptionError(str(e))

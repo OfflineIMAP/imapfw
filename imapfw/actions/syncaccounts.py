@@ -2,7 +2,9 @@
 
 from .interface import ActionInterface
 from .helpers import setupConcurrency
+
 from ..constants import WRK
+from ..error import InterruptionError
 
 
 class SyncAccounts(ActionInterface):
@@ -110,7 +112,11 @@ class SyncAccounts(ActionInterface):
         self._ui.debug(WRK, "serving accounts")
         while len(self._receivers) > 0: # Are all account workers done?
             for accountReceiver in self._receivers:
-                continueServing = accountReceiver.serve_nowait() # Async.
+                try:
+                    continueServing = accountReceiver.serve_nowait() # Async.
+                except InterruptionError:
+                    accountReceiver.kill()
+                    self._receivers.remove(accountReceiver)
                 if not continueServing:
                     accountReceiver.join() # Destroy the worker.
                     self._receivers.remove(accountReceiver)
