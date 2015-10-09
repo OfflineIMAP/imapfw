@@ -41,6 +41,8 @@ Exit codes
   An exception occured while running the requested ACTION, requiring to stop
   the run.
 
+4:: The timeout was reached while running the preHook.
+
 
 
 Main authors

@@ -1,11 +1,28 @@
 
 
 import os
+from threading import Thread
+
+def runHook(hookFunc, *args):
+    class Hook(object):
+        def __init__(self):
+            self._stop = True
+
+        def ended(self):
+            self._stop = False
+
+        def stop(self):
+            return self._stop
 
 
-def runHook(f, *args):
-    # TODO: run f() in a timeout thread.
-    return f(*args)
+    hookName = hookFunc.__name__
+    hook = Hook()
+    if hookName == 'preHook':
+        args += (hook,)
+    thread = Thread(name=hookName, target=hookFunc, args=args)
+    thread.start()
+    thread.join(10) # TODO: get timeout from rascal.
+    return hook.stop()
 
 
 def xTrans(thing, transforms):

@@ -46,17 +46,15 @@ class Imapfw(object):
         rascal = config.getRascal()
         rascal.configure(ui)
 
-        # Load hooks.
-        preHook = rascal.getPreHook()
-        postHook = rascal.getPostHook()
-        exceptionHook = rascal.getExceptionHook()
-
         action = Action(actionName)
         try:
+            stop = runHook(rascal.getPreHook(), actionName, actionOptions)
+            if stop:
+                sys.exit(4)
+
             action.initialize(ui, rascal, actionOptions)
-            runHook(preHook, actionName, actionOptions)
             action.run()
-            runHook(postHook)
+            runHook(rascal.getPostHook())
         except Exception as e:
             def outputException(error, message):
                 ui.critical(message)
@@ -66,7 +64,7 @@ class Imapfw(object):
 
             # Rascal's exceptionHook.
             try:
-                runHook(exceptionHook, e)
+                runHook(rascal.getExceptionHook(), e)
             except Exception as hookError:
                 outputException(hookError, "exception occured while running"
                     " exceptionHook: %s"% str(hookError))

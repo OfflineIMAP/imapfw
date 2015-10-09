@@ -52,10 +52,10 @@ def configure(ui):
 
 
 # The hook started at the beginning of the process once initialization is done.
-def preHook(actionName, params):
-    UI.info("Running preHook: starting action %s with params %s"%
-        (actionName, params))
-    return actionName, params
+def preHook(actionName, actionOptions, hook):
+    UI.info("Running preHook: starting action %s with actionOptions %s"%
+        (actionName, actionOptions))
+    hook.ended() # timeout not reached (10 seconds).
 
 
 # The hook started at the end of the process when no exception is raised.
@@ -172,9 +172,6 @@ class ImapRepositoryExample(types.Imap):
 
         return # Continue proceeding to the folder.
 
-
-# Defines a IMAP controller: this is the WHAT to do.
-class ImapExampleController(controllers.Imap):
     def getFolders(self):
         return ['sample', 'of', 'static', 'remote', 'folder', 'list']
 
