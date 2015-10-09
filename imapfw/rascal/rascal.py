@@ -168,12 +168,6 @@ class Rascal(object):
     def getPreHook(self):
         return self._rascal.call('getFunc', 'preHook')
 
-    def getTestClass(self, name):
-        # Import here to avoid dependency loop: any action might import this
-        # module.
-        from ..api import actions
-        return self._rascal.call('getClass', name, [actions.UnitTests])
-
     def load(self, path):
         self._rascal.call('load', path)
 
