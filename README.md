@@ -47,5 +47,5 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 
 ## Requirements
 
-* Python v3.0
+* Python v3.2
 
