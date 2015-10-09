@@ -77,7 +77,7 @@ class AccountManager(Manager):
           the account runner.
         """
 
-        driverName = "%s.Controller.%s"% (self.workerName, number)
+        driverName = "%s.Driver.%s"% (self.workerName, number)
 
         # Build the controller.
         drivermanager = DriverManager(
