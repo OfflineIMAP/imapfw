@@ -79,7 +79,7 @@ class AccountManager(Manager):
 
         driverName = "%s.Driver.%s"% (self.workerName, number)
 
-        # Build the controller.
+        # Build the driver.
         drivermanager = DriverManager(
             self.ui,
             self.concurrency,
@@ -109,11 +109,11 @@ class AccountManager(Manager):
 
     # Caller API.
     def initialize(self):
-        # The account runner needs to take control of both sides.
+        # Each account requires both side drivers.
         self._leftEmitter, self._leftReceiver, leftName = self._createDriver(0)
         self._rightEmitter, self._rightReceiver, rightName = self._createDriver(1)
 
-        # Start the controllers.
+        # Start the drivers.
         self._rightReceiver.start(driverRunner, (
             self.ui,
             self._rascal,
