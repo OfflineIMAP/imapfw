@@ -27,11 +27,11 @@ def configure(ui):
     global UI
     UI = ui
 
-def preHook(actionName, params):
-    return actionName, params
+def preHook(actionName, actionOptions, hook):
+    hook.ended()
 
 def postHook():
-    return 'postHook'
+    pass
 
 def exceptionHook(error):
     pass

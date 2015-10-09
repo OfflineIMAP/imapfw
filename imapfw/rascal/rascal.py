@@ -5,10 +5,6 @@ from sys import exc_info
 from ..api import controllers, types
 
 
-def _noop(*args):
-    pass
-
-
 
 class RascalError(Exception): pass
 
@@ -47,9 +43,17 @@ class RascalMind(object):
             (name, supportedTypes)).with_traceback(exc_info()[2])
 
     def getFunc(self, name):
-        hook = self.getLiteral(name)
-        if hook is None:
-            hook = _noop
+        return self.getLiteral(name)
+
+    def getHook(self, name):
+        def defaultHook(actionName, actionOptions, hook):
+            hook.ended()
+
+        hook = defaultHook
+        try:
+            hook = self.getLiteral(name)
+        except RascalError:
+            pass
         return hook
 
     def getLiteral(self, name):
@@ -140,7 +144,7 @@ class Rascal(object):
         return self._getMainConfValue('concurrency_backend')
 
     def getExceptionHook(self):
-        return self._rascal.call('getFunc', 'exceptionHook')
+        return self._rascal.call('getHook', 'exceptionHook')
 
     def getInitController(self):
         cls = self._rascal.call('getClass', [controllers.Init])
@@ -163,10 +167,10 @@ class Rascal(object):
         return int(self._getMainConfValue('max_sync_accounts'))
 
     def getPostHook(self):
-        return self._rascal.call('getFunc', 'postHook')
+        return self._rascal.call('getHook', 'postHook')
 
     def getPreHook(self):
-        return self._rascal.call('getFunc', 'preHook')
+        return self._rascal.call('getHook', 'preHook')
 
     def load(self, path):
         self._rascal.call('load', path)

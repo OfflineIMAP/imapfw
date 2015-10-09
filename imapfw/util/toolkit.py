@@ -16,12 +16,21 @@ def runHook(hookFunc, *args):
 
 
     hookName = hookFunc.__name__
+
+    # Don't run hooks for action unitTests.
+    if hookName == 'preHook':
+        if args[0] == 'unitTests':
+            return False
+
     hook = Hook()
+
     if hookName == 'preHook':
         args += (hook,)
+
     thread = Thread(name=hookName, target=hookFunc, args=args)
     thread.start()
     thread.join(10) # TODO: get timeout from rascal.
+
     return hook.stop()
 
 
