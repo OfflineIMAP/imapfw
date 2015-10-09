@@ -1,7 +1,9 @@
 
 import sys
 import time
+
 import imapfw
+
 from imapfw.concurrency.concurrency import Concurrency
 from imapfw.managers.manager import Manager
 from imapfw.ui.tty import TTY
@@ -44,39 +46,34 @@ class TT(Manager):
         self.A = 'OopsA'
         self.B = 'OopsB'
 
-    def readA(self):
+    def exposed_readA(self):
         output('in receiver: returning A: %s'% self.A)
         return self.A
 
-    def readB(self):
+    def exposed_readB(self):
         output('in receiver: returning B: %s'% self.B)
         return self.B
 
-    def initA_nowait(self):
+    def exposed_initA_nowait(self):
         output('sleeping 5')
         time.sleep(5)
         self.A = 'A'
 
-    def initB_nowait(self):
+    def exposed_initB_nowait(self):
         output('sleeping 3')
         time.sleep(3)
         self.B = 'B'
 
-    def initB(self):
+    def exposed_initB(self):
         output('sleeping 3')
         time.sleep(3)
         self.B = 'B'
 
 tt = TT()
-tt.expose('initA_nowait')
-tt.expose('initB_nowait')
-tt.expose('initB')
-tt.expose('readA')
-tt.expose('readA_nowait')
-tt.expose('readB')
 
 e, r = tt.split()
 r.start(runner, (e,))
 
-while r.shouldServe():
-    r.serve_nowait()
+print(dir(e))
+while r.serve_nowait():
+    pass

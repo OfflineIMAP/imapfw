@@ -38,13 +38,6 @@ class DriverManager(Manager, DriverManagerInterface):
     The user of the emitter controls both the worker and the driver. The user of
     the emitter change over time."""
 
-    driverExpose = [
-        'connect_nowait',
-        'fetchFolders_nowait',
-        'getFolders',
-        'startDriver',
-        ]
-
     def __init__(self, ui, concurrency, workerName, rascal):
         super(DriverManager, self).__init__(ui, concurrency, workerName)
 
@@ -54,29 +47,23 @@ class DriverManager(Manager, DriverManagerInterface):
         self._driver = None
         self._folders = None
 
-        self.expose(self.driverExpose)
-
         ui.debug(DRV, "%s manager created"% workerName)
 
-    # Emitter API.
-    def connect_nowait(self):
+    def exposed_connect_nowait(self):
         connected = self._driver.connect()
         self.ui.debug(DRV, "driver connected")
         if not connected:
             raise Exception("%s: could not connect the driver"% self.workerName)
 
-    # Emitter API.
-    def fetchFolders_nowait(self):
+    def exposed_fetchFolders_nowait(self):
         self.ui.debug(DRV, "starting fetch of folders")
         self._folders = self._driver.getFolders()
 
-    # Emitter API
-    def getFolders(self):
+    def exposed_getFolders(self):
         self.ui.debug(DRV, "folders: %s"% self._folders)
         return self._folders
 
-    # Emitter API.
-    def startDriver(self, typeName):
+    def exposed_startDriver(self, typeName):
         # Retrieve the driver class from the type.
         cls_type = self._rascal.getTypeClass(typeName)
         self._cls_driver = cls_type.driver

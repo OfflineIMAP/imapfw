@@ -1,7 +1,7 @@
 
 import time
 
-from worker import concurrency
+from ..concurrency import concurrency
 
 
 class B:

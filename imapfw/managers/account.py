@@ -26,11 +26,6 @@ class AccountManager(Manager):
     All the code of this object is run into the caller's worker (likely the main
     thread)."""
 
-    accountExpose = [
-        'serve',
-        'startFolderWorkers',
-        ]
-
     def __init__(self, ui, concurrency, workerName, rascal):
         super(AccountManager, self).__init__(ui, concurrency, workerName)
 
@@ -41,26 +36,20 @@ class AccountManager(Manager):
         self._rightEmitter = None
         self._rightReceiver = None
 
-        self.expose(self.accountExpose)
-
     def exception(self, e):
         self._exitCode = 3
 
-    # Caller API.
     def join(self):
         self._leftReceiver.join()
         self._rightReceiver.join()
         super(AccountManager, self).join()
 
-    # Caller API.
     def getLeftDriverEmitter(self):
         return self._leftEmitter
 
-    # Caller API.
     def getRightDriverEmitter(self):
         return self._rightEmitter
 
-    # Caller API.
     def initialize(self):
         # Each account requires both side drivers.
         self._leftEmitter, self._leftReceiver = createSideDriverManager(
@@ -78,7 +67,6 @@ class AccountManager(Manager):
             1,
             )
 
-    # Caller API.
     def startDrivers(self):
         self._leftReceiver.start(driverRunner, (
             self.ui,
@@ -95,19 +83,16 @@ class AccountManager(Manager):
             self._rightReceiver,
             ))
 
-    # Caller API.
     def kill(self):
         self._leftReceiver.kill()
         self._rightReceiver.kill()
         super(AccountManager, self).kill()
 
-    # Caller API.
     def start(self, runner, args):
         # Controllers are already started.
         super(AccountManager, self).start(runner, args)
 
-    ## Emitter API.
-    #def startFolderWorkers(self, accountName, pendingTasks):
+    #def exposed_startFolderWorkers(self, accountName, pendingTasks):
         #"""Each accounts sync two folders. The starting job of the account
         #manager is to start managing both folderWorkers.
         #"""
@@ -152,8 +137,7 @@ class AccountManager(Manager):
             #self._workers.append(folderWorker, leftDriverEmitter,
             #rightDriverReceiver)
 
-    ## Caller API.
-    #def serve(self):
+    #def exposed_serve(self):
         #while len(self._workers) > 0:
             #for referent in self._workers:
                 #folder, left, right = referent
