@@ -1,0 +1,56 @@
+
+imapfw(1)
+=========
+
+NAME
+----
+impfw - mailboxes framework
+
+SYNOPSIS
+--------
+[verse]
+'imapfw' (options)
+
+DESCRIPTION
+-----------
+
+Framework to work with your mailboxes. Supports IMAP.
+
+
+OPTIONS
+-------
+
+-h::
+--help::
+
+  Display summary of options.
+
+--version::
+
+  Output version.
+
+
+Exit codes
+----------
+
+1:: An error occured while initializing the program.
+
+2:: Cannot load the Rascal.
+
+3::
+  An exception occured while running the requested ACTION, requiring to stop
+  the run.
+
+
+
+Main authors
+------------
+
+  Nicolas Sebrecht.
+
+
+See Also
+--------
+
+  openssl(1)
+  <website>
