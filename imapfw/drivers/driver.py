@@ -1,5 +1,8 @@
 
+
 class DriverInterface(object):
+    conf = {} # The configuration of the type will be set here.
+
     def connect(self):
         raise NotImplementedError
 

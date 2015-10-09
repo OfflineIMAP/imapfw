@@ -50,8 +50,8 @@ def xTrans(thing, transforms):
         thing = f(thing)
     return thing
 
-def expandpath(path):
-    xtrans = [os.path.expanduser, os.path.expandvars]
+def expandPath(path):
+    xtrans = [os.path.expanduser, os.path.expandvars, os.path.abspath]
     return xTrans(path, xtrans)
 
 

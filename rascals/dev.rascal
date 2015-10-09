@@ -40,12 +40,12 @@ from imapfw.api import engines, controllers, types, drivers
 
 
 MaildirConfA = {
-    'path': '~/Maildir',
+    'path': '~/.imapfw/MaildirA',
     'max_connections': 9,
 }
 
 MaildirConfB = {
-    'path': '~/Maildir',
+    'path': '~/.imapfw/MaildirB',
     'max_connections': 9,
 }
 
