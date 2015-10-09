@@ -56,11 +56,6 @@ class SyncAccounts(ActionInterface):
         from ..runners.runner import ConsumerRunner
         from ..runners.account import AccountTaskRunner
 
-        # Sanity checks.
-        if len(self._accountList) < 1:
-            self._ui.error('no account given at command line')
-            return
-
         # Turn the list of accounts into a queue for the workers.
         accountTasks = Task()
         for name in self._accountList:
