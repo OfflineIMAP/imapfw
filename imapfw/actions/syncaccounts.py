@@ -81,6 +81,7 @@ class SyncAccounts(ActionInterface):
             # - the accountReceiver executes the orders of both the emitter and
             # the caller. It embedds the worker, too.
             accountEmitter, accountReceiver = accountManager.split()
+            accountManager.startDrivers()
 
             # Build the account runner from the generic task runner. This is the
             # target of the worker.

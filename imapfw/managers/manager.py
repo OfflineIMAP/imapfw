@@ -73,6 +73,10 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
         return self._emitter
 
     # Caller API.
+    def getWorkerName(self):
+        return self.workerName
+
+    # Caller API.
     def join(self):
         self.ui.debug(WRK, "%s join"% self.workerName)
         self._worker.join()
@@ -227,6 +231,7 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
                 'getEmitter',
                 'join',
                 'kill',
+                'setEmitter',
                 'shouldServe',
                 'split',
                 'start',
@@ -267,8 +272,11 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
         receiver = Receiver(incomingQueue, resultQueue, self)
         emitter = Emitter(self.ui, incomingQueue, resultQueue, self, self._emitterExpose)
 
-        self._emitter = emitter # Keep track on this one.
+        receiver.setEmitter(emitter) # Let the receiver keep track on his emitter.
         return emitter, receiver
+
+    def setEmitter(self, emitter):
+        self._emitter = emitter
 
     # Caller API.
     def start(self, target, args):

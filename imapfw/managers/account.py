@@ -63,14 +63,14 @@ class AccountManager(Manager):
     # Caller API.
     def initialize(self):
         # Each account requires both side drivers.
-        self._leftEmitter, self._leftReceiver, leftName = createSideDriverManager(
+        self._leftEmitter, self._leftReceiver = createSideDriverManager(
             self.ui,
             self.concurrency,
             self._rascal,
             self.workerName,
             0,
             )
-        self._rightEmitter, self._rightReceiver, rightName = createSideDriverManager(
+        self._rightEmitter, self._rightReceiver = createSideDriverManager(
             self.ui,
             self.concurrency,
             self._rascal,
@@ -78,20 +78,21 @@ class AccountManager(Manager):
             1,
             )
 
-        # Start the drivers.
-        self._rightReceiver.start(driverRunner, (
-            self.ui,
-            self._rascal,
-            rightName,
-            self.getEmitter,
-            self._rightReceiver,
-            ))
+    # Caller API.
+    def startDrivers(self):
         self._leftReceiver.start(driverRunner, (
             self.ui,
             self._rascal,
-            leftName,
-            self.getEmitter,
+            self._leftReceiver.getWorkerName(),
+            self.getEmitter(), # Requires that split() was already called.
             self._leftReceiver,
+            ))
+        self._rightReceiver.start(driverRunner, (
+            self.ui,
+            self._rascal,
+            self._rightReceiver.getWorkerName(),
+            self.getEmitter(), # Requires that split() was already called.
+            self._rightReceiver,
             ))
 
     # Caller API.

@@ -107,4 +107,4 @@ def createSideDriverManager(ui, concurrency, rascal, HandlerName, number):
         rascal,
         )
     emitter, receiver = drivermanager.split()
-    return emitter, receiver, driverName
+    return emitter, receiver
