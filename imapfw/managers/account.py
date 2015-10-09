@@ -90,12 +90,8 @@ class AccountManager(Manager):
         return emitter, receiver, driverName
 
 
-    #TODO: rework
     def exception(self, e):
         self._exitCode = 3
-        # Kill all the account workers.
-        for accountReceiver in self._receivers:
-            accountReceiver.kill()
 
     # Caller API.
     def join(self):
