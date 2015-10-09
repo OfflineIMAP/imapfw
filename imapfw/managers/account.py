@@ -2,14 +2,15 @@
 
 """
 
-TODO
+The Account Manager will always start both side drivers. It will start and serve
+the folder workers on request.
 
 """
 
 
 #from ..concurrency.task import Task
 from ..managers.manager import Manager
-from ..managers.driver import DriverManager
+from ..managers.driver import createSideDriverManager
 from ..runners.driver import driverRunner
 
 
@@ -42,54 +43,6 @@ class AccountManager(Manager):
 
         self.expose(self.accountExpose)
 
-
-    #TODO: move out
-    def _createDriver(self, number):
-        """Enable the driver machinery.
-
-        There are always two drivers, one for each side. They run concurrently.
-
-        #TODO: rework
-        The driver machinery is splitted in two:
-        - the driver manager: to run the real underlying driver;
-        - the worker manager: to create start/stop/kill a driver worker.
-
-        #TODO: rework
-        The driver manager is used this way:
-        - The referent is a generic wrapper on top on the real driver. It is
-          run INSIDE a driver worker so that the drivers from both sides can
-          run concurrently.
-        - The proxy (which sends the orders to the referent) is first used
-          by the account runner (to know the structure of the folders). When
-          it's time to sync the folders, the first folder runner gets passed
-          the proxy driver which was used by the account runner so it can
-          re-use the connection already established. Other concurrent
-          folder runners will be passed a newly created driver proxy.
-
-        When a folder runner starts syncing another folder, the connection
-        can be re-used. It sends a 'SELECT' message.
-
-        #TODO: rework
-        The handling of the workers for the drivers is a different story:
-        - The referent (which starts/joins/kills) the driver worker is
-          always executed in the MAIN worker.
-        - The proxy (which sends the orders to start/join/kill) is passed to
-          the account runner.
-        """
-
-        driverName = "%s.Driver.%s"% (self.workerName, number)
-
-        # Build the driver.
-        drivermanager = DriverManager(
-            self.ui,
-            self.concurrency,
-            driverName,
-            self._rascal,
-            )
-        emitter, receiver = drivermanager.split()
-        return emitter, receiver, driverName
-
-
     def exception(self, e):
         self._exitCode = 3
 
@@ -110,8 +63,20 @@ class AccountManager(Manager):
     # Caller API.
     def initialize(self):
         # Each account requires both side drivers.
-        self._leftEmitter, self._leftReceiver, leftName = self._createDriver(0)
-        self._rightEmitter, self._rightReceiver, rightName = self._createDriver(1)
+        self._leftEmitter, self._leftReceiver, leftName = createSideDriverManager(
+            self.ui,
+            self.concurrency,
+            self._rascal,
+            self.workerName,
+            0,
+            )
+        self._rightEmitter, self._rightReceiver, rightName = createSideDriverManager(
+            self.ui,
+            self.concurrency,
+            self._rascal,
+            self.workerName,
+            1,
+            )
 
         # Start the drivers.
         self._rightReceiver.start(driverRunner, (
@@ -134,21 +99,6 @@ class AccountManager(Manager):
         self._leftReceiver.kill()
         self._rightReceiver.kill()
         super(AccountManager, self).kill()
-
-    ## Caller API.
-    #def serve(self):
-        #while len(self._workers) > 0:
-            #for referent in self._workers:
-                #folder, left, right = referent
-                #if folder.stopped():
-                    ## The folder worker is done.
-                    #folder.join()
-                    ## The driver workers are already stopped.
-                    #self._workers.remove(referent)
-                    #continue
-                #folder.serve_nowait()
-                #left.serve_nowait()
-                #right.serve_nowait()
 
     # Caller API.
     def start(self, runner, args):
@@ -200,3 +150,18 @@ class AccountManager(Manager):
             ## Keep track of the workers so we can serve their worker later.
             #self._workers.append(folderWorker, leftDriverEmitter,
             #rightDriverReceiver)
+
+    ## Caller API.
+    #def serve(self):
+        #while len(self._workers) > 0:
+            #for referent in self._workers:
+                #folder, left, right = referent
+                #if folder.stopped():
+                    ## The folder worker is done.
+                    #folder.join()
+                    ## The driver workers are already stopped.
+                    #self._workers.remove(referent)
+                    #continue
+                #folder.serve_nowait()
+                #left.serve_nowait()
+                #right.serve_nowait()

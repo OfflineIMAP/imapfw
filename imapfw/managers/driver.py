@@ -29,10 +29,11 @@ class DriverManagerInterface(object):
 class DriverManager(Manager, DriverManagerInterface):
     """The driver manager.
 
-    The receiver builds and uses the low-level driver (from rascal api.types). All
-    the types use the same DriverInterface interface. This interface is
-    low-level interface which is not directly mapped as the public DriverManager
-    interface.
+    The receiver builds and runs the low-level driver (from rascal api.drivers).
+
+    All the api.drivers types use the same DriverInterface interface. This
+    interface is low-level interface which is not directly mapped as the public
+    DriverManager interface.
 
     The user of the emitter controls both the worker and the driver. The user of
     the emitter change over time."""
@@ -88,3 +89,22 @@ class DriverManager(Manager, DriverManagerInterface):
         self.ui.debug(DRV, "starting driver '%s' of '%s'"%
             (self._cls_driver.__name__, typeName))
         self._driver = self._cls_driver()
+
+
+def createSideDriverManager(ui, concurrency, rascal, HandlerName, number):
+    """Enable the driver machinery for one side.
+
+    Helper when two drivers are required, one for each side, each running
+    concurrently."""
+
+    driverName = "%s.Driver.%s"% (HandlerName, number)
+
+    # Build the driver.
+    drivermanager = DriverManager(
+        ui,
+        concurrency,
+        driverName,
+        rascal,
+        )
+    emitter, receiver = drivermanager.split()
+    return emitter, receiver, driverName
