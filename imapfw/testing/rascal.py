@@ -9,14 +9,8 @@ from imapfw.api import types
 
 class TestRascal(unittest.TestCase):
     def setUp(self):
-        class FakeLock(object):
-            def acquire(self):
-                pass
-            def release(self):
-                pass
-
         def loadRascal(path):
-            rascal = Rascal(FakeLock())
+            rascal = Rascal()
             rascal.load(path)
             return rascal
 
