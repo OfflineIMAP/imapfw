@@ -1,14 +1,13 @@
 
 """
 
-Imap types and derivated.
+Imap types and derivatives.
 
 """
 
+from .repository import RepositoryBase
 
-class Imap(object):
+
+class Imap(RepositoryBase):
     def __init__(self, conf):
         self._conf = conf
-
-    def connect(self):
-        pass # TODO

@@ -13,10 +13,10 @@ class SyncAccount(SyncAccountEngineInterface):
     We have to compare the folder structures of both ends to know what folders
     to sync."""
 
-    def __init__(self, ui, workerName, cls_account, leftDriver, rightDriver):
+    def __init__(self, ui, workerName, account, leftDriver, rightDriver):
         self._ui = ui
         self._workerName = workerName
-        self._cls_account = cls_account
+        self._account = account
         self._leftDriver = leftDriver
         self._rightDriver = rightDriver
 
@@ -24,7 +24,7 @@ class SyncAccount(SyncAccountEngineInterface):
         """Compare the folders on both ends. Return a list of merged folders."""
 
         folders = []
-        accountName = self._cls_account.__name__
+        accountName = self._account.getClassName()
 
         # Get the folders from both sides so we can feed the folder tasks.
         self._leftDriver.fetchFolders_nowait()

@@ -1,8 +1,8 @@
 
-from .driver import DriverInterface
+from .driver import DriverBase
 import time
 
-class Maildir(DriverInterface):
+class Maildir(DriverBase):
     def connect(self):
         # TODO: create the directory
         time.sleep(3) # simulate long time

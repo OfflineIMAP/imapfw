@@ -13,8 +13,9 @@ class Imapfw(object):
         config = ImapfwConfig()
         try:
             config.parseCLI() # Parse CLI options.
-            config.setupUI()  # Currently, ui is not thread safe!
-            ui = config.getUIinst()
+            config.setupConcurrency()
+            config.setupUI()
+            ui = config.getUI()
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             sys.exit(1)
@@ -35,26 +36,32 @@ class Imapfw(object):
             config.loadRascal()
         except FileNotFoundError as e:
             ui.critical(e)
-        except TypeError:
-            ui.critical("no rascal given")
+        except Exception:
+            raise
             sys.exit(2)
+
+
+        rascal = config.getRascal()
+
+        # The rascal must use the thread-safe ui, too!
+        if rascal is not None:
+            rascalConfigure = rascal.getFunction('configure')
+            rascalConfigure(ui)
 
         actionName = config.getAction()
         actionOptions = config.getActionOptions()
 
-        # Time for the rascal.
-        rascal = config.getRascal()
-        rascal.configure(ui)
-
         action = Action(actionName)
         try:
-            stop = runHook(rascal.getPreHook(), actionName, actionOptions)
-            if stop:
-                sys.exit(4)
+            if rascal is not None:
+                stop = runHook(rascal.getPreHook(), actionName, actionOptions)
+                if stop:
+                    sys.exit(4)
 
-            action.initialize(ui, rascal, actionOptions)
+            action.initialize(ui, config.getConcurrency(), rascal, actionOptions)
             action.run()
-            runHook(rascal.getPostHook())
+            if rascal is not None:
+                runHook(rascal.getPostHook())
         except Exception as e:
             def outputException(error, message):
                 ui.critical(message)
@@ -64,7 +71,8 @@ class Imapfw(object):
 
             # Rascal's exceptionHook.
             try:
-                runHook(rascal.getExceptionHook(), e)
+                if rascal is not None:
+                    runHook(rascal.getExceptionHook(), e)
             except Exception as hookError:
                 outputException(hookError, "exception occured while running"
                     " exceptionHook: %s"% str(hookError))

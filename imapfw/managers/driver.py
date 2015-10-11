@@ -1,26 +1,9 @@
 
 from ..managers.manager import Manager
 from ..drivers.driver import DriverInterface
+from ..types.repository import RepositoryInterface
 from ..constants import DRV
 
-
-#class DriverWorkerManager(Manager):
-
-    ## DriverWorkerManager
-    #def start(self):
-        #"""Receiver API."""
-
-        #self.worker = self.concurrency.createWorker(
-            #name=self.managerName,
-            #target=driverRunner,
-            #args=(
-                #self.managerName,
-                #self.get_proxy(),
-            #)
-        #)
-        #self.worker.start()
-        #self.ui.debug(WRK, "%s started"% self.managerName)
-        #driverManager = DriverManager(name, )
 
 class DriverManagerInterface(object):
     pass # TODO
@@ -43,7 +26,6 @@ class DriverManager(Manager, DriverManagerInterface):
 
         self._rascal = rascal
 
-        self._cls_driver = None
         self._driver = None
         self._folders = None
 
@@ -65,17 +47,16 @@ class DriverManager(Manager, DriverManagerInterface):
 
     def exposed_startDriver(self, typeName):
         # Retrieve the driver class from the type.
-        cls_type = self._rascal.getTypeClass(typeName)
-        self._cls_driver = cls_type.driver
+        typeInst = self._rascal.get(typeName, [RepositoryInterface]) #TODO: defaultConstructor
+        self._driver = typeInst.driver()
 
         # Sanity check.
-        if not issubclass(self._cls_driver, DriverInterface):
+        if not isinstance(self._driver, DriverInterface):
             raise Exception("driver class %s does not satisfy DriverInterface"%
-                self._cls_driver.__name__)
+                self._driver.__class__.__name__)
 
         self.ui.debug(DRV, "starting driver '%s' of '%s'"%
-            (self._cls_driver.__name__, typeName))
-        self._driver = self._cls_driver()
+            (self._driver.getClassName(), typeName))
 
 
 def createSideDriverManager(ui, concurrency, rascal, HandlerName, number):

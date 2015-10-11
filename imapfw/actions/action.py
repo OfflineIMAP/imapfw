@@ -11,8 +11,8 @@ Actions = {
 }
 
 
-def Action(action):
+def Action(actionName):
     try:
-        return Actions[action]()
+        return Actions[actionName]()
     except KeyError:
-        raise Exception("unkown action: %s"% action)
+        raise Exception("unkown action: %s"% actionName)

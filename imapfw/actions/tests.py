@@ -15,7 +15,7 @@ class UnitTests(ActionInterface):
     def getExitCode(self):
         return 0
 
-    def initialize(self, ui, rascal, actionOptions):
+    def initialize(self, ui, concurrency, rascal, actionOptions):
         import unittest
 
         self._ui = ui

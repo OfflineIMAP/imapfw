@@ -5,10 +5,8 @@ Maildir types and derivatives.
 
 """
 
-class MaildirInterface(object):
-    conf = None
-    driver = None
+from .repository import RepositoryBase
 
 
-class Maildir(MaildirInterface):
+class Maildir(RepositoryBase):
     pass

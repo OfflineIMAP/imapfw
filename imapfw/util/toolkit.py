@@ -53,3 +53,17 @@ def xTrans(thing, transforms):
 def expandpath(path):
     xtrans = [os.path.expanduser, os.path.expandvars]
     return xTrans(path, xtrans)
+
+
+def dictValueFromPath(dictionnary, path):
+    def getItem(tmpDict, lst_path):
+        if len(lst_path) > 0:
+            if isinstance(tmpDict, dict):
+                newDict = tmpDict.get(lst_path.pop(0))
+                return getItem(newDict, lst_path)
+            else:
+                raise KeyError('invalid path')
+        return tmpDict
+
+    lst_path = path.split('.')
+    return getItem(dictionnary, lst_path)

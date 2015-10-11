@@ -11,6 +11,23 @@ process (for multiprocessing).
 import time
 
 
+SimpleLock = None # Defined later.
+
+
+def WorkerSafe(lock):
+    """Decorator for locking any callable."""
+
+    def decorate(func):
+        def safeFunc(*args, **kwargs):
+            with lock:
+                values = func(*args, **kwargs)
+            return values
+        return safeFunc
+
+    return decorate
+
+
+
 class BasicWorkerInterface(object):
     def getName(self):
         raise NotImplementedError
@@ -59,15 +76,11 @@ class ConcurrencyInterface(object):
 
 
 class LockBase(LockInterface):
-    """All locks support the 'with' statement."""
-
     def __enter__(self):
         self.lock.acquire()
 
-    def __exit(self, t, v, tb):
+    def __exit__(self, t, v, tb):
         self.lock.release()
-
-
 
 class ThreadingBackend(ConcurrencyInterface):
     def createBasicWorker(self, name, target, args):
@@ -102,6 +115,12 @@ class ThreadingBackend(ConcurrencyInterface):
         class TLock(LockBase):
             def __init__(self, lock):
                 self.lock = lock
+
+            def __enter__(self):
+                self.lock.acquire()
+
+            def __exit__(self, t, v, tb):
+                self.lock.release()
 
             def acquire(self):
                 self.lock.acquire()
@@ -226,7 +245,10 @@ ConcurrencyBackends = {
 }
 
 def Concurrency(backendName):
+    global SimpleLock
     try:
-        return ConcurrencyBackends[backendName]()
+        concurrency = ConcurrencyBackends[backendName]()
+        SimpleLock = concurrency.createLock
+        return concurrency
     except KeyError:
         raise Exception("unkown backend: %s"% backendName)

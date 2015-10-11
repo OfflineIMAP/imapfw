@@ -1,6 +1,7 @@
 
+from .driver import DriverBase
 
-class Imap(object):
+class Imap(DriverBase):
     def append(self, server,  mail):
         response = server.append(mail)
         return response

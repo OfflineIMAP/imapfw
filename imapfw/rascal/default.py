@@ -3,6 +3,42 @@
 __VERSION__ = 0.1
 
 
+from imapfw.api import actions, engines, types, drivers
+#from imapfw.api import contrib # Support for contributor's backends. ,-)
+
+
+# A word about concurrency.
+#
+# Because most of the wait time is due to I/O (disk and network, there should be
+# no visible performance differences between multiprocessing and threading.
+#
+# Be aware that this rascal module gets COPIED into each worker after the
+# configure function is called. This means that global variables won't be
+# updated everywhere the rascal is used. Also, you have to take care when using
+# external ressources since they might be called concurrently. For the purpose,
+# the framework provides everthing you need:
+#
+#from imapfw.api.concurrency import SimpleLock, WorkerSafe
+#
+#lockRessourceA = SimpleLock()
+#
+#with lockRessourceA:
+#    # Lock code using ressource A.
+#    raise NotImplementedError # Put your code using external ressource "A".
+#
+## Lock the whole code of myFunction which is using ressource A.
+#@WorkerSafe(lockRessourceA)
+#def myFunction():
+#    raise NotImplementedError # Put your code using external ressource "A".
+#
+## Lock the whole code of anyMethod which is using ressource A.
+#class Thing(object):
+#    @WorkerSafe(lockRessourceA)
+#    def anyMethod(self, argument):
+#        raise NotImplementedError # Put your code using external ressource "A".
+
+
+
 ##########
 # GLOBAL #
 ##########
@@ -11,19 +47,6 @@ __VERSION__ = 0.1
 # The main configuration options are set in this dict.
 #
 MainConf = {
-
-    # Concurrency backend to use for the workers:
-    # - multiprocessing;
-    # - threading;
-    #
-    # Because most of the wait time is due to I/O (disk and network, there
-    # should be no visible performance differences.
-    #
-    # Be aware that this rascal module gets COPIED into each worker. This means
-    # that any changed ressource (including global variable) after the call to
-    # configure() won't be updated for all the running code.
-    'concurrency_backend': 'multiprocessing',
-
     # The number of concurrent workers for the accounts. Default is the number
     # of accounts to sync.
     'max_sync_accounts': 2,
@@ -39,11 +62,12 @@ MainConf = {
 # - warn(*args)
 UI = None
 
-# The configure method is called once the environment is ready, way after the
-# rascal is loaded.
+# The configure function is called once the rascal is loaded, before the action
+# gets executed. This allows configuring both the rascal and any other ressource
+# you need.
 def configure(ui):
     global UI
-    UI = ui # Let the framework update the UI so it can be turned thread-safe.
+    UI = ui
 
 
 #########
@@ -72,11 +96,6 @@ def exceptionHook(error):
     #import traceback, sys
     #UI.exception(error)
     #traceback.print_exc(file=sys.stdout)
-
-
-from imapfw.api import actions, engines, types, drivers
-# Support for contributor's backends. ,-)
-#from imapfw.api import contrib
 
 
 

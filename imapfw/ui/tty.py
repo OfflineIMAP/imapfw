@@ -2,6 +2,7 @@
 import logging
 import logging.config
 
+
 logging_config = {
     'version': 1,
     'formatters': {
@@ -24,11 +25,12 @@ logging_config = {
 
 
 class TTY(object):
-    def __init__(self):
+    def __init__(self, lock):
+        self._lock = lock
+
         self._backend = logging
         self._config = logging.config
         self._logger = None
-        self._lock = None
         self._debugCategories = {
             'emitters': False,
             'drivers': False,
@@ -38,8 +40,6 @@ class TTY(object):
         self._currentWorkerName = lambda *args: ''
 
     def _safeLog(self, name, *args):
-        if self._lock is None:
-            return getattr(self._logger, name)(*args)
         self._lock.acquire()
         value = getattr(self._logger, name)(*args)
         self._lock.release()
@@ -71,9 +71,6 @@ class TTY(object):
 
     def setCurrentWorkerNameFunction(self, func):
         self._currentWorkerName = func
-
-    def setLock(self, lock):
-        self._lock = lock
 
     def warn(self, *args):
         self._safeLog('warn', *args)

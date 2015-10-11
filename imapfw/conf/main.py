@@ -18,6 +18,8 @@
 import logging
 
 from .clioptions import CLIOptions
+
+from ..concurrency.concurrency import Concurrency
 from ..rascal.rascal import Rascal
 from ..ui.tty import TTY
 
@@ -25,9 +27,9 @@ from ..ui.tty import TTY
 class ImapfwConfig(object):
     def __init__(self):
         self._cli = None
-        self._uiInst = None
-        self._localevalInst = None
+        self._concurrency = None
         self._rascal = None
+        self._ui = None
 
     def getAction(self):
         return self._cli.get('action')
@@ -46,21 +48,30 @@ class ImapfwConfig(object):
         options['action'] = actionName
         return options
 
+
+    def getConcurrency(self):
+        return self._concurrency
+
     def getLogger(self):
         return logging
 
     def getRascal(self):
         return self._rascal
 
-    def getUIinst(self):
-        return self._uiInst
+    def getUI(self):
+        return self._ui
 
     def listActions(self):
         return self._cli.get('listActions')
 
+    def setupConcurrency(self):
+        self._concurrency = Concurrency(self._cli.get('concurrency'))
+
     def loadRascal(self):
-        self._rascal = Rascal()
-        self._rascal.load(self._cli.get('rascalfile'))
+        rascalFile = self._cli.get('rascalfile')
+        if rascalFile is not None:
+            self._rascal = Rascal()
+            self._rascal.load(rascalFile)
 
     def parseCLI(self):
         if self._cli is None:
@@ -71,7 +82,12 @@ class ImapfwConfig(object):
         return self._cli.get('rascaldefault')
 
     def setupUI(self):
-        ui = TTY()
+        ui = TTY(self._concurrency.createLock())
         ui.configure()
+
+        # Let ui prefix log lines with the worker name.
+        ui.setCurrentWorkerNameFunction(self._concurrency.getCurrentWorkerNameFunction())
+        # Apply debug CLI option.
         ui.enableDebugCategories(self._cli.get('debug'))
-        self._uiInst = ui
+
+        self._ui = ui

@@ -1,4 +1,5 @@
 
+from ..types.account import Account
 
 class AccountTaskRunnerInterface(object):
     def getTask(self):
@@ -49,20 +50,20 @@ class AccountTaskRunner(AccountTaskRunnerInterface):
         """
 
         # The account class is defined in the rascal.
-        cls_account = self._rascal.getAccountClass(accountName)
+        account = self._rascal.get(accountName, [Account]) #TODO: defaultConstructor
 
-        self._left.startDriver(cls_account.left.__name__)
-        self._right.startDriver(cls_account.right.__name__)
+        self._left.startDriver(account.left.__name__)
+        self._right.startDriver(account.right.__name__)
 
         # Connect the drivers.
         self._left.connect_nowait()
         self._right.connect_nowait()
 
         # Use the engine for this account as defined in the rascal.
-        engine = cls_account.engine(
+        engine = account.engine(
             self._ui,
             self._workerName,
-            cls_account,
+            account,
             self._left,
             self._right,
             )

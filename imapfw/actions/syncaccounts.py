@@ -1,7 +1,7 @@
 
 
 from .interface import ActionInterface
-from .helpers import setupConcurrency
+#from .helpers import setupConcurrency
 
 from ..constants import WRK
 from ..error import InterruptionError
@@ -33,12 +33,13 @@ class SyncAccounts(ActionInterface):
     def getExitCode(self):
         return self._exitCode
 
-    def initialize(self, ui, rascal, options):
+    def initialize(self, ui, concurrency, rascal, options):
+        self._ui = ui
+        self._concurrency = concurrency
+        self._rascal = rascal
+
         self._accountList = options.get('accounts')
         self._engineName = options.get('engine')
-
-        self._ui, self._rascal, self._concurrency = setupConcurrency(
-            ui, rascal)
 
     def run(self):
         """Enable the syncing of the accounts in an async fashion.

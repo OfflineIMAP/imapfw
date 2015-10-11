@@ -1,156 +1,61 @@
 
 import imp
-from sys import exc_info
 
-from ..api import controllers, types
-
+from ..api import types
 
 
-class RascalError(Exception): pass
+class Rascal(object):
+    """The Rascal.
 
-
-class RascalMind(object):
-    """Low-level rascal.
-
-    Access the spirit of the rascal (the user Python file) into a more concrete
-    thing (a Python module) so we can read his minds.
+    Turn the rascal (the user Python file given at CLI) into a more concrete
+    thing (a Python module).
 
     This is where the Inversion of Control happen: we give to the rascal the
     illusion he's living a real life while we keep full control of him."""
 
     def __init__(self):
         self._rascal = {} # The module.
+        # Cached literals.
+        self._mainConf = None
 
-    def getClass(self, name, bases):
-        """Must be both re-entrant & thread-safe."""
-
-        supportedTypes = [repr(x) for x in bases]
-
-        # We only "read" the ressource, we're fine.
-        for literal in dir(self._rascal):
-            if literal != name:
-                continue
-            try:
-                # We only "read" the ressource, we're fine.
-                cls = getattr(self._rascal, literal)
-                for base in bases:
-                    if issubclass(cls, base):
-                        return cls
-            except TypeError: # getattr
-                raise RascalError("'%s' does not have a supported type '%s'"%
-                    (name, supportedTypes)).with_traceback(exc_info()[2])
-        raise RascalError("the rascal has no class '%s' based on '%s'"%
-            (name, supportedTypes)).with_traceback(exc_info()[2])
-
-    def getFunc(self, name):
-        return self.getLiteral(name)
-
-    def getHook(self, name):
-        def defaultHook(actionName, actionOptions, hook):
-            hook.ended()
-
-        hook = defaultHook
+    def _isDict(self, obj):
+        if not isinstance(obj, dict):
+            raise TypeError("'%s' must be a dictionnary, got '%s'"%
+                obj.__name__, type(obj))
+    def _getHook(self, name):
         try:
-            hook = self.getLiteral(name)
-        except RascalError:
-            pass
-        return hook
+            return self.getFunction(name)
+        except:
+            return lambda *args: None
 
-    def getLiteral(self, name):
-        for literal in dir(self._rascal):
-            if literal == name:
-                return getattr(self._rascal, name)
-        raise RascalError("the rascal does not have the literal '%s'", name)
+    def _getLiteral(self, name):
+        return getattr(self._rascal, name)
 
-    def load(self, path):
-        rascal_mod = imp.new_module('rascal')
-        rascal_mod.__file__ = path
-        with open(path) as rascal_file:
-            exec(compile(rascal_file.read(), path, 'exec'), rascal_mod.__dict__)
-        self._rascal = rascal_mod
+    def get(self, name, expectedTypes, defaultConstructor=None):
+        literal = self._getLiteral(name)
 
+        for expectedType in expectedTypes:
+            if issubclass(literal, expectedType):
+                return literal()
 
-class HealthyRascal(object):
-    """Proxy the RascalMind to allow turning it thread-safe."""
+        if defaultConstructor is not None:
+            try:
+                self._isDict(literal)
+                return defaultConstructor(literal)
+            except:
+                pass
 
-    def __init__(self):
-        self._rascal = RascalMind()
-        self._lock = None
-
-    def call(self, name, *args, **kwargs):
-        """How to use the RascalMind.
-
-        Using __getattr__ and return the method would not lock the real code but
-        only the "return the correct method"."""
-
-        if self._lock is not None:
-            self._lock.acquire()
-        # Get the results here to actually lock the underlying code.
-        values = getattr(self._rascal, name)(*args, **kwargs)
-        if self._lock is not None:
-            self._lock.release()
-        return values
-
-    def setLock(self, lock):
-        self._lock = lock
-
-
-class Rascal(object):
-    """The rascal to talk with.
-
-    It must be made thread-safe before concurrency gets used. Then, this object
-    can be used whithout having to care about concurrency issues."""
-
-    def __init__(self):
-        self._rascal = HealthyRascal()
-
-    def _getMainConf(self):
-        return self._rascal.call('getLiteral', 'MainConf')
-
-    def _getMainConfValue(self, path):
-        def getItem(dictTree, pathList):
-            if len(pathList) > 0:
-                if isinstance(dictTree, dict):
-                    newDict = dictTree.get(pathList.pop(0))
-                    return getItem(newDict, pathList)
-                else:
-                    raise KeyError('invalid path')
-            return dictTree
-
-        mainConf = self._getMainConf()
-        pathList = path.split('.')
-        return getItem(mainConf, pathList)
-
-    def configure(self, ui):
-        configure = self._rascal.call('getFunc', 'configure')
-        configure(ui)
-
-    def getTypeClass(self, typeName):
-        typeTypes = [
-            types.Maildir,
-            types.Imap,
-            ]
-        return self._rascal.call('getClass', typeName, typeTypes)
-
-    def getAccountClass(self, name):
-        cls_account = self._rascal.call('getClass', name, [types.Account])
-        ## We want the remote on the left side; redress if necessary.
-        #if not cls_account.left.isRemote and cls_account.right.isRemote:
-            #cls_account.left, cls_account.right = (cls_account.right,
-                #cls_account.left)
-        return cls_account
-
-    def getConcurrencyBackendName(self):
-        return self._getMainConfValue('concurrency_backend')
+        raise TypeError("literal '%s' has unexpected type '%s'"%
+            (name, type(literal)))
 
     def getExceptionHook(self):
-        return self._rascal.call('getHook', 'exceptionHook')
+        return self._getHook('exceptionHook')
 
-    def getInitController(self):
-        cls = self._rascal.call('getClass', [controllers.Init])
-        if cls is None:
-            cls = controllers.Init
-        return cls
+    def getFunction(self, name):
+        func = self._getLiteral(name)
+        if not callable(func):
+            raise TypeError("function expected for '%s'"% name)
+        return func
 
     def getMaxConnections(self, accountName):
         def getValue(repository):
@@ -158,22 +63,35 @@ class Rascal(object):
                 return int(repository.conf.get('max_connections'))
             except AttributeError:
                 return 999
-        cls_account = self.getAccountClass(accountName)
-        max_sync = min(getValue(cls_account.left),
-            getValue(cls_account.right))
+
+        account = self.get(accountName, [types.Account])
+        max_sync = min(getValue(account.left),
+            getValue(account.right))
         return max_sync
 
     def getMaxSyncAccounts(self):
-        return int(self._getMainConfValue('max_sync_accounts'))
+        return int(self._mainConf.get('max_sync_accounts'))
 
     def getPostHook(self):
-        return self._rascal.call('getHook', 'postHook')
+        return self._getHook('postHook')
 
     def getPreHook(self):
-        return self._rascal.call('getHook', 'preHook')
+        return self._getHook('preHook')
+
+    def getSettings(self, name):
+        literal = getattr(self._rascal, name)
+        if not isinstance(literal, dict):
+            raise TypeError("expected dict for '%s', got '%s'"%
+                (name, type(literal)))
+        return literal
 
     def load(self, path):
-        self._rascal.call('load', path)
+        # Create empty module.
+        rascal_mod = imp.new_module('rascal')
+        rascal_mod.__file__ = path
 
-    def setLock(self, lock):
-        self._rascal.setLock(lock)
+        with open(path) as rascal_file:
+            exec(compile(rascal_file.read(), path, 'exec'), rascal_mod.__dict__)
+        self._rascal = rascal_mod
+
+        self._mainConf = self.getSettings('MainConf')

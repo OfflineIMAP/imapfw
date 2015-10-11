@@ -16,8 +16,14 @@ class CLIOptions(object):
             prog='imapfw',
             description="%s.\n\n%s."% (__copyright__, __license__))
 
+        parser.add_argument("-c", dest="concurrency",
+            default='multiprocessing',
+            choices=['multiprocessing', 'threading'],
+            help="the concurrency backend to use (default is multiprocessing)")
+
         parser.add_argument("-r", dest="rascalfile",
             metavar="RASCAL",
+            default=None,
             help="the rascal file to use")
 
         parser.add_argument("-R", dest="rascaldefault",
@@ -36,11 +42,6 @@ class CLIOptions(object):
             choices=['emitters', 'drivers', 'controllers', 'workers'],
             help="enable debugging for the requested mode(s)")
 
-        #parser.add_argument("--shell", dest="shell",
-            #action='store_true',
-            #default=False,
-            #help="run interactive session to test the rascal file")
-
         parser.add_argument("-v", action='version',
             version=__version__)
 
@@ -57,15 +58,15 @@ class CLIOptions(object):
             #help='choose one of the following actions',
             )
 
-        # noop
+        # Action: noop
         actions.add_parser('noop',
             help="test if the rascal can be loaded")
 
-        # unitTests
+        # Action: unitTests
         actions.add_parser('unitTests',
             help="run the integrated unit tests")
 
-        # syncAccounts
+        # Action: syncAccounts
         syncAccounts = actions.add_parser('syncAccounts',
             help="sync on or more accounts")
 
@@ -80,6 +81,9 @@ class CLIOptions(object):
             default="SyncAccount",
             help="the sync engine")
 
+        #
+        # End Actions.
+        #
 
         self._options = vars(parser.parse_args())
 
