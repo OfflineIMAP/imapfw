@@ -78,9 +78,6 @@ class ImapfwConfig(object):
             self._cli = CLIOptions()
             self._cli.parse()
 
-    def printRascal(self):
-        return self._cli.get('rascaldefault')
-
     def setupUI(self):
         ui = TTY(self._concurrency.createLock())
         ui.configure()

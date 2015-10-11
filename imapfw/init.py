@@ -20,12 +20,6 @@ class Imapfw(object):
             traceback.print_exc(file=sys.stderr)
             sys.exit(1)
 
-        if config.printRascal():
-            from .rascal import default
-            with open(default.__file__, 'r') as fd:
-                print(fd.read())
-            sys.exit(0)
-
         if config.listActions():
             ui.info("Available actions:")
             for action in sorted(list(Actions.keys())):

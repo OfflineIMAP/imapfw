@@ -26,11 +26,6 @@ class CLIOptions(object):
             default=None,
             help="the rascal file to use")
 
-        parser.add_argument("-R", dest="rascaldefault",
-            action='store_true',
-            default=False,
-            help="print the default rascal file and exit")
-
         parser.add_argument("-l", "--list-actions", dest="listActions",
             action='store_true',
             default=False,
