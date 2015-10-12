@@ -5,7 +5,7 @@ import traceback
 
 from .conf.main import ImapfwConfig
 from .actions.action import Action, Actions
-from .util.toolkit import runHook
+from .toolkit import runHook
 
 
 class Imapfw(object):

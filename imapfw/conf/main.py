@@ -20,7 +20,7 @@ import logging
 from .clioptions import CLIOptions
 
 from ..concurrency.concurrency import Concurrency
-from ..rascal.rascal import Rascal
+from ..rascal import Rascal
 from ..ui.tty import TTY
 
 

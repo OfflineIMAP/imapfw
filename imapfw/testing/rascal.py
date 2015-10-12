@@ -3,7 +3,7 @@ import unittest
 import sys
 import os
 
-from imapfw.rascal.rascal import Rascal
+from imapfw.rascal import Rascal
 from imapfw.api import types
 
 
@@ -47,13 +47,13 @@ class TestRascal(unittest.TestCase):
         self.assertEqual(type(self.empty.getPostHook()), type(lambda x:x))
 
     def test_runPreHook(self):
-        from imapfw.util.toolkit import runHook
+        from imapfw.toolkit import runHook
 
         stop = runHook(self.rascal.getPreHook(), 'actionName', {'action': 'actionName'})
         self.assertFalse(stop)
 
     def test_runPreHookEmpty(self):
-        from imapfw.util.toolkit import runHook
+        from imapfw.toolkit import runHook
 
         stop = runHook(self.rascal.getPreHook(), 'actionName', {'action': 'actionName'})
         self.assertFalse(stop)

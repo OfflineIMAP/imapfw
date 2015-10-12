@@ -1,7 +1,7 @@
 
-import imp
+import imp #TODO: use library importlib instead of deprecated imp.
 
-from ..api import types
+from .api import types
 
 
 class Rascal(object):
