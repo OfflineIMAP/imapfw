@@ -37,6 +37,7 @@ class ImapfwConfig(object):
     def getActionOptions(self):
         actionName = self.getAction()
         mapping = {
+            'devel': [],
             'noop': [],
             'unitTests': [],
             'syncAccounts': ['accounts', 'engine'],

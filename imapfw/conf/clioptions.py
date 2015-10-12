@@ -59,6 +59,10 @@ class CLIOptions(object):
             #help='choose one of the following actions',
             )
 
+        # Action: dev
+        actions.add_parser('devel',
+            help="development")
+
         # Action: noop
         actions.add_parser('noop',
             help="test if the rascal can be loaded")

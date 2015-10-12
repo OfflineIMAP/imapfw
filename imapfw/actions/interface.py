@@ -7,7 +7,7 @@ class ActionInterface(object):
     def getExitCode(self):
         raise NotImplementedError
 
-    def initialize(self, ui, rascal, actionOptions):
+    def initialize(self, ui, concurrency, rascal, actionOptions):
         """Configure the environement right after the object is created."""
         raise NotImplementedError
 
