@@ -1,8 +1,8 @@
 
 from .syncaccounts import SyncAccounts
-from .tests import UnitTests
+from .unittests import UnitTests
 from .noop import Noop
-from .dev import Devel
+from .devel import Devel
 
 
 Actions = {
