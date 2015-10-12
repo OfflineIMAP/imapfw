@@ -2,9 +2,6 @@
 
 from .interface import ActionInterface
 
-from ..constants import WRK
-from ..error import InterruptionError
-
 
 class Devel(ActionInterface):
     """For development purpose only."""
@@ -32,3 +29,10 @@ class Devel(ActionInterface):
 
     def run(self):
         self._ui.infoL(1, 'running devel action')
+
+        from ..imap.imap import Imap
+
+        imap = Imap('imapc')
+        imap.configure(self._ui)
+        imap.connect('127.0.0.1', 10143)
+        imap.logout()

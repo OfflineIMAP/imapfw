@@ -40,7 +40,7 @@ class CLIOptions(object):
         parser.add_argument("-d", "--debug", dest="debug",
             default=[],
             action='append',
-            choices=['emitters', 'drivers', 'controllers', 'workers'],
+            choices=['controllers', 'drivers', 'emitters', 'imap', 'workers'],
             help="enable debugging for the requested mode(s)")
 
         parser.add_argument("-v", action='version',
