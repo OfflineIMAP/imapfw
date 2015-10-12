@@ -97,7 +97,7 @@ class AccountManager(Manager):
         #manager is to start managing both folderWorkers.
         #"""
 
-        #self.ui.debug(WRK, "creating the folders workers for %s"% accountName)
+        #self.ui.debugC(WRK, "creating the folders workers for %s"% accountName)
 
         ## Feed the folder tasks before running the folder workers so that they
         ## have something to do as soon as they start.

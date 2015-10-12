@@ -179,13 +179,13 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
         return self.workerName
 
     def join(self):
-        self.ui.debug(WRK, "%s join"% self.workerName)
+        self.ui.debugC(WRK, "%s join"% self.workerName)
         self._worker.join()
-        self.ui.debug(WRK, "%s stopped"% self.workerName)
+        self.ui.debugC(WRK, "%s stopped"% self.workerName)
 
     def kill(self):
         self._worker.kill()
-        self.ui.debug(WRK, "%s killed"% self.workerName)
+        self.ui.debugC(WRK, "%s killed"% self.workerName)
 
     def split(self):
         """Split this manager
@@ -243,13 +243,13 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
 
             def proxy_method(name, waitResult):
                 def nowait(self, *args, **kwargs):
-                    ui.debug(EMT, "calling %s: %s %s %s"%
+                    ui.debugC(EMT, "calling %s: %s %s %s"%
                         (self.__class__.__name__, name, args, kwargs))
                     self.__incomingQueue.put((name, args, kwargs))
                     return None
 
                 def wait(self, *args, **kwargs):
-                    ui.debug(EMT, "calling %s: %s %s %s"%
+                    ui.debugC(EMT, "calling %s: %s %s %s"%
                         (self.__class__.__name__, name, args, kwargs))
                     self.__incomingQueue.put((name, args, kwargs))
                     return self.__resultQueue.get()
@@ -277,7 +277,7 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
             emitter.__incomingQueue = incomingQueue
             emitter.__resultQueue = resultQueue
 
-            ui.debug(EMT, "new instance %s: %s"% (emitter.__class__.__name__,
+            ui.debugC(EMT, "new instance %s: %s"% (emitter.__class__.__name__,
                 [x for x in dir(emitter) if not x.startswith('_')]))
             return emitter # The instance.
 
@@ -295,4 +295,4 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
         self._worker = self.concurrency.createBasicWorker(
             name=self.workerName, target=target, args=args)
         self._worker.start()
-        self.ui.debug(WRK, "%s started"% self.workerName)
+        self.ui.debugC(WRK, "%s started"% self.workerName)

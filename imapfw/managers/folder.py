@@ -63,5 +63,3 @@ class FolderManager(object):
             )
         )
         self.worker.start()
-        self.ui.debugWorkers("%s started"% self.managerName)
-

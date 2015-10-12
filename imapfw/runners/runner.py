@@ -26,7 +26,7 @@ def driverRunner(ui, workerName, controller):
         # No!
         controller.interruptAll(str(e))
     finally:
-        ui.debug(WRK, "runner ended")
+        ui.debugC(WRK, "runner ended")
         controller.declareStopped() # Stop serving this worker!
 
 
@@ -42,7 +42,7 @@ def ConsumerRunner(runner, emitter):
                     break # Quit the consumer loop.
 
                 runner.consume(task)
-                ui.debug(WRK, "got task %s"% task)
+                ui.debugC(WRK, "got task %s"% task)
 
             except KeyboardInterrupt:
                 raise
@@ -54,7 +54,7 @@ def ConsumerRunner(runner, emitter):
                 raise
 
         emitter.stopServing()
-        ui.debug(WRK, "runner ended")
+        ui.debugC(WRK, "runner ended")
     except Exception as e:
         ui.critical("%s got Exception", workerName)
         emitter.unkownInterruptionError(str(e))

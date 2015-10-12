@@ -16,6 +16,12 @@ class CLIOptions(object):
             prog='imapfw',
             description="%s.\n\n%s."% (__copyright__, __license__))
 
+        parser.add_argument("--log-level", dest="info",
+            type=int,
+            default=3,
+            choices=[0, 1, 2, 3],
+            help="define the logging level for the output (default is 3)")
+
         parser.add_argument("-c", dest="concurrency",
             default='multiprocessing',
             choices=['multiprocessing', 'threading'],

@@ -84,7 +84,8 @@ class ImapfwConfig(object):
 
         # Let ui prefix log lines with the worker name.
         ui.setCurrentWorkerNameFunction(self._concurrency.getCurrentWorkerNameFunction())
-        # Apply debug CLI option.
+        # Apply CLI options.
         ui.enableDebugCategories(self._cli.get('debug'))
+        ui.setInfoLevel(self._cli.get('info'))
 
         self._ui = ui

@@ -33,8 +33,8 @@ class SyncAccount(SyncAccountEngineInterface):
         leftFolders = self._leftDriver.getFolders()
         rightFolders = self._rightDriver.getFolders()
 
-        self._ui.debug(DRV, "got left folders: %s"% leftFolders)
-        self._ui.debug(DRV, "got right folders: %s"% rightFolders)
+        self._ui.debugC(DRV, "got left folders: %s"% leftFolders)
+        self._ui.debugC(DRV, "got right folders: %s"% rightFolders)
 
         #TODO: honor controllers
 

@@ -1,6 +1,7 @@
 
 from ..types.account import Account
 
+
 class AccountTaskRunnerInterface(object):
     def getTask(self):
         raise NotImplementedError
@@ -49,6 +50,7 @@ class AccountTaskRunner(AccountTaskRunnerInterface):
         :accountName: the account name to sync.
         """
 
+        self._ui.infoL(2, "syncing %s"% accountName)
         # The account class is defined in the rascal.
         account = self._rascal.get(accountName, [Account]) #TODO: defaultConstructor
 
@@ -71,3 +73,5 @@ class AccountTaskRunner(AccountTaskRunnerInterface):
 
         self._left.stopServing()
         self._right.stopServing()
+
+        self._ui.infoL(3, "syncing %s done"% accountName)

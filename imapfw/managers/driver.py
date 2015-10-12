@@ -29,20 +29,20 @@ class DriverManager(Manager, DriverManagerInterface):
         self._driver = None
         self._folders = None
 
-        ui.debug(DRV, "%s manager created"% workerName)
+        ui.debugC(DRV, "%s manager created"% workerName)
 
     def exposed_connect_nowait(self):
         connected = self._driver.connect()
-        self.ui.debug(DRV, "driver connected")
+        self.ui.debugC(DRV, "driver connected")
         if not connected:
             raise Exception("%s: could not connect the driver"% self.workerName)
 
     def exposed_fetchFolders_nowait(self):
-        self.ui.debug(DRV, "starting fetch of folders")
+        self.ui.debugC(DRV, "starting fetch of folders")
         self._folders = self._driver.getFolders()
 
     def exposed_getFolders(self):
-        self.ui.debug(DRV, "folders: %s"% self._folders)
+        self.ui.debugC(DRV, "folders: %s"% self._folders)
         return self._folders
 
     def exposed_startDriver(self, typeName):
@@ -55,7 +55,7 @@ class DriverManager(Manager, DriverManagerInterface):
             raise Exception("driver class %s does not satisfy DriverInterface"%
                 self._driver.__class__.__name__)
 
-        self.ui.debug(DRV, "starting driver '%s' of '%s'"%
+        self.ui.debugC(DRV, "starting driver '%s' of '%s'"%
             (self._driver.getClassName(), typeName))
 
 

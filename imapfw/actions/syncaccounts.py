@@ -105,7 +105,7 @@ class SyncAccounts(ActionInterface):
             self._receivers.append(accountReceiver)
 
         # Serve the workers.
-        self._ui.debug(WRK, "serving accounts")
+        self._ui.debugC(WRK, "serving accounts")
         while len(self._receivers) > 0: # Are all account workers done?
             for accountReceiver in self._receivers:
                 try:
@@ -116,4 +116,4 @@ class SyncAccounts(ActionInterface):
                 if not continueServing:
                     accountReceiver.join() # Destroy the worker.
                     self._receivers.remove(accountReceiver)
-        self._ui.debug(WRK, "serving accounts stopped")
+        self._ui.debugC(WRK, "serving accounts stopped")

@@ -54,12 +54,19 @@ MainConf = {
 
 # UI allows to send messages to the UI library of the framework. Interface is
 # quite the same as the logging library:
-# - critical(*args)
-# - debug(*args)
-# - error(*args)
-# - exception(*args)
-# - info(*args)
-# - warn(*args)
+#
+#   - critical(*args)
+#   - debug(*args)
+#   - error(*args)
+#   - exception(*args)
+#   - info(*args)
+#   - warn(*args)
+#
+# This includes the following added methods:
+#
+#   - infoL(<level>, *args) # Honors <level> from CLI.
+#   - debugC(<category>, *args) # Honors <category> from CLI.
+#
 UI = None
 
 # The configure function is called once the rascal is loaded, before the action

@@ -8,10 +8,10 @@ def driverRunner(ui, rascal, workerName, callerEmitter, driverReceiver):
 
     try:
         try:
-            ui.debug(DRV, "starts serving")
+            ui.debugC(DRV, "starts serving")
             while driverReceiver.serve_nowait():
                 pass
-            ui.debug(DRV, "stopped serving")
+            ui.debugC(DRV, "stopped serving")
 
         except KeyboardInterrupt:
             raise
@@ -21,7 +21,7 @@ def driverRunner(ui, rascal, workerName, callerEmitter, driverReceiver):
                 workerName, e, traceback.format_exc())
             raise
 
-        ui.debug(WRK, "runner ended")
+        ui.debugC(WRK, "runner ended")
     except Exception as e:
         ui.critical("%s got Exception", workerName)
         callerEmitter.unkownInterruptionError(str(e))
