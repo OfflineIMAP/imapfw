@@ -1,6 +1,7 @@
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
 [website]: http://offlineimap.org
+[blog]: http://offlineimap.org/posts.html
 
 # imafw
 
@@ -11,6 +12,8 @@ project is made public for **developpers** only.
 
 Last WIP is in the `next` branch. Since this is still very early stage
 development, rebasing might happen everywhere.
+
+**Read the [blog][blog] to get last news.**
 
 
 ## Description
