@@ -4,7 +4,7 @@ import os
 
 from .driver import DriverBase
 
-from ..util.toolkit import expandPath
+from ..toolkit import expandPath
 from ..error import DriverFatalError
 
 
