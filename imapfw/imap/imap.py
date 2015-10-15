@@ -26,10 +26,10 @@ class IMAPcInterface(object):
 
 
 class IMAPlib2_skater(IMAPcInterface):
-    """Allows to use imaplib2 with IMAPc API."""
+    """Allows to use imaplib2 (or imaplib3) with the API of IMAPc."""
 
     def __init__(self, imaplib2):
-        self._imaplib2 = imaplib2
+        self._imaplib2 = imaplib2 # Might be imaplib3!
         self._ui = None
         self._imap = None
 
@@ -77,5 +77,10 @@ def Imap(backendNameVersion):
 
         mod_imaplib2 = import_module(".imap.imaplib2.imaplib2_%s"% version, 'imapfw')
         return IMAPlib2_skater(mod_imaplib2)
+
+    # imaplib3
+    if backendName == 'imaplib3':
+        from .imapc.imaplib3 import imaplib3
+        return IMAPlib2_skater(imaplib3)
 
     raise Exception("unkown backend: %s"% backendName)
