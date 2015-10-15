@@ -6,7 +6,7 @@ python:
   - "3.5"
   - "3.5-dev" # 3.5 development branch
   - "nightly" # currently points to 3.6-dev
-  - "pypy3"
+  #- "pypy3"  # won't work since it implements Python 3.2.5.
 
 branches:
   only:
