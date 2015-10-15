@@ -9,4 +9,5 @@ from .repository import RepositoryBase
 
 
 class Maildir(RepositoryBase):
-    pass
+
+    isLocal = True

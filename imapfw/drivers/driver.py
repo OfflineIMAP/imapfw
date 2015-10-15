@@ -10,6 +10,7 @@ class DriverInternalInterface(object):
 class DriverInterface(DriverInternalInterface):
 
     conf = {} # The configuration of the type has to be there.
+    isLocal = None
 
     def connect(self):      raise NotImplementedError
     def getFolders(self):   raise NotImplementedError

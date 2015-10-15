@@ -12,6 +12,8 @@ from ..error import DriverFatalError
 class Maildir(DriverBase):
     """Maildir driver possibly redefined by the rascal."""
 
+    isLocal = True
+
     def connect(self):
         path = expandPath(self.conf.get('path'))
         try:

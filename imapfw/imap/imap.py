@@ -37,7 +37,7 @@ class IMAPlib2_skater(IMAPcInterface):
         self._ui = ui
 
     def connect(self, host, port):
-        #TODO: expose debug level.
+        #TODO: expose more like debug level.
         try:
             self._imap = self._imaplib2.IMAP4(host, port, debug=3, timeout=2)
             return True
@@ -65,8 +65,8 @@ def Imap(backendNameVersion):
 
     # imapc
     if backendName == 'imapc':
-        mod = import_module('.imap.imapc.imapc', 'imapfw')
-        return mod.IMAP4rev1()
+        from .imapc.imapc import IMAP4rev1
+        return IMAP4rev1()
 
     # imaplib2
     if backendName == 'imaplib2':

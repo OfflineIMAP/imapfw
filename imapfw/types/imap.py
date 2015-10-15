@@ -9,4 +9,5 @@ from .repository import RepositoryBase
 
 
 class Imap(RepositoryBase):
-    pass
+
+    isLocal = False

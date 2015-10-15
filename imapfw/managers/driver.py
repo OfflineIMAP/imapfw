@@ -32,8 +32,14 @@ class DriverManager(Manager, DriverManagerInterface):
         ui.debugC(DRV, "%s manager created"% workerName)
 
     def exposed_connect_nowait(self):
-        self.ui.debugC(DRV, '{} connecting to {}:{}', self._driver.getOwner(),
-            self._driver.conf.get('host'), self._driver.conf.get('port'))
+        if self._driver.isLocal:
+            self.ui.debugC(DRV, '{} working in {}', self._driver.getOwner(),
+                self._driver.conf.get('path'))
+        else:
+            self.ui.debugC(DRV, '{} connecting to {}:{}', self._driver.getOwner(),
+                self._driver.conf.get('host'), self._driver.conf.get('port'))
+
+        #TODO: catch exception.
         connected = self._driver.connect()
         self.ui.debugC(DRV, "driver of {} connected", self._driver.getOwner())
         if not connected:

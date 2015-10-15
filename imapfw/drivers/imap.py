@@ -8,6 +8,8 @@ from ..imap.imap import Imap as ImapBackend
 class Imap(DriverBase):
     """Imap driver possibly redefined by the rascal."""
 
+    isLocal = False
+
     def fw_initialize(self, ui, conf, owner):
         super(Imap, self).fw_initialize(ui, conf, owner)
 
