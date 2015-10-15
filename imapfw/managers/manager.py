@@ -21,7 +21,8 @@ The code implemented in "doSomething" is run by the receiver.
 The limitation is about the parameters and the returned values whose must
 be accepted by the queues. Don't expect to pass your SO_WONDERFULL objects.
 Take this limitation as a chance to write good code and objects with simple
-APIs.
+APIs. However, if you really need to pass objects, consider implementing the
+.serializer.SerializerInterface class.
 
 
 Name conventions
@@ -119,25 +120,15 @@ from ..error import InterruptionError
 
 
 class ManagerCallerInterface(object):
-    def join(self):
-        raise NotImplementedError
-
-    def kill(self):
-        raise NotImplementedError
-
-    def split(self):
-        raise NotImplementedError
-
-    def start(self):
-        raise NotImplementedError
+    def join(self):                 raise NotImplementedError
+    def kill(self):                 raise NotImplementedError
+    def split(self):                raise NotImplementedError
+    def start(self, target, args):  raise NotImplementedError
 
 
 class ManagerEmitterInterface(object):
-    def interruptAll(self):
-        raise NotImplementedError
-
-    def stopServing(self):
-        raise NotImplementedError
+    def interruptAll(self): raise NotImplementedError
+    def stopServing(self):  raise NotImplementedError
 
 
 class Manager(ManagerCallerInterface, ManagerEmitterInterface):
