@@ -24,7 +24,29 @@ logging_config = {
 }
 
 
-class TTY(object):
+
+
+class UIinterface(object):
+    def critical(self, *args): raise NotImplementedError
+    def debug(self, *args): raise NotImplementedError
+    def debugC(self, category, *args): raise NotImplementedError
+    def error(self, *args): raise NotImplementedError
+    def exception(self, *args): raise NotImplementedError
+    def format(self, *args): raise NotImplementedError
+    def info(self, *args): raise NotImplementedError
+    def infoL(self, level, *args): raise NotImplementedError
+    def setInfoLevel(self, level): raise NotImplementedError
+    def warn(self, *args): raise NotImplementedError
+
+
+class UIbackendInterface(object):
+    def __init__(self, lock): raise NotImplementedError
+    def configure(self, config=logging_config): raise NotImplementedError
+    def enableDebugCategories(self, categories): raise NotImplementedError
+    def setCurrentWorkerNameFunction(self, func): raise NotImplementedError
+
+
+class TTY(UIinterface, UIbackendInterface):
     def __init__(self, lock):
         self._lock = lock
 
