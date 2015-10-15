@@ -10,6 +10,17 @@ from imapfw.actions.syncaccounts import SyncAccounts
 from imapfw.testing.nullui import NullUI
 
 
+def run_action(concurrency, rascal, options):
+    ui = NullUI
+    action = SyncAccounts()
+    try:
+        action.initialize(ui, concurrency, rascal, options)
+        action.run()
+    except Exception as e:
+        action.exception(e)
+    return action.getExitCode()
+
+
 class TestSyncAccounts(unittest.TestCase):
     def setUp(self):
         def loadRascal(path):
@@ -29,13 +40,9 @@ class TestSyncAccounts(unittest.TestCase):
         self.rascal = loadRascal(os.path.join(rascalsDir, 'syncaccounts.1.rascal'))
 
     def test_runAccountA_multiprocessing(self):
+        self.assertEqual(0, run_action(self.multiprocessing, self.rascal,
+            {'accounts': ['AccountA']} ))
 
-        ui = NullUI
-        action = SyncAccounts()
-        options = {'accounts': ['AccountA']}
-        try:
-            action.initialize(ui, self.multiprocessing, self.rascal, options)
-            action.run()
-        except Exception as e:
-            action.exception(e)
-        self.assertEqual(action.getExitCode(), 0)
+    def test_runAccountA_threading(self):
+        self.assertEqual(0, run_action(self.threading, self.rascal,
+            {'accounts': ['AccountA']} ))
