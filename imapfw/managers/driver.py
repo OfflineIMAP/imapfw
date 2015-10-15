@@ -1,12 +1,12 @@
 
 from ..managers.manager import Manager
-from ..drivers.driver import DriverInterface
+from ..drivers.driver import DriverBase
 from ..types.repository import RepositoryInterface
 from ..constants import DRV
 
 
 class DriverManagerInterface(object):
-    pass # TODO
+    pass #TODO
 
 
 class DriverManager(Manager, DriverManagerInterface):
@@ -32,33 +32,38 @@ class DriverManager(Manager, DriverManagerInterface):
         ui.debugC(DRV, "%s manager created"% workerName)
 
     def exposed_connect_nowait(self):
+        self.ui.debugC(DRV, '{} connecting to {}:{}', self._driver.getOwner(),
+            self._driver.conf.get('host'), self._driver.conf.get('port'))
         connected = self._driver.connect()
-        self.ui.debugC(DRV, "driver connected")
+        self.ui.debugC(DRV, "driver of {} connected", self._driver.getOwner())
         if not connected:
-            raise Exception("%s: could not connect the driver"% self.workerName)
+            raise Exception("%s: driver could not connect"% self.workerName)
 
     def exposed_fetchFolders_nowait(self):
-        self.ui.debugC(DRV, "starting fetch of folders")
+        self.ui.debugC(DRV, "driver of {} starts fetching of folders",
+            self._driver.getOwner())
         self._folders = self._driver.getFolders()
 
     def exposed_getFolders(self):
-        self.ui.debugC(DRV, "folders: {}", self._folders)
+        self.ui.debugC(DRV, "driver of {} got folders: {}",
+            self._driver.getOwner(), self._folders)
         return self._folders
 
     def exposed_logout(self):
         self._driver.logout()
+        self.ui.debugC(DRV, "driver of {} logged out", self._driver.getOwner())
 
     def exposed_startDriver(self, typeName):
         # Retrieve the driver from the type.
         typeInst = self._rascal.get(typeName, [RepositoryInterface]) #TODO: defaultConstructor
 
         driver = typeInst.driver() # Instanciate the driver.
-        driver.fw_initialize(self.ui, typeInst.conf) # Initialize.
-        driver.fw_sanityChecks() # Catch common errors early.
+        driver.fw_initialize(self.ui, typeInst.conf, typeName) # Initialize.
+        DriverBase.fw_sanityChecks(driver) # Catch common errors early.
 
         self.ui.debugC(DRV, "starting driver '{}' of '{}'",
-            driver.fw_getName(), typeName)
-        self.ui.debugC(DRV, "'{}' has conf {}", typeName, driver.conf)
+            driver.getName(), driver.getOwner())
+        self.ui.debugC(DRV, "'{}' has conf {}", driver.getOwner(), driver.conf)
 
         self._driver = driver
 

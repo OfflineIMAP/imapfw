@@ -23,9 +23,9 @@ class Maildir(DriverBase):
                 "parent directory of '%s' does not exists"% path)
         return True
 
-    def logout(self):
-        self.ui.debugC(DRV, 'logged out')
-
     def getFolders(self):
         time.sleep(1) # simulate long time
-        return ['a', 'b', 'x']
+        return ['on', 'maildir', 'side']
+
+    def logout(self):
+        pass

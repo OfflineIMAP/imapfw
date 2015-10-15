@@ -8,25 +8,23 @@ from ..imap.imap import Imap as ImapBackend
 class Imap(DriverBase):
     """Imap driver possibly redefined by the rascal."""
 
-    def fw_initialize(self, ui, conf):
-        super(Imap, self).fw_initialize(ui, conf)
+    def fw_initialize(self, ui, conf, owner):
+        super(Imap, self).fw_initialize(ui, conf, owner)
 
         # Assume fw_loadConf() was already called.
         self.imap = ImapBackend(self.conf.get('backend'))
         self.imap.configure(self.ui)
 
     def connect(self):
-        host, port = self.conf.get('host'), self.conf.get('port')
-        self.ui.debugC(DRV, 'connecting to {}:{}', host, port)
         return True
         #return self.imap.connect(host, port)
 
     def getFolders(self):
-        return ['a', 'b', 'x']
+        return ['on', 'imap', 'side']
 
     def logout(self):
         #self.imap.logout()
-        self.ui.debugC(DRV, 'logged out')
+        pass
 
     #def append(self, server,  mail):
         #response = server.append(mail)

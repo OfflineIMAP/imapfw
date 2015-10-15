@@ -64,9 +64,8 @@ class TTY(UIinterface, UIbackendInterface):
 
     def _safeLog(self, name, *args):
         self._lock.acquire()
-        value = getattr(self._logger, name)(*args)
+        getattr(self._logger, name)(*args)
         self._lock.release()
-        return value
 
     def configure(self, config=logging_config):
         self._backend.config.dictConfig(config)

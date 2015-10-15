@@ -72,9 +72,15 @@ class ImapA(types.Imap):
     conf = ImapConfA
     driver = drivers.Imap # Default: drivers.Imap.
 
+    #def getFolders(self, driver):
+        #return ['sample', 'of', 'static', 'remote', 'folder', 'list']
+
 class AccountA(types.Account):
     engine = engines.SyncAccount # Default: engine.SyncAccount. (TODO)
     left = MaildirA
     right = ImapA
+
+    #def syncFolders(self, folders):
+        #return ['oops', 'static', 'folder', 'list']
 
 # vim: syntax=python ts=4 expandtab :
