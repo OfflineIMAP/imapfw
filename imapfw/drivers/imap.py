@@ -1,7 +1,6 @@
 
 from .driver import DriverBase
 
-from ..constants import DRV
 from ..imap.imap import Imap as ImapBackend
 
 
