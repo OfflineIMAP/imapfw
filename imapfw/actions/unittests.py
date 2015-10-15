@@ -24,9 +24,11 @@ class UnitTests(ActionInterface):
         # Load all available unit tests.
         from ..testing.concurrency import TestMultiProcessing
         from ..testing.rascal import TestRascal
+        from ..testing.syncaccounts import TestSyncAccounts
 
         self._suite.addTest(unittest.makeSuite(TestMultiProcessing))
         self._suite.addTest(unittest.makeSuite(TestRascal))
+        self._suite.addTest(unittest.makeSuite(TestSyncAccounts))
 
     def run(self):
         import unittest
