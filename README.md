@@ -5,6 +5,7 @@
 
 # imafw
 
+
 ## WARNING
 
 imapfw is still **WORK IN PROGRESS**. It won't do anything good for now. This
@@ -15,6 +16,8 @@ development, rebasing might happen everywhere.
 
 **Read the [blog][blog] to get last news.**
 
+[![Build Status: "master" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=master)](https://travis-ci.org/OfflineIMAP/imapfw)
+[![Build Status: "next" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=next)](https://travis-ci.org/OfflineIMAP/imapfw)
 
 ## Description
 
