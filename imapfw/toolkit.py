@@ -27,7 +27,7 @@ def runHook(hookFunc, *args):
     if hookName == 'preHook':
         args += (hook,)
 
-    thread = Thread(name=hookName, target=hookFunc, args=args)
+    thread = Thread(name=hookName, target=hookFunc, args=args, daemon=True)
     thread.start()
     thread.join(10) # TODO: get timeout from rascal.
 
