@@ -24,7 +24,7 @@ class SyncAccount(SyncAccountEngineInterface):
         """Compare the folders on both ends. Return a list of merged folders."""
 
         folders = []
-        accountName = self._account.getClassName()
+        accountName = self._account.getName()
 
         # Get the folders from both sides so we can feed the folder tasks.
         self._leftDriver.fetchFolders_nowait()
@@ -35,6 +35,11 @@ class SyncAccount(SyncAccountEngineInterface):
 
         self._ui.debugC(DRV, "got left folders: %s"% leftFolders)
         self._ui.debugC(DRV, "got right folders: %s"% rightFolders)
+
+        #TODO: move out.
+        # Leave the driver in Authenticated state.
+        self._leftDriver.logout()
+        self._rightDriver.logout()
 
         #TODO: honor controllers
 

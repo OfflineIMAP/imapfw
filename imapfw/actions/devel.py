@@ -32,7 +32,7 @@ class Devel(ActionInterface):
 
         from ..imap.imap import Imap
 
-        imap = Imap('imapc')
+        imap = Imap('imaplib2-2.50')
         imap.configure(self._ui)
         imap.connect('127.0.0.1', 10143)
         imap.logout()

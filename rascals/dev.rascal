@@ -38,21 +38,25 @@ def exceptionHook(error):
 
 from imapfw.api import engines, controllers, types, drivers
 
+maildirsPath = "~/.imapfw"
+
 
 MaildirConfA = {
-    'path': '~/.imapfw/MaildirA',
+    'path': maildirsPath + '/MaildirA',
     'max_connections': 9,
 }
 
 MaildirConfB = {
-    'path': '~/.imapfw/MaildirB',
+    'path': maildirsPath + '/MaildirB',
     'max_connections': 9,
 }
 
 ImapConfA = {
-    'dns':      'imap.gmail.com',
-    'port':     '143',
-    'username': 'myname',
+    'backend':  'imaplib2',
+    'host':      '127.0.0.1',
+    'port':     '10143',
+    'username': 'nicolas',
+    'password': 'sebrecht',
     'max_connections': 11,
 }
 
@@ -71,6 +75,6 @@ class ImapA(types.Imap):
 class AccountA(types.Account):
     engine = engines.SyncAccount # Default: engine.SyncAccount. (TODO)
     left = MaildirA
-    right = MaildirB
+    right = ImapA
 
 # vim: syntax=python ts=4 expandtab :

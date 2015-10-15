@@ -158,7 +158,8 @@ class ImapDriverExample(drivers.Imap):
 ################
 
 ImapExampleConf = {
-    'dns':      'imap.gmail.com',
+    'backend':  'imaplib2',
+    'host':      'imap.gmail.com',
     'port':     '143',
     'username': 'myname',
     'max_connections': 2,

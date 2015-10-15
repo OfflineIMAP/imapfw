@@ -42,21 +42,25 @@ class DriverManager(Manager, DriverManagerInterface):
         self._folders = self._driver.getFolders()
 
     def exposed_getFolders(self):
-        self.ui.debugC(DRV, "folders: %s"% self._folders)
+        self.ui.debugC(DRV, "folders: {}", self._folders)
         return self._folders
 
+    def exposed_logout(self):
+        self._driver.logout()
+
     def exposed_startDriver(self, typeName):
-        # Retrieve the driver class from the type.
+        # Retrieve the driver from the type.
         typeInst = self._rascal.get(typeName, [RepositoryInterface]) #TODO: defaultConstructor
-        self._driver = typeInst.driver()
 
-        # Sanity check.
-        if not isinstance(self._driver, DriverInterface):
-            raise Exception("driver class %s does not satisfy DriverInterface"%
-                self._driver.__class__.__name__)
+        driver = typeInst.driver() # Instanciate the driver.
+        driver.fw_initialize(self.ui, typeInst.conf) # Initialize.
+        driver.fw_sanityChecks() # Catch common errors early.
 
-        self.ui.debugC(DRV, "starting driver '%s' of '%s'"%
-            (self._driver.getClassName(), typeName))
+        self.ui.debugC(DRV, "starting driver '{}' of '{}'",
+            driver.fw_getName(), typeName)
+        self.ui.debugC(DRV, "'{}' has conf {}", typeName, driver.conf)
+
+        self._driver = driver
 
 
 def createSideDriverManager(ui, concurrency, rascal, HandlerName, number):
