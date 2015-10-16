@@ -3,7 +3,7 @@
 __VERSION__ = 0.1
 
 
-from imapfw.api import actions, engines, types, drivers
+from imapfw.api import engines, types, drivers
 #from imapfw.api import contrib # Support for contributor's backends. ,-)
 
 
@@ -126,7 +126,7 @@ class MaildirDriverExample(drivers.Maildir):
         pass # noop
 
     def getFolders(self):
-        return ['sample', 'of', 'static', 'local', 'folder', 'list']
+        return folders
 
 
 # The IMAP driver connects to a remote server and provides low-level
@@ -162,11 +162,12 @@ ImapExampleConf = {
     'host':      'imap.gmail.com',
     'port':     '143',
     'username': 'myname',
+    'password': 'password',
     'max_connections': 2,
 }
 
 MaildirExampleConf = {
-    'path': '~/Maildir',
+    'path': '~/Maildir/MaildirA',
     'max_connections': 2,
 }
 
@@ -195,12 +196,21 @@ class ImapRepositoryExample(types.Imap):
 
         if title.startswith('offlineimap'):
             mail.setTitle("filtered: %s"% title)
-            mail.moveTo('INBOX.offlineimap') # IMAP MOVE.
+            mail.moveTo('INBOX/offlineimap') # IMAP MOVE.
 
         return # Continue proceeding to the folder.
 
     def getFolders(self):
-        return ['sample', 'of', 'static', 'remote', 'folder', 'list']
+        static = Folders(
+            Folder('sample'),
+            Folder('of'),
+            Folder('static'),
+            Folder('remote'),
+            Folder('folder'),
+            Folder('list'),
+            Folder('with/subfolder'),
+            )
+        return static
 
 
 
@@ -209,6 +219,7 @@ class ImapRepositoryExample(types.Imap):
 ############
 
 class AccountExample(types.Account):
+    engine = engines.SyncAccount # Default: engine.SyncAccount. (TODO)
     left = MaildirRepositoryExample
     right = ImapRepositoryExample
 
@@ -217,7 +228,7 @@ class AccountExample(types.Account):
     # - folder_list: list of folder names to sync.
     # Returned values: the new list of folders to sync.
     def syncFolders(self, foldersList):
-        return ['folderA', 'folderB', 'folderC']
+        return Folders(Folder('folderA'), Folder('folderB'), Folder('folderC'))
 
 
 # vim: syntax=python ts=4 expandtab :

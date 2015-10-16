@@ -1,10 +1,10 @@
 
 import unittest
-import sys
 import os
 
 from imapfw.rascal import Rascal
 from imapfw.api import types
+from imapfw.testing import libcore
 
 
 class TestRascal(unittest.TestCase):
@@ -14,11 +14,8 @@ class TestRascal(unittest.TestCase):
             rascal.load(path)
             return rascal
 
-        imapfw_path = os.path.abspath(sys.modules['imapfw'].__path__[0])
-
         rascalsDir = os.path.join(
-            imapfw_path,
-            'testing',
+            libcore.testingPath(),
             'rascals',
             )
 

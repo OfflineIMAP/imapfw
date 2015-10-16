@@ -25,10 +25,14 @@ class UnitTests(ActionInterface):
         from ..testing.concurrency import TestMultiProcessing
         from ..testing.rascal import TestRascal
         from ..testing.syncaccounts import TestSyncAccounts
+        from ..testing.folder import TestFolder
+        from ..testing.maildir import TestMaildirDriver
 
         self._suite.addTest(unittest.makeSuite(TestMultiProcessing))
         self._suite.addTest(unittest.makeSuite(TestRascal))
         self._suite.addTest(unittest.makeSuite(TestSyncAccounts))
+        self._suite.addTest(unittest.makeSuite(TestFolder))
+        self._suite.addTest(unittest.makeSuite(TestMaildirDriver))
 
     def run(self):
         import unittest

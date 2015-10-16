@@ -9,12 +9,14 @@ and how to structure the underlying code.
 """
 
 __all__ = [
+    'folder',
     'Account',
     'Imap',
     'Maildir',
     'RepositoryBase',
 ]
 
+from ...types import folder
 from ...types.account import Account
 from ...types.imap import Imap
 from ...types.maildir import Maildir

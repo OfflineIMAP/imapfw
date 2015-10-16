@@ -2,6 +2,7 @@
 from .driver import DriverBase
 
 from ..imap.imap import Imap as ImapBackend
+from ..types.folder import Folder, Folders
 
 
 class Imap(DriverBase):
@@ -21,7 +22,7 @@ class Imap(DriverBase):
         #return self.imap.connect(host, port)
 
     def getFolders(self):
-        return ['on', 'imap', 'side']
+        return Folders(Folder(b'on'), Folder(b'imap'), Folder(b'side'))
 
     def logout(self):
         #self.imap.logout()

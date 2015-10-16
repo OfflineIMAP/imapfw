@@ -3,8 +3,8 @@
 class DriverInternalInterface(object):
     """Users must NOT change those methods."""
 
-    def fw_initialize(self, ui, conf, owner):  raise NotImplementedError
-    def fw_sanityChecks(self):          raise NotImplementedError
+    def fw_initialize(self, ui, conf, owner):   raise NotImplementedError
+    def fw_sanityChecks(self):                  raise NotImplementedError
 
 
 class DriverInterface(DriverInternalInterface):

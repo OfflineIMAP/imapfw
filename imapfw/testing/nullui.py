@@ -1,4 +1,5 @@
 
+#TODO: use a "null" logging instead.
 class NullUI(object):
     def critical(self, *args): pass
     def debug(self, *args): pass
