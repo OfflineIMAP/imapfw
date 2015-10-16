@@ -3,8 +3,8 @@
 from collections import deque
 
 
-class Task(object):
-    """Generic task class."""
+class Tasks(object):
+    """Generic task queue."""
 
     def __init__(self):
         self._tasks = deque()

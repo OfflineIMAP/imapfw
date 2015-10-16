@@ -42,20 +42,29 @@ class Imapfw(object):
             rascalConfigure = rascal.getFunction('configure')
             rascalConfigure(ui)
 
+        # "Action", you said? Do you really want action?
+        # Fine...
         actionName = config.getAction()
         actionOptions = config.getActionOptions()
 
         action = Action(actionName)
+
+        if action.requireRascal is True and rascal is None:
+            ui.critical("a rascal is required but is not defined, use '-r'.")
+            sys.exit(2)
+
         try:
-            if rascal is not None:
-                stop = runHook(rascal.getPreHook(), actionName, actionOptions)
-                if stop:
+            if action.honorHooks is True:
+                timedout = runHook(rascal.getPreHook(), actionName, actionOptions)
+                if timedout:
                     sys.exit(4)
 
-            action.initialize(ui, config.getConcurrency(), rascal, actionOptions)
+            action.init(ui, config.getConcurrency(), rascal, actionOptions)
             action.run()
-            if rascal is not None:
-                runHook(rascal.getPostHook())
+            if action.honorHooks is True:
+                timedout = runHook(rascal.getPostHook())
+                if timedout:
+                    ui.error('postHook reached timed out')
         except Exception as e:
             def outputException(error, message):
                 ui.critical(message)
@@ -65,8 +74,10 @@ class Imapfw(object):
 
             # Rascal's exceptionHook.
             try:
-                if rascal is not None:
-                    runHook(rascal.getExceptionHook(), e)
+                if action.honorHooks is True:
+                    timedout = runHook(rascal.getExceptionHook(), e)
+                    if timedout:
+                        ui.error('postHook reached timed out')
             except Exception as hookError:
                 outputException(hookError, "exception occured while running"
                     " exceptionHook: %s"% str(hookError))

@@ -1,23 +1,31 @@
 
 
-class RepositoryInterface(object):
+class RepositoryIntenalInterface(object):
+    def fw_init(self): raise NotImplementedError
+
+
+class RepositoryInterface(RepositoryIntenalInterface):
     conf = None
     driver = None
+    isLocal = None
 
-    def fetchFolders(self, driver): raise NotImplementedError
-    def getName(self):              raise NotImplementedError
-    def getFolders(self, driver):   raise NotImplementedError
+    def fetchFolders(self): raise NotImplementedError
+    def getName(self):      raise NotImplementedError
+    def getFolders(self):   raise NotImplementedError
 
 
 class RepositoryBase(RepositoryInterface):
     conf = None
     driver = None
 
-    def fetchFolders(self, driver):
-        driver.fetchFolders_nowait()
+    def fw_init(self, controller):
+        self.controller = controller
 
-    def getFolders(self, driver):
-        return driver.getFolders()
+    def fetchFolders(self):
+        return self.controller.fetchFolders()
+
+    def getFolders(self):
+        return self.controller.getFolders()
 
     def getName(self):
         return self.__class__.__name__

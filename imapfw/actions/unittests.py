@@ -5,6 +5,9 @@ from .interface import ActionInterface
 class UnitTests(ActionInterface):
     """Run all the unit tests."""
 
+    honorHooks = False
+    requireRascal = False
+
     def __init__(self):
         self._ui = None
         self._suite = None
@@ -15,7 +18,7 @@ class UnitTests(ActionInterface):
     def getExitCode(self):
         return 0
 
-    def initialize(self, ui, concurrency, rascal, actionOptions):
+    def init(self, ui, concurrency, rascal, actionOptions):
         import unittest
 
         self._ui = ui

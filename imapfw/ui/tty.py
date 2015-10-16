@@ -2,6 +2,7 @@
 import logging
 import logging.config
 
+from ..constants import DEBUG_CATEGORIES
 
 logging_config = {
     'version': 1,
@@ -54,12 +55,7 @@ class TTY(UIinterface, UIbackendInterface):
         self._logger = None
         self._backend = logging
         self._currentWorkerName = lambda *args: ''
-        self._debugCategories = {
-            'emitters': False,
-            'drivers': False,
-            'controllers': False,
-            'workers': False,
-            }
+        self._debugCategories = DEBUG_CATEGORIES
         self._infoLevel = None
 
     def _safeLog(self, name, *args):
@@ -78,11 +74,13 @@ class TTY(UIinterface, UIbackendInterface):
         self._safeLog('debug', *args)
 
     def debugC(self, category, *args):
-        if self._debugCategories[category] is True:
+        if self._debugCategories.get(category) is True:
             self._safeLog('debug', "%s: %s",
                 self._currentWorkerName(), self.format(*args))
 
     def enableDebugCategories(self, categories):
+        if 'all' in categories:
+            categories = DEBUG_CATEGORIES
         for category in categories:
             self._debugCategories[category] = True
 
@@ -94,7 +92,11 @@ class TTY(UIinterface, UIbackendInterface):
 
     def format(self, *args):
         format_args = args[1:]
-        return args[0].format(*format_args)
+        try:
+            return args[0].format(*format_args)
+        except IndexError:
+            return args
+
 
     def info(self, *args):
         self._safeLog('info', *args)

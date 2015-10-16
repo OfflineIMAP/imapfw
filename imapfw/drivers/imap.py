@@ -10,8 +10,8 @@ class Imap(DriverBase):
 
     isLocal = False
 
-    def fw_initialize(self, ui, conf, owner):
-        super(Imap, self).fw_initialize(ui, conf, owner)
+    def fw_init(self, ui, conf, owner):
+        super(Imap, self).fw_init(ui, conf, owner)
 
         # Assume fw_loadConf() was already called.
         self.imap = ImapBackend(self.conf.get('backend'))

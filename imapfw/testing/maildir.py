@@ -18,8 +18,8 @@ class TestMaildirDriver(unittest.TestCase):
         confA['path'] = os.path.join(libcore.testingPath(), 'maildirs', 'recursive_A')
         confB['path'] = os.path.join(libcore.testingPath(), 'maildirs', 'recursive_B')
 
-        self.driverA.fw_initialize(NullUI(), confA, self.driverA)
-        self.driverB.fw_initialize(NullUI(), confB, self.driverB)
+        self.driverA.fw_init(NullUI(), confA, self.driverA)
+        self.driverB.fw_init(NullUI(), confB, self.driverB)
 
     def test_getFolders_recursive_A(self):
         folders = self.driverA.getFolders()

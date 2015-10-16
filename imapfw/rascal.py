@@ -2,6 +2,7 @@
 import imp #TODO: use library importlib instead of deprecated imp.
 
 from .api import types
+from .types.repository import RepositoryBase
 
 
 class Rascal(object):
@@ -31,19 +32,12 @@ class Rascal(object):
     def _getLiteral(self, name):
         return getattr(self._rascal, name)
 
-    def get(self, name, expectedTypes, defaultConstructor=None):
+    def get(self, name, expectedTypes):
         literal = self._getLiteral(name)
 
         for expectedType in expectedTypes:
             if issubclass(literal, expectedType):
                 return literal()
-
-        if defaultConstructor is not None:
-            try:
-                self._isDict(literal)
-                return defaultConstructor(literal)
-            except:
-                pass
 
         raise TypeError("literal '%s' has unexpected type '%s'"%
             (name, type(literal)))
@@ -86,6 +80,28 @@ class Rascal(object):
         return literal
 
     def load(self, path):
+        def inject(literal, obj):
+            setattr(self._rascal, literal, obj)
+
+        def createClass(literal, base):
+            return type(literal, (base,), {})
+
+        def repositoryConstructor(conf):
+            repository = createClass(conf.get('name'), conf.get('type'))
+            repository.conf = conf.get('conf')
+            repository.driver = conf.get('driver')
+            return repository
+
+        def accountConstructor(conf):
+            account = createClass(conf.get('name'), conf.get('type'))
+            account.conf = conf.get('conf')
+            for side in ['left', 'right']:
+                if type(side) == dict:
+                    repository = repositoryConstructor(conf.get('side'))
+                    setattr(account, side, repository)
+            return account
+
+        # Really start here.
         # Create empty module.
         rascal_mod = imp.new_module('rascal')
         rascal_mod.__file__ = path
@@ -95,3 +111,24 @@ class Rascal(object):
         self._rascal = rascal_mod
 
         self._mainConf = self.getSettings('MainConf')
+
+        # Turn accounts definitions from MainConf into literals.
+        if hasattr(self._mainConf, 'accounts'):
+            for definition in self._mainConf.get('accounts'):
+                inject(definition.get('name'), definition)
+
+        # Convert all the dicts definitions of objects into global objects.
+        for literal in dir(self._rascal):
+            if literal.startswith('_'):
+                continue
+
+            obj = getattr(self._rascal, literal)
+            if type(obj) == dict and hasattr(obj, 'name'):
+                name = obj.get('name')
+                clsName = obj.get('type')
+                cls = createClass(name, type)
+                if issubclass(cls, RepositoryBase):
+                    cls = repositoryConstructor(obj)
+                if issubclass(cls, types.Account):
+                    cls = accountConstructor(obj)
+                inject(name, cls)

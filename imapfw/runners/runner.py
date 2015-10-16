@@ -30,14 +30,11 @@ def driverRunner(ui, workerName, controller):
         controller.declareStopped() # Stop serving this worker!
 
 
-def ConsumerRunner(runner, emitter):
+def ConsumerRunner(runner, ui, workerName, tasks, emitter):
     try:
-        ui = runner.getUIinst()
-        workerName = runner.getWorkerName()
-
         while True:
             try:
-                task =  runner.getTask()
+                task =  tasks.getTask()
                 if task is None: # No more task.
                     break # Quit the consumer loop.
 

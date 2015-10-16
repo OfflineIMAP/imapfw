@@ -1,3 +1,0 @@
-
-class Maildir(object):
-    pass

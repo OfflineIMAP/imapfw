@@ -12,4 +12,4 @@ __all__ = [
     'SyncAccount',
 ]
 
-from ...engines.syncaccount import SyncAccount
+from ...runners.account import SyncAccount

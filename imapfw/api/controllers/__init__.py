@@ -9,9 +9,15 @@ and how to structure the underlying code.
 """
 
 __all__ = [
-    'Imap',
-    'Maildir',
+    'Controller',
+    'Duplicate',
+    'Encoder',
+    'Filter',
+    'NameTrans',
 ]
 
-from ...controllers.imap import Imap
-from ...controllers.maildir import Maildir
+from ...controllers.controller import Controller
+from ...controllers.duplicate import Duplicate
+from ...controllers.encoder import Encoder
+from ...controllers.filter import Filter
+from ...controllers.nametrans import NameTrans

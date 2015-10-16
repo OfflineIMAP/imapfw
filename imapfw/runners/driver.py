@@ -5,7 +5,7 @@ from ..constants import WRK, DRV
 from ..error import DriverFatalError
 
 
-def driverRunner(ui, rascal, workerName, callerEmitter, driverReceiver):
+def driverRunner(ui, workerName, driverReceiver, callerEmitter):
     """The runner for a driver."""
 
     try:
@@ -15,11 +15,12 @@ def driverRunner(ui, rascal, workerName, callerEmitter, driverReceiver):
                 pass
             ui.debugC(DRV, "stopped serving")
 
-        except KeyboardInterrupt: raise
-
         except DriverFatalError as e:
             ui.critical(e)
             callerEmitter.interruptionError(str(e))
+
+        except KeyboardInterrupt:
+            raise
 
         except Exception as e:
             ui.error('%s exception occured: %s\n%s',

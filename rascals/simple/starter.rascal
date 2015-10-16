@@ -1,0 +1,160 @@
+
+
+__VERSION__ = 0.1
+
+
+from imapfw.api import types, drivers
+
+
+##########
+# GLOBAL #
+##########
+
+
+# UI allows to send messages to the UI library of the framework. Interface is
+# quite the same as the logging library:
+#
+#   - critical(*args)
+#   - debug(*args)
+#   - error(*args)
+#   - exception(*args)
+#   - info(*args)
+#   - warn(*args)
+#
+# This includes the following added methods:
+#
+#   - infoL(<level>, *args) # Honors <level> from CLI.
+#   - debugC(<category>, *args) # Honors <category> from CLI.
+#
+UI = None
+
+# The configure function is called once the rascal is loaded, before the action
+# gets executed. This allows configuring both the rascal and any other ressource
+# you need.
+def configure(ui):
+    global UI
+    UI = ui
+
+
+#########
+# Hooks #
+#########
+
+# The hook started at the beginning of the process once initialization is done.
+def preHook(actionName, actionOptions, hook):
+    UI.info("Running preHook: starting action %s with actionOptions %s"%
+        (actionName, actionOptions))
+    hook.ended() # timeout not reached (10 seconds).
+
+
+# The hook started at the end of the process when no exception is raised.
+def postHook(hook):
+    UI.info('Runing postHook')
+    hook.ended() # timeout not reached (10 seconds).
+
+
+
+# This hook is started on unexpected exception.
+# Arguments:
+# - error: the exception error.
+# Don't call sys.exit() here or you will loose the correct exit code.
+def exceptionHook(error, hook):
+    UI.critical("Running exceptionHook: an exception was catched!")
+    #import traceback, sys
+    #UI.exception(error)
+    #traceback.print_exc(file=sys.stdout)
+    hook.ended() # timeout not reached (10 seconds).
+
+
+
+################
+# REPOSITORIES #
+################
+
+ImapConfExample = {
+    'backend':  'imaplib3', # Optional.
+    'host':      'imap.gmail.com',
+    'port':     '143',
+    'username': 'myname',
+    'password': 'password',
+    'max_connections': 2,
+}
+
+ImapRepositoryExample = {
+    'type': types.Imap,
+    'conf': ImapConfExample,
+    'driver': drivers.Imap,
+}
+
+
+############
+# ACCOUNTS #
+############
+
+
+#
+# The main configuration options are set in this dict.
+#
+# Everything can be defined in this dict. However, we encourage to use variables
+# for clarity.
+#
+MainConf = {
+    # The number of concurrent workers for the accounts. Default is the number
+    # of accounts to sync.
+    'max_sync_accounts': 2,
+    # The list of accounts.
+    'accounts': [
+        {
+            'name': 'AccountExample',
+            'type': types.Account,
+            'left': {
+                'name': 'MaildirExample',
+                'type': types.Maildir,
+                'driver': drivers.Maildir,
+                'conf': {
+                    'path': '~/Maildir/MaildirA',
+                    'max_connections': 2,
+                },
+            },
+            'right': ImapRepositoryExample,
+        },
+    ],
+}
+
+#
+# Each type can be declared as global variables. For example, the "accounts" key
+# from above can be removed and the configuration can be defined like this:
+#
+#MaildirExample = {
+#    'type': types.Maildir,
+#    'driver': drivers.Maildir,
+#    'conf': {
+#        'path': '~/Maildir/MaildirA',
+#        'max_connections': 2,
+#    },
+#}
+#
+#AccountExample = {
+#    'type': types.Account,
+#    'conf': {
+#        'path': '~/Maildir/MaildirA',
+#        'max_connections': 2,
+#     },
+#    'left': MaildirExample,
+#    'right': ImapRepositoryExample,
+#}
+
+#
+# For even better clarity, types can be written as python objects. For example,
+# the MaildirExample can be rewritten like this:
+#
+#MaildirExample(types.Maildir):
+#    driver = drivers.Maildir,
+#    conf = {
+#        'path': '~/Maildir/MaildirA',
+#        'max_connections': 2,
+#    }
+
+
+
+# vim: syntax=python ts=4 expandtab :

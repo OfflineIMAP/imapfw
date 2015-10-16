@@ -3,8 +3,8 @@
 class DriverInternalInterface(object):
     """Users must NOT change those methods."""
 
-    def fw_initialize(self, ui, conf, owner):   raise NotImplementedError
-    def fw_sanityChecks(self):                  raise NotImplementedError
+    def fw_init(self):          raise NotImplementedError
+    def fw_sanityChecks(self):  raise NotImplementedError
 
 
 class DriverInterface(DriverInternalInterface):
@@ -15,14 +15,15 @@ class DriverInterface(DriverInternalInterface):
     def connect(self):      raise NotImplementedError
     def getFolders(self):   raise NotImplementedError
     def getName(self):      raise NotImplementedError
+    def getOwner(self):     raise NotImplementedError
     def logout(self):       raise NotImplementedError
 
 
 class DriverBase(DriverInterface):
-    def fw_initialize(self, ui, conf, owner):
+    def fw_init(self, ui, conf, owner):
         self.ui = ui
         self.conf = conf # Comes from the type.
-        self.owner = owner
+        self._owner = owner
 
     @staticmethod
     def fw_sanityChecks(inst):
@@ -34,4 +35,4 @@ class DriverBase(DriverInterface):
         return self.__class__.__name__
 
     def getOwner(self):
-        return self.owner
+        return self._owner

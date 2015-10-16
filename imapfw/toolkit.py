@@ -23,9 +23,7 @@ def runHook(hookFunc, *args):
             return False
 
     hook = Hook()
-
-    if hookName == 'preHook':
-        args += (hook,)
+    args += (hook,)
 
     thread = Thread(name=hookName, target=hookFunc, args=args, daemon=True)
     thread.start()

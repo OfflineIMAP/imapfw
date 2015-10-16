@@ -7,14 +7,11 @@ the folder workers on request.
 
 """
 
-
-#from ..concurrency.task import Task
-from ..managers.manager import Manager
-from ..managers.driver import createSideDriverManager
-from ..runners.driver import driverRunner
+from .manager import Manager
 
 
 class AccountManager(Manager):
+    #TODO: review
     """The account manager with both sides drivers.
 
     This object setup the ENVIRONMENT required by the worker which consume the
@@ -26,71 +23,14 @@ class AccountManager(Manager):
     All the code of this object is run into the caller's worker (likely the main
     thread)."""
 
-    def __init__(self, ui, concurrency, workerName, rascal):
+    def __init__(self, ui, concurrency, workerName, rascal, events):
         super(AccountManager, self).__init__(ui, concurrency, workerName)
 
         self._rascal = rascal
+        self._events = events
 
-        self._leftEmitter = None
-        self._leftReceiver = None
-        self._rightEmitter = None
-        self._rightReceiver = None
-
-    def exception(self, e):
-        self._exitCode = 3
-
-    def join(self):
-        self._leftReceiver.join()
-        self._rightReceiver.join()
-        super(AccountManager, self).join()
-
-    def getLeftDriverEmitter(self):
-        return self._leftEmitter
-
-    def getRightDriverEmitter(self):
-        return self._rightEmitter
-
-    def initialize(self):
-        # Each account requires both side drivers.
-        self._leftEmitter, self._leftReceiver = createSideDriverManager(
-            self.ui,
-            self.concurrency,
-            self._rascal,
-            self.workerName,
-            0,
-            )
-        self._rightEmitter, self._rightReceiver = createSideDriverManager(
-            self.ui,
-            self.concurrency,
-            self._rascal,
-            self.workerName,
-            1,
-            )
-
-    def startDrivers(self):
-        self._leftReceiver.start(driverRunner, (
-            self.ui,
-            self._rascal,
-            self._leftReceiver.getWorkerName(),
-            self.getEmitter(), # Requires that split() was already called.
-            self._leftReceiver,
-            ))
-        self._rightReceiver.start(driverRunner, (
-            self.ui,
-            self._rascal,
-            self._rightReceiver.getWorkerName(),
-            self.getEmitter(), # Requires that split() was already called.
-            self._rightReceiver,
-            ))
-
-    def kill(self):
-        self._leftReceiver.kill()
-        self._rightReceiver.kill()
-        super(AccountManager, self).kill()
-
-    def start(self, runner, args):
-        # Controllers are already started.
-        super(AccountManager, self).start(runner, args)
+    def exposed_trigger(self, eventName):
+        self._events.append(eventName)
 
     #def exposed_startFolderWorkers(self, accountName, pendingTasks):
         #"""Each accounts sync two folders. The starting job of the account

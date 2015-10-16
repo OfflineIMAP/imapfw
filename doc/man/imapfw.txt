@@ -33,9 +33,9 @@ OPTIONS
 Exit codes
 ----------
 
-1:: An error occured while initializing the program.
+1:: An error occured while initiating the program.
 
-2:: Cannot load the Rascal.
+2:: Cannot load the Rascal or it's missing from CLI.
 
 3::
   An exception occured while running the requested ACTION, requiring to stop

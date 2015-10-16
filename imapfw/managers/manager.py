@@ -39,10 +39,12 @@ purposes:
 Name conventions helps to know what how the method will be used.  Also, the
 `split` operation relies on those name conventions.
 
-- 'exposed_' (starts with): will be available in the emitter.
-- 'manager_' (starts with): factorized code.
-- _nowait' (ends with): the emitter won't wait for a result from the receiver.
+- 'exposed_' (prefix): will be available in the emitter.
+- 'manager_' (prefix): factorized code.
+- _nowait' (suffix): the emitter won't wait for a result from the receiver.
   This is how aync calls must be done. Returns None.
+
+The prefix 'exposed_' and suffix '_nowait' are stripped on the emmiter side.
 
 
 The receiver
@@ -73,7 +75,7 @@ The emitter won't have to worry at all.
 Case A
 ------
 
-    emitter.longRequest_nowait() # async
+    emitter.longRequest() # async
     this_is_called_NOW() # don't wait here
     result = emitter.getLongRequestResult() # wait here (1)
     doSomethingWith(result) # result is either True or False but
@@ -81,35 +83,35 @@ Case A
 
 (1) The "emmiter code" will wait at emitter.getLongRequestResult() and get the
 CORRECT result because the receiver won't even start the method
-getLongRequestResult() before the previous call to longRequest_nowait() is done.
+getLongRequestResult() before the previous call to longRequest() is done.
 
 Case B
 ------
 
-    emitter.longRequest_nowait() # async
+    emitter.longRequest() # async
     this_is_called_NOW() # don't wait here
     emitter.doAnythinElse() # wait here (2)
     result = emitter.getLongRequestResult() # don't wait here
     doSomethingWith(result) # result is either True or False but
                             # NEVER None
 
-(2) The above code would wait here for emitter.longRequest_nowait() to finish.
+(2) The above code would wait here for emitter.longRequest() to finish.
 
 Case C
 ------
 
-    emitter.longRequest_nowait() # async, don't wait here
+    emitter.longRequest() # async, don't wait here
     this_is_called_NOW() # don't wait here
-    emitter.doAnotherThing_nowait() # async, don't wait here (3)
+    emitter.doAnotherThing() # async, don't wait here (3)
 
     result = emitter.getLongRequestResult() # wait here
 
     doSomethingWith(result) # result is either True or False but
                             # NEVER None
 
-(3) The above code would neither wait for longRequest_nowait() nor
-doAnotherThing_nowait(). It would wait for BOTH to be done at the
-getLongRequestResult() call. The returned value is CORRECT.
+(3) The above code would neither wait for longRequest() nor doAnotherThing(). It
+would wait for BOTH to be done at the getLongRequestResult() call. The returned
+value is CORRECT.
 
 """
 
@@ -258,6 +260,7 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
                 if name.startswith('exposed_'):
                     exposedName = name[8:] # Remove 'exposed_' from the name.
                     if name.endswith('_nowait'):
+                        exposedName = exposedName[:-7]
                         setattr(cls_Emitter, exposedName,
                             proxy_method(name, waitResult=False))
                     else:
@@ -272,7 +275,7 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
                 [x for x in dir(emitter) if not x.startswith('_')]))
             return emitter # The instance.
 
-        # split() implementation starts here.
+        # split() really starts here.
         incomingQueue = self.concurrency.createQueue()
         resultQueue = self.concurrency.createQueue()
 
@@ -287,3 +290,94 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
             name=self.workerName, target=target, args=args)
         self._worker.start()
         self.ui.debugC(WRK, "%s started"% self.workerName)
+
+
+if __name__ == '__main__':
+    #
+    # Run this demo like this (from the root directory):
+    # python3 -m imapfw.managers.manager
+    #
+
+    import sys
+    import time
+
+    import imapfw
+
+    from imapfw.concurrency.concurrency import Concurrency
+    from imapfw.managers.manager import Manager
+    from imapfw.ui.tty import TTY
+
+
+    c = Concurrency('multiprocessing')
+    q = c.createQueue()
+    q.get_nowait()
+
+    ui = TTY(c.createLock())
+
+
+    def output(args):
+        print(args)
+        sys.stdout.flush()
+
+
+    def runner(emitter):
+        output('runner started')
+
+        output('initA')
+        emitter.initA()
+
+        output('initB')
+        emitter.initB()
+
+        output('readA')
+        output(emitter.readA())
+
+        #output('sleeping')
+        #time.sleep(5)
+
+        #output('readA')
+        #output(emitter.readA())
+
+        output('readB')
+        output(emitter.readB())
+
+        emitter.stopServing()
+
+
+
+    class TT(Manager):
+        def __init__(self):
+            super(TT, self).__init__(ui, c, 'ttworker')
+            self.A = 'OopsA'
+            self.B = 'OopsB'
+
+        def exposed_readA(self):
+            output('in receiver: returning A: %s'% self.A)
+            return self.A
+
+        def exposed_readB(self):
+            output('in receiver: returning B: %s'% self.B)
+            return self.B
+
+        def exposed_initA_nowait(self):
+            output('sleeping 5 in initA_nowait')
+            time.sleep(5)
+            self.A = 'A'
+
+        def exposed_initB_nowait(self):
+            output('sleeping 3 in initB_nowait')
+            time.sleep(3)
+            self.B = 'B'
+
+        #def exposed_initB(self):
+            #output('sleeping 3 in initB')
+            #time.sleep(3)
+            #self.B = 'B'
+
+    tt = TT()
+
+    e, r = tt.split()
+    r.start(runner, (e,))
+
+    while r.serve_nowait():
+        pass

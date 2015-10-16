@@ -1,3 +1,0 @@
-
-class Imap(object):
-    pass

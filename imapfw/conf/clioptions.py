@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from .. import __version__, __copyright__, __license__
+from ..constants import DEBUG_CATEGORIES
 
 
 class CLIOptions(object):
@@ -40,8 +41,8 @@ class CLIOptions(object):
         parser.add_argument("-d", "--debug", dest="debug",
             default=[],
             action='append',
-            choices=['controllers', 'drivers', 'emitters', 'imap', 'workers'],
-            help="enable debugging for the requested mode(s)")
+            choices=list(DEBUG_CATEGORIES.keys()),
+            help="enable debugging for the requested partial(s)")
 
         parser.add_argument("-v", action='version',
             version=__version__)

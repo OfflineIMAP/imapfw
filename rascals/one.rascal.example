@@ -43,35 +43,12 @@ from imapfw.api import engines, types, drivers
 # GLOBAL #
 ##########
 
-#
-# The main configuration options are set in this dict.
-#
 MainConf = {
-    # The number of concurrent workers for the accounts. Default is the number
-    # of accounts to sync.
     'max_sync_accounts': 2,
 }
 
-# UI allows to send messages to the UI library of the framework. Interface is
-# quite the same as the logging library:
-#
-#   - critical(*args)
-#   - debug(*args)
-#   - error(*args)
-#   - exception(*args)
-#   - info(*args)
-#   - warn(*args)
-#
-# This includes the following added methods:
-#
-#   - infoL(<level>, *args) # Honors <level> from CLI.
-#   - debugC(<category>, *args) # Honors <category> from CLI.
-#
 UI = None
 
-# The configure function is called once the rascal is loaded, before the action
-# gets executed. This allows configuring both the rascal and any other ressource
-# you need.
 def configure(ui):
     global UI
     UI = ui
@@ -82,27 +59,21 @@ def configure(ui):
 #########
 
 
-# The hook started at the beginning of the process once initialization is done.
 def preHook(actionName, actionOptions, hook):
     UI.info("Running preHook: starting action %s with actionOptions %s"%
         (actionName, actionOptions))
     hook.ended() # timeout not reached (10 seconds).
 
-
-# The hook started at the end of the process when no exception is raised.
-def postHook():
+def postHook(hook):
     UI.info('Runing postHook')
+    hook.ended() # timeout not reached (10 seconds).
 
-
-# This hook is started on unexpected exception.
-# Arguments:
-# - error: the exception error.
-# Don't call sys.exit() here or you will loose the correct exit code.
-def exceptionHook(error):
+def exceptionHook(error, hook):
     UI.critical("Running exceptionHook: an exception was catched!")
     #import traceback, sys
     #UI.exception(error)
     #traceback.print_exc(file=sys.stdout)
+    hook.ended() # timeout not reached (10 seconds).
 
 
 

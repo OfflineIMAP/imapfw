@@ -6,6 +6,9 @@ from .interface import ActionInterface
 class Devel(ActionInterface):
     """For development purpose only."""
 
+    honorHooks = False
+    requireRascal = True
+
     def __init__(self):
         self._exitCode = 0
 
@@ -14,14 +17,13 @@ class Devel(ActionInterface):
         self._rascal = None
         self._options = {}
 
-
     def exception(self, e):
-        self._exitCode = 7
+        self._exitCode = 3
 
     def getExitCode(self):
         return self._exitCode
 
-    def initialize(self, ui, concurrency, rascal, options):
+    def init(self, ui, concurrency, rascal, options):
         self._ui = ui
         self._concurrency = concurrency
         self._rascal = rascal
