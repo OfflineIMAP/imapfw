@@ -18,7 +18,7 @@ branches:
 
 # command to run tests
 script:
-  - ./imapfw -h
-  - ./imapfw noop
+  - ./imapfw.py -h
+  - ./imapfw.py noop
   - ./imapfw.py unitTests
 
