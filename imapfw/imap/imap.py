@@ -92,19 +92,9 @@ def Imap(backendNameVersion):
         from .imapc.imapc import IMAP4rev1
         return IMAP4rev1()
 
-    # imaplib2
-    if backendName == 'imaplib2':
-        if version is None:
-            version = '2_50'
-        else:
-            version = '_'.join(version.split('.'))
-
-        mod_imaplib2 = import_module(".imap.imaplib2.imaplib2_%s"% version, 'imapfw')
-        return IMAPlib2_skater(mod_imaplib2)
-
-    # imaplib3
+    # imaplib2 (pure-python3)
     if backendName == 'imaplib3':
-        from .imaplib3 import imaplib3
-        return IMAPlib2_skater(imaplib3)
+        from .imaplib3 import imaplib2
+        return IMAPlib2_skater(imaplib2)
 
     raise Exception("unkown backend: %s"% backendName)
