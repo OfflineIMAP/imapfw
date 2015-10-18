@@ -22,6 +22,8 @@
 
 import logging
 
+from imapfw.runtime import set_module
+
 from .clioptions import CLIOptions
 
 from ..concurrency.concurrency import Concurrency
@@ -72,12 +74,14 @@ class ImapfwConfig(object):
 
     def setupConcurrency(self):
         self._concurrency = Concurrency(self._cli.get('concurrency'))
+        set_module('concurrency', self._concurrency) # Export concurrency module.
 
     def loadRascal(self):
         rascalFile = self._cli.get('rascalfile')
         if rascalFile is not None:
             self._rascal = Rascal()
             self._rascal.load(rascalFile)
+        set_module('rascal', self._rascal) # Export the rascal.
 
     def parseCLI(self):
         if self._cli is None:
@@ -95,3 +99,4 @@ class ImapfwConfig(object):
         ui.setInfoLevel(self._cli.get('info'))
 
         self._ui = ui
+        set_module('ui', ui) # Export ui module.

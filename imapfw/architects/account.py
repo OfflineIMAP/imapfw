@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .driver import DriverArchitect
 
 from ..constants import ARC
@@ -52,10 +54,8 @@ class AccountArchitect(AccountArchitectInterface):
 
     Provides facilities for both the caller and the account manager."""
 
-    def __init__(self, ui, concurrency, rascal):
-        self._ui = ui
-        self._concurrency = concurrency
-        self._rascal = rascal
+    def __init__(self):
+        self.ui = runtime.ui
 
         self._leftArchitect = None
         self._rightArchitect = None
@@ -74,18 +74,18 @@ class AccountArchitect(AccountArchitectInterface):
         return self._continueServing
 
     def joinEndDrivers(self):
-        self._ui.debugC(ARC, "%s joining end-drivers"% self._getName())
+        self.ui.debugC(ARC, "%s joining end-drivers"% self._getName())
         self._leftArchitect.join()
         self._rightArchitect.join()
 
     def kill(self):
         self._continueServing = False
         self.killEndDrivers()
-        self._ui.debugC(ARC, "%s killing account receiver"% self._getName())
+        self.ui.debugC(ARC, "%s killing account receiver"% self._getName())
         self._accountReceiver.kill()
 
     def killEndDrivers(self):
-        self._ui.debugC(ARC, "%s killing end-drivers"% self._getName())
+        self.ui.debugC(ARC, "%s killing end-drivers"% self._getName())
         self._leftArchitect.kill()
         self._rightArchitect.kill()
 
@@ -95,27 +95,23 @@ class AccountArchitect(AccountArchitectInterface):
         try:
             self._continueServing = self._accountReceiver.serve_nowait()
             if self._continueServing is False:
-                self._ui.debugC(ARC, "%s joining account receiver"% self._getName())
+                self.ui.debugC(ARC, "%s joining account receiver"% self._getName())
                 #FIXME: join end-drivers if needed.
                 self._accountReceiver.join()
         except InterruptionError:
-            self._ui.debugC(ARC, "%s got InterruptionError"% self._getName())
+            self.ui.debugC(ARC, "%s got InterruptionError"% self._getName())
             self.kill()
 
     def start(self, workerName, accountTasks, engineName):
-        self._ui.debugC(ARC, "{} starting setup for '{}'", self._getName(),
+        self.ui.debugC(ARC, "{} starting setup for '{}'", self._getName(),
             workerName)
 
         self._workerName = workerName
         self._accountTasks = accountTasks
 
         # Build and initialize the manager for this account worker.
-        accountManager = AccountManager(
-            self._ui,
-            self._concurrency,
-            self._workerName,
-            self._rascal,
-            )
+        accountManager = AccountManager(self._workerName)
+
         # Get the emitter and receiver from the manager:
         # - the accountEmitter will run in the worker.
         # - the accountReceiver executes the orders of both the emitter and
@@ -123,11 +119,11 @@ class AccountArchitect(AccountArchitectInterface):
         self._accountEmitter, self._accountReceiver = accountManager.split()
 
         # Setup and start both end-drivers.
-        self._ui.debugC(ARC, "{} starting end-drivers", self._getName())
-        self._leftArchitect = DriverArchitect(
-            self._ui, self._concurrency, self._rascal)
-        self._rightArchitect = DriverArchitect(
-            self._ui, self._concurrency, self._rascal)
+        self.ui.debugC(ARC, "{} starting end-drivers", self._getName())
+
+        self._leftArchitect = DriverArchitect()
+        self._rightArchitect = DriverArchitect()
+
         self._leftArchitect.start("%s.Driver.0"% self._workerName, self._accountEmitter)
         self._rightArchitect.start("%s.Driver.1"% self._workerName, self._accountEmitter)
 
@@ -137,8 +133,6 @@ class AccountArchitect(AccountArchitectInterface):
         # by the runner) which knows when to stop. Also, the receiver running in
         # the main worker, will be asked to start other workers.
         self._syncAccount = SyncAccount(
-            self._ui,
-            self._rascal,
             self._accountTasks,
             self._accountEmitter, # The emitter for this account, yes.
             self._leftArchitect.getEmitter(),
@@ -146,12 +140,12 @@ class AccountArchitect(AccountArchitectInterface):
             )
 
         self._continueServing = True
-        self._ui.debugC(ARC, "{} starting account receiver", self._getName())
+        self.ui.debugC(ARC, "{} starting account receiver", self._getName())
         self._accountReceiver.start(
             ConsumerRunner, # Top runner.
                 (
                 self._syncAccount,
-                self._ui,
+                self.ui,
                 self._workerName,
                 self._accountTasks,
                 self._accountEmitter,

@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from ..types.account import Account
 from ..types.repository import RepositoryBase
 #from ..constants import CTL
@@ -38,16 +40,14 @@ class SyncAccount(AccountTaskRunnerInterface):
     Prepare the environement inside the worker and run the engine.
     """
 
-    def __init__(self, ui, rascal, tasks,
-        accountEmitter, leftEmitter, rightEmitter):
-
-        self._ui = ui
-        self._rascal = rascal
+    def __init__(self, tasks, accountEmitter, leftEmitter, rightEmitter):
         self._tasks = tasks
         self._accountEmitter = accountEmitter
         self._left = leftEmitter  # Control the left driver (emitter).
         self._rght = rightEmitter # Control the right driver (emitter).
 
+        self.ui = runtime.ui
+        self.rascal = runtime.rascal
         self._engine = None
         self._account = None
 
@@ -64,12 +64,12 @@ class SyncAccount(AccountTaskRunnerInterface):
         #
         # Really start here.
         #
-        self._ui.infoL(2, "syncing %s"% accountName)
+        self.ui.infoL(2, "syncing %s"% accountName)
 
-        self._account = self._rascal.get(accountName, [Account])
-        leftRepository = self._rascal.get(
+        self._account = self.rascal.get(accountName, [Account])
+        leftRepository = self.rascal.get(
             self._account.left.__name__, [RepositoryBase])
-        rghtRepository = self._rascal.get(
+        rghtRepository = self.rascal.get(
             self._account.right.__name__, [RepositoryBase])
 
         self._left.buildDriverForRepository(leftRepository.getName())
@@ -80,8 +80,8 @@ class SyncAccount(AccountTaskRunnerInterface):
         self._rght.connect()
 
         # Initialize the repository instances.
-        leftRepository.fw_init(self._left)
-        rghtRepository.fw_init(self._rght)
+        leftRepository.fw_init()
+        rghtRepository.fw_init()
 
         # Fetch folders concurrently.
         self._left.fetchFolders()
@@ -111,7 +111,7 @@ class SyncAccount(AccountTaskRunnerInterface):
                 ignoredFolders.append(folder)
 
         if len(ignoredFolders) > 0:
-            self._ui.warn("rascal, you asked to sync non-existing folders"
+            self.ui.warn("rascal, you asked to sync non-existing folders"
                 " for '%s': %s", self._account.getName(), ignoredFolders)
 
         if len(syncFolders) < 1:
@@ -133,4 +133,4 @@ class SyncAccount(AccountTaskRunnerInterface):
         self._left.stopServing()
         self._rght.stopServing()
 
-        self._ui.infoL(3, "syncing %s done"% accountName)
+        self.ui.infoL(3, "syncing %s done"% accountName)

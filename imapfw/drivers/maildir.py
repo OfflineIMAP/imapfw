@@ -34,8 +34,8 @@ class Maildir(DriverBase):
 
     isLocal = True
 
-    def fw_init(self, ui, conf, owner):
-        super(Maildir, self).fw_init(ui, conf, owner)
+    def fw_init(self, conf, owner):
+        super(Maildir, self).fw_init(conf, owner)
         self._folders = None
 
     def _recursiveScanMaildir(self, relativePath=None):

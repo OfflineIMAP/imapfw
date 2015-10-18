@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .manager import Manager
 
 from ..constants import DRV
@@ -40,15 +42,16 @@ class DriverManager(Manager):
 
     All the code here runs inside the worker."""
 
-    def __init__(self, ui, concurrency, workerName, rascal):
-        super(DriverManager, self).__init__(ui, concurrency, workerName)
+    def __init__(self, workerName):
+        super(DriverManager, self).__init__(workerName)
 
-        self.rascal = rascal
+        self.ui = runtime.ui
+        self.rascal = runtime.rascal
 
         self._driver = None # Might change over time.
         self._folders = None
 
-        ui.debugC(DRV, "%s manager created"% workerName)
+        self.ui.debugC(DRV, "%s manager created"% workerName)
 
     def exposed_buildDriverForRepository_nowait(self, repositoryName):
         """Package the driver.
@@ -58,10 +61,10 @@ class DriverManager(Manager):
 
         ### Really start here ###
         repository = self.rascal.get(repositoryName, [RepositoryInterface])
-        repository.fw_init(self.ui)
+        repository.fw_init()
 
         driver = repository.fw_chainControllers()
-        driver.fw_init(self.ui, repository.conf, repositoryName) # Initialize.
+        driver.fw_init(repository.conf, repositoryName) # Initialize.
         driver.fw_sanityChecks(driver) # Catch common errors early.
 
         self.ui.debugC(DRV, "built driver '{}' for '{}'",

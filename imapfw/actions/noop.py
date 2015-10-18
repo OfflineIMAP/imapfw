@@ -35,7 +35,7 @@ class Noop(ActionInterface):
     def getExitCode(self):
         return 0
 
-    def init(self, ui, concurrency, rascal, actionOptions):
+    def init(self, actionOptions):
         pass
 
     def run(self):

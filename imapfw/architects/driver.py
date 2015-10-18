@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from ..constants import ARC
 from ..managers.driver import DriverManager
 from ..runners.driver import driverRunner
@@ -35,10 +37,8 @@ class DriverArchitectInterface(object):
 #TODO: decorator to catch all errors and raise DriverFatalError.
 class DriverArchitect(object):
     """Architect to seup the driver manager."""
-    def __init__(self, ui, concurrency, rascal):
-        self._ui = ui
-        self._concurrency = concurrency
-        self._rascal = rascal
+    def __init__(self):
+        self.ui = runtime.ui
 
         self._emitter = None
         self._receiver = None
@@ -57,19 +57,14 @@ class DriverArchitect(object):
         self._receiver.kill()
 
     def start(self, workerName, callerEmitter):
-        self._ui.debugC(ARC, "{} starting driver manager '{}'",
+        self.ui.debugC(ARC, "{} starting driver manager '{}'",
             self._getName(), workerName)
 
-        driverManager = DriverManager(
-            self._ui,
-            self._concurrency,
-            workerName,
-            self._rascal,
-            )
+        driverManager = DriverManager(workerName)
         self._emitter, self._receiver = driverManager.split()
 
         self._receiver.start(driverRunner, (
-            self._ui,
+            self.ui,
             workerName,
             self._receiver,
             callerEmitter,

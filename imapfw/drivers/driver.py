@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 
 class DriverInternalInterface(object):
     """Users must NOT change those methods."""
@@ -41,10 +43,12 @@ class DriverInterface(DriverInternalInterface):
 
 
 class DriverBase(DriverInterface):
-    def fw_init(self, ui, conf, owner):
-        self.ui = ui
+    def fw_init(self, conf, owner):
         self.conf = conf # Comes from the type.
         self._owner = owner
+
+        # Keep this so that any use of self.ui from a controller fallbacks here.
+        self.ui = runtime.ui
 
     @staticmethod
     def fw_sanityChecks(inst):

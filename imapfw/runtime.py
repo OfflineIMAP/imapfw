@@ -20,27 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import time
+"""
 
+The module to handle modules configured at runtime.
 
-def folderRunner(workerName, controller, left, right):
-    """The runner for syncing folders in a worker."""
+Once modules are set, can be used like this:
 
-    #TODO: proceed.
-    time.sleep(1)
+    import runtime
 
-    #def what():
-        ##TODO: reuse the connectionWorker in the first folder worker.
+    def whatever():
+        ui = runtime.ui
 
-        ## The account class is defined in the rascal.
-        #cls_account = self._rascal.getAccountClass(accountName)
+Since the import is done at import time, this won't work:
 
-        ## Connect the drivers first.
-        #self._left.connect()
-        #self._right.connect()
+    import runtime
+    ui = runtime.ui # Gets None.
 
-        ##TODO: use the engine for this account as defined in the rascal.
-        #engine = cls_account.engine()
-        #engine.run()
-        ## Get the folders from both ends.
-        #folders = self._engine.mergeFolders()
+"""
+
+import sys
+
+# Put this runtime module into _this variable so we use setattr.
+_this = sys.modules.get(__name__)
+
+ui = None
+concurrency = None
+rascal = None
+
+def set_module(name, mod):
+    setattr(_this, name, mod)

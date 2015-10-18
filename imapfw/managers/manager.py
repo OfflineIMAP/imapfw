@@ -139,6 +139,8 @@ value is CORRECT.
 
 import inspect
 
+from imapfw import runtime
+
 from ..constants import WRK, EMT
 from ..error import InterruptionError
 
@@ -158,11 +160,11 @@ class ManagerEmitterInterface(object):
 class Manager(ManagerCallerInterface, ManagerEmitterInterface):
     """The manager base class."""
 
-    def __init__(self, ui, concurrency, workerName):
-        self.ui = ui
-        self.concurrency = concurrency
+    def __init__(self, workerName):
         self.workerName = workerName
 
+        self.ui = runtime.ui
+        self.concurrency = runtime.concurrency
         self._worker = None
         self._stopServing = False
         self._emitter = None
@@ -369,7 +371,7 @@ if __name__ == '__main__':
 
     class TT(Manager):
         def __init__(self):
-            super(TT, self).__init__(ui, c, 'ttworker')
+            super(TT, self).__init__(c, 'ttworker')
             self.A = 'OopsA'
             self.B = 'OopsB'
 

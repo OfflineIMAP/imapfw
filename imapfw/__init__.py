@@ -34,3 +34,4 @@ __homepage__ = "http://github.com/OfflineIMAP/imapfw"
 
 from imapfw.init import Imapfw # Avoid circular dependencies.
 from . import api
+from . import runtime # Import this module ASAP.

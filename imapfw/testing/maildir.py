@@ -23,6 +23,8 @@
 import unittest
 import os
 
+from imapfw import runtime
+
 from imapfw.drivers.maildir import Maildir
 from imapfw.testing import libcore
 from imapfw.testing.nullui import NullUI
@@ -33,14 +35,16 @@ class TestMaildirDriver(unittest.TestCase):
     def setUp(self):
         self.driverA, self.driverB = Maildir(), Maildir()
 
+        runtime.set_module('ui', NullUI)
+
         confBase = { 'sep': '/' }
         confA, confB = confBase.copy(), confBase.copy()
 
         confA['path'] = os.path.join(libcore.testingPath(), 'maildirs', 'recursive_A')
         confB['path'] = os.path.join(libcore.testingPath(), 'maildirs', 'recursive_B')
 
-        self.driverA.fw_init(NullUI(), confA, self.driverA)
-        self.driverB.fw_init(NullUI(), confB, self.driverB)
+        self.driverA.fw_init(confA, self.driverA)
+        self.driverB.fw_init(confB, self.driverB)
 
     def test_getFolders_of_recursive_A(self):
         folders = self.driverA.getFolders()

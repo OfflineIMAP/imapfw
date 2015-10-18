@@ -29,6 +29,8 @@ doesn't care at all.
 
 """
 
+from imapfw import runtime
+
 from importlib import import_module
 
 #from .imapc.interface import IMAPcInterface
@@ -42,9 +44,9 @@ class ImapAbortError(ImapInternalError): pass
 
 #TODO: move to imapc/interface.py
 class IMAPcInterface(object):
-    def configure(self, ui): raise NotImplementedError
-    def connect(self, host, port): raise NotImplementedError
-    def logout(self): raise NotImplementedError
+    def configure(self):    raise NotImplementedError
+    def connect(self):      raise NotImplementedError
+    def logout(self):       raise NotImplementedError
 
 
 class IMAPlib2_skater(IMAPcInterface):
@@ -52,11 +54,11 @@ class IMAPlib2_skater(IMAPcInterface):
 
     def __init__(self, imaplib2):
         self._imaplib2 = imaplib2 # Might be imaplib3!
-        self._ui = None
+        self.ui = None
         self._imap = None
 
-    def configure(self, ui):
-        self._ui = ui
+    def configure(self):
+        self.ui = runtime.ui
 
     def connect(self, host, port):
         #TODO: expose more like debug level.
@@ -65,7 +67,7 @@ class IMAPlib2_skater(IMAPcInterface):
             return True
         finally:
             res = self._imap.logout()
-            self._ui.debug("logout %s", res)
+            self.ui.debug("logout %s", res)
 
     def logout(self):
         self._imap.logout()

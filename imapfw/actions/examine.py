@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .interface import ActionInterface
 
 from ..types.repository import RepositoryBase
@@ -34,9 +36,8 @@ class Examine(ActionInterface):
 
     def __init__(self):
         self._exitCode = 0
-        self._ui = None
-        self._rascal = None
-        self._concurrency = None
+        self.ui = runtime.ui
+        self.rascal = runtime.rascal
 
         self._architects = []
 
@@ -46,32 +47,30 @@ class Examine(ActionInterface):
     def getExitCode(self):
         return self._exitCode
 
-    def init(self, ui, concurrency, rascal, options):
-        self._ui = ui
-        self._concurrency = concurrency
-        self._rascal = rascal
+    def init(self, options):
+        pass
 
     def run(self):
-        repositories = self._rascal.getAll([RepositoryBase])
+        repositories = self.rascal.getAll([RepositoryBase])
 
         for repository in repositories:
             if isinstance(repository, DriverInterface):
                 continue
             try:
-                repository.fw_init(self._ui)
+                repository.fw_init()
                 repository.fw_addController(ExamineController)
                 driver = repository.fw_chainControllers()
-                driver.fw_init(self._ui, repository.conf, None)
+                driver.fw_init(repository.conf, None)
 
-                self._ui.info("# Repository %s (type %s)"%
+                self.ui.info("# Repository %s (type %s)"%
                     (repository.getName(), driver.getName()))
-                self._ui.info("")
-                self._ui.info("controllers: %s"% repository.controllers)
-                self._ui.info("")
+                self.ui.info("")
+                self.ui.info("controllers: %s"% repository.controllers)
+                self.ui.info("")
 
                 driver.connect()
                 driver.getFolders()
-                self._ui.info("")
+                self.ui.info("")
             except Exception as e:
                 raise
-                self._ui.warn("got %s %s"% (repr(e), str(e)))
+                self.ui.warn("got %s %s"% (repr(e), str(e)))

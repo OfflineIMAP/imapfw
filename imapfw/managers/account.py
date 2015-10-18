@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 
 """
 
@@ -44,10 +46,10 @@ class AccountManager(Manager):
     All the code of this object is run into the caller's worker (likely the main
     thread)."""
 
-    def __init__(self, ui, concurrency, workerName, rascal):
-        super(AccountManager, self).__init__(ui, concurrency, workerName)
+    def __init__(self, workerName):
+        super(AccountManager, self).__init__(workerName)
 
-        self._rascal = rascal
+        self._rascal = runtime.rascal
 
     #def exposed_startFolderWorkers(self, accountName, pendingTasks):
         #"""Each accounts sync two folders. The starting job of the account

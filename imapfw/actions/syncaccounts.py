@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .interface import ActionInterface
 
 from ..constants import WRK
@@ -35,9 +37,8 @@ class SyncAccounts(ActionInterface):
     def __init__(self):
         self._exitCode = 0
 
-        self._ui = None
-        self._rascal = None
-        self._concurrency = None
+        self.ui = runtime.ui
+        self.rascal = runtime.rascal
         self._accountList = None
         self._engineName = None
 
@@ -45,7 +46,7 @@ class SyncAccounts(ActionInterface):
         self._receivers = []
 
     def _concurrentAccountsNumber(self):
-        return min(self._rascal.getMaxSyncAccounts(), len(self._accountList))
+        return min(self.rascal.getMaxSyncAccounts(), len(self._accountList))
 
     def exception(self, e):
         self._exitCode = 3
@@ -55,11 +56,7 @@ class SyncAccounts(ActionInterface):
     def getExitCode(self):
         return self._exitCode
 
-    def init(self, ui, concurrency, rascal, options):
-        self._ui = ui
-        self._concurrency = concurrency
-        self._rascal = rascal
-
+    def init(self, options):
         self._accountList = options.get('accounts')
         self._engineName = options.get('engine')
 
@@ -87,14 +84,13 @@ class SyncAccounts(ActionInterface):
 
             accountName = self._accountList.pop(0)
 
-            accountArchitect = AccountArchitect(self._ui, self._concurrency, self._rascal)
-            accountArchitect.start(
-                workerName, accountTasks, self._engineName)
+            accountArchitect = AccountArchitect()
+            accountArchitect.start(workerName, accountTasks, self._engineName)
             accountArchitects.append(accountArchitect)
 
 
         # Serve all the account workers.
-        self._ui.debugC(WRK, "serving accounts")
+        self.ui.debugC(WRK, "serving accounts")
         while len(accountArchitects) > 0: # Are all account workers done?
             try:
                 for accountArchitect in accountArchitects:
@@ -105,4 +101,4 @@ class SyncAccounts(ActionInterface):
                 for accountArchitect in accountArchitects:
                     accountArchitect.kill()
                 raise
-        self._ui.debugC(WRK, "serving accounts stopped")
+        self.ui.debugC(WRK, "serving accounts stopped")

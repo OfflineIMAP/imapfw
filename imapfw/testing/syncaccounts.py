@@ -24,20 +24,25 @@ import unittest
 import sys
 import os
 
+from imapfw import runtime
+
 from imapfw.concurrency.concurrency import Concurrency
 from imapfw.rascal import Rascal
 from imapfw.actions.syncaccounts import SyncAccounts
 from imapfw.ui.tty import TTY
 
 
-def run_action(concurrency, rascal, options):
-    ui = TTY(concurrency.createLock())
+def run_action(rascal, concurrency, options):
+    ui = TTY(runtime.concurrency.createLock())
     ui.configure()
     ui.enableDebugCategories(options.get('debug'))
     ui.setCurrentWorkerNameFunction(lambda *args: None)
     ui.setInfoLevel(3)
+
+    runtime.set_module('ui', ui)
+
     action = SyncAccounts()
-    action.init(ui, concurrency, rascal, options)
+    action.init(options)
     action.run()
     return action.getExitCode()
 
@@ -50,6 +55,7 @@ class TestSyncAccounts(unittest.TestCase):
         def loadRascal(path):
             rascal = Rascal()
             rascal.load(path)
+            runtime.set_module('rascal', rascal)
             return rascal
 
         imapfw_path = os.path.abspath(sys.modules['imapfw'].__path__[0])

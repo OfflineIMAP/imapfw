@@ -35,8 +35,8 @@ class Imapfw(object):
         config = ImapfwConfig()
         try:
             config.parseCLI() # Parse CLI options.
-            config.setupConcurrency()
-            config.setupUI()
+            config.setupConcurrency() # Exports concurrency to runtime module.
+            config.setupUI() # Exports ui to the runtime module.
             ui = config.getUI()
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
@@ -49,7 +49,7 @@ class Imapfw(object):
             sys.exit(0)
 
         try:
-            config.loadRascal()
+            config.loadRascal() # Exports the rascal to the runtime module.
         except FileNotFoundError as e:
             ui.critical(e)
         except Exception:
@@ -81,7 +81,7 @@ class Imapfw(object):
                 if timedout:
                     sys.exit(4)
 
-            action.init(ui, config.getConcurrency(), rascal, actionOptions)
+            action.init(actionOptions)
             action.run()
             if action.honorHooks is True:
                 timedout = runHook(rascal.getPostHook())

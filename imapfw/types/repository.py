@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from ..constants import DRV
 
 
@@ -46,8 +48,8 @@ class RepositoryBase(RepositoryInterface):
     conf = None
     driver = None
 
-    def fw_init(self, ui):
-        self.ui = ui
+    def fw_init(self):
+        self.ui = runtime.ui
 
         if not hasattr(self, 'controllers'):
             controllers = self.conf.get('controllers')

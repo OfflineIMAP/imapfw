@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .interface import ActionInterface
 
 
@@ -32,9 +34,9 @@ class Devel(ActionInterface):
     def __init__(self):
         self._exitCode = 0
 
-        self._ui = None
-        self._concurrency = None
-        self._rascal = None
+        self.ui = runtime.ui
+        self.concurrency = runtime.concurrency
+        self.rascal = runtime.rascal
         self._options = {}
 
     def exception(self, e):
@@ -43,18 +45,15 @@ class Devel(ActionInterface):
     def getExitCode(self):
         return self._exitCode
 
-    def init(self, ui, concurrency, rascal, options):
-        self._ui = ui
-        self._concurrency = concurrency
-        self._rascal = rascal
+    def init(self, options):
         self._options = options
 
     def run(self):
-        self._ui.infoL(1, 'running devel action')
+        self.ui.infoL(1, 'running devel action')
 
         from ..imap.imap import Imap
 
         imap = Imap('imaplib2-2.50')
-        imap.configure(self._ui)
+        imap.configure(self.ui)
         imap.connect('127.0.0.1', 10143)
         imap.logout()

@@ -9,7 +9,6 @@ class UnitTests(ActionInterface):
     requireRascal = False
 
     def __init__(self):
-        self._ui = None
         self._suite = None
 
     def exception(self, e):
@@ -18,10 +17,9 @@ class UnitTests(ActionInterface):
     def getExitCode(self):
         return 0
 
-    def init(self, ui, concurrency, rascal, actionOptions):
+    def init(self, actionOptions):
         import unittest
 
-        self._ui = ui
         self._suite = unittest.TestSuite()
 
         # Load all available unit tests.

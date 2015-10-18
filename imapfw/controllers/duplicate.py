@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .controller import Controller
 
 #TODO
@@ -28,10 +30,10 @@ class Duplicate(Controller):
 
     conf = None
 
-    def fw_init(self, driver, duplicateDriver, ui):
+    def fw_init(self, driver, duplicateDriver):
         super(Duplicate, self).fw_init(driver)
         self.duplicateDriver = duplicateDriver #TODO: setup driver...
-        self._ui = ui
+        self.ui = runtime.ui
 
         self.mode = self.conf.get('exception').lower() # fatal, warn or pass.
 
@@ -45,7 +47,7 @@ class Duplicate(Controller):
             if self.mode == 'pass':
                 pass
             elif self.mode == 'warn':
-                self._ui.warn('TODO: warning not implemented')
+                self.ui.warn('TODO: warning not implemented')
             else:
                 raise
         finally:

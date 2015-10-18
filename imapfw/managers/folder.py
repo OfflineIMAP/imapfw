@@ -33,11 +33,9 @@ class FolderManager(object):
         'appendTask', # Inherited
     ]
 
-    def __init__(self,
-        managerName, ui, concurrency, rascal, tasks):
+    def __init__(self, managerName, tasks):
 
-        super(FolderManager, self).__init__(
-            managerName, ui, concurrency, rascal, tasks)
+        super(FolderManager, self).__init__(managerName, tasks)
 
     def kill(self):
         self.worker.kill()
@@ -48,8 +46,6 @@ class FolderManager(object):
             target=topRunner,
             args=(
                 self.managerName,
-                self.ui,
-                self.rascal,
                 folderProxy, # Manage this worker from inside the worker.
                 folderRunner,
             )
