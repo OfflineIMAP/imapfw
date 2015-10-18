@@ -26,11 +26,8 @@ from ..types.repository import RepositoryBase
 
 
 class AccountTaskRunnerInterface(object):
-    def getTask(self):
-        raise NotImplementedError
-
-    def consume(self):
-        raise NotImplementedError
+    def getTask(self): raise NotImplementedError
+    def consume(self): raise NotImplementedError
 
 
 class SyncAccount(AccountTaskRunnerInterface):
@@ -53,8 +50,6 @@ class SyncAccount(AccountTaskRunnerInterface):
 
         self._engine = None
         self._account = None
-        self._continue = True
-        self._syncFolders = []
 
 
     def getTask(self):
@@ -103,7 +98,7 @@ class SyncAccount(AccountTaskRunnerInterface):
                 if folder not in mergedFolders:
                     mergedFolders.append(folder)
 
-        # Pass the list to the account.
+        # Pass the list to the rascal.
         rascalFolders = self._account.syncFolders(mergedFolders)
 
         # The rascal might request for non-existing folders!

@@ -44,14 +44,10 @@ class AccountManager(Manager):
     All the code of this object is run into the caller's worker (likely the main
     thread)."""
 
-    def __init__(self, ui, concurrency, workerName, rascal, events):
+    def __init__(self, ui, concurrency, workerName, rascal):
         super(AccountManager, self).__init__(ui, concurrency, workerName)
 
         self._rascal = rascal
-        self._events = events
-
-    def exposed_trigger(self, eventName):
-        self._events.append(eventName)
 
     #def exposed_startFolderWorkers(self, accountName, pendingTasks):
         #"""Each accounts sync two folders. The starting job of the account

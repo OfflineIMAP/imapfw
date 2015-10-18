@@ -42,12 +42,12 @@ class TestMaildirDriver(unittest.TestCase):
         self.driverA.fw_init(NullUI(), confA, self.driverA)
         self.driverB.fw_init(NullUI(), confB, self.driverB)
 
-    def test_getFolders_recursive_A(self):
+    def test_getFolders_of_recursive_A(self):
         folders = self.driverA.getFolders()
         expected = Folders(Folder(b'/'))
         self.assertEqual(folders, expected)
 
-    def test_getFolders_recursive_B(self):
+    def test_getFolders_of_recursive_B(self):
         folders = self.driverB.getFolders()
         expected = Folders(
             Folder(b'/'),

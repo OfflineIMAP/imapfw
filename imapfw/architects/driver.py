@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 from ..constants import ARC
-
 from ..managers.driver import DriverManager
 from ..runners.driver import driverRunner
 
@@ -43,6 +42,10 @@ class DriverArchitect(object):
 
         self._emitter = None
         self._receiver = None
+        self._workerName = None
+
+    def _getName(self):
+        return self.__class__.__name__
 
     def getEmitter(self):
         return self._emitter
@@ -54,7 +57,8 @@ class DriverArchitect(object):
         self._receiver.kill()
 
     def start(self, workerName, callerEmitter):
-        self._ui.debugC(ARC, "starting driver manager '{}'", workerName)
+        self._ui.debugC(ARC, "{} starting driver manager '{}'",
+            self._getName(), workerName)
 
         driverManager = DriverManager(
             self._ui,

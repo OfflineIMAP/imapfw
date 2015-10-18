@@ -143,7 +143,7 @@ class Rascal(object):
                     inject(repository.__name__, repository)
             return cls_account
 
-        # Really start here.
+        ### Really start here ###
         # Create empty module.
         rascal_mod = imp.new_module('rascal')
         rascal_mod.__file__ = path

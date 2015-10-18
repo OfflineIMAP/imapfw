@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from collections import deque
-
 from .driver import DriverArchitect
 
 from ..constants import ARC
@@ -32,8 +30,8 @@ from ..runners.account import SyncAccount
 from ..runners.runner import ConsumerRunner
 
 
+#TODO: rework
 class AccountArchitectEventsInterface(object):
-    def honorEvents(self):      raise NotImplementedError
     def joinEndDrivers(self):   raise NotImplementedError
     def killEndDrivers(self):   raise NotImplementedError
 
@@ -44,6 +42,7 @@ class AccountArchitectInterface(AccountArchitectEventsInterface):
     def kill(self):             raise NotImplementedError
 
 
+#TODO: prefix internal method with _.
 class AccountArchitect(AccountArchitectInterface):
     """Handling an account with 2 end-drivers.
 
@@ -66,31 +65,27 @@ class AccountArchitect(AccountArchitectInterface):
         self._workerName = None
         self._accountTasks = None
         self._continueServing = False
-        self._events = deque() # Let the account receiver send us events.
+        self._foldersArchitect = None
+
+    def _getName(self):
+        return self.__class__.__name__
 
     def continueServing(self):
         return self._continueServing
 
-    def honorEvents(self):
-        eventsMap = {
-            }
-        try:
-            while True:
-                event = self._events.popleft()
-
-        except IndexError:
-            pass
-
     def joinEndDrivers(self):
+        self._ui.debugC(ARC, "%s joining end-drivers"% self._getName())
         self._leftArchitect.join()
         self._rightArchitect.join()
 
     def kill(self):
         self._continueServing = False
         self.killEndDrivers()
+        self._ui.debugC(ARC, "%s killing account receiver"% self._getName())
         self._accountReceiver.kill()
 
     def killEndDrivers(self):
+        self._ui.debugC(ARC, "%s killing end-drivers"% self._getName())
         self._leftArchitect.kill()
         self._rightArchitect.kill()
 
@@ -98,15 +93,18 @@ class AccountArchitect(AccountArchitectInterface):
         """Serve the emitter."""
 
         try:
-            #TODO: use an event.
             self._continueServing = self._accountReceiver.serve_nowait()
             if self._continueServing is False:
+                self._ui.debugC(ARC, "%s joining account receiver"% self._getName())
+                #FIXME: join end-drivers if needed.
                 self._accountReceiver.join()
         except InterruptionError:
+            self._ui.debugC(ARC, "%s got InterruptionError"% self._getName())
             self.kill()
 
     def start(self, workerName, accountTasks, engineName):
-        self._ui.debugC(ARC, "starting setup for '{}'", workerName)
+        self._ui.debugC(ARC, "{} starting setup for '{}'", self._getName(),
+            workerName)
 
         self._workerName = workerName
         self._accountTasks = accountTasks
@@ -117,7 +115,6 @@ class AccountArchitect(AccountArchitectInterface):
             self._concurrency,
             self._workerName,
             self._rascal,
-            self._events,
             )
         # Get the emitter and receiver from the manager:
         # - the accountEmitter will run in the worker.
@@ -126,6 +123,7 @@ class AccountArchitect(AccountArchitectInterface):
         self._accountEmitter, self._accountReceiver = accountManager.split()
 
         # Setup and start both end-drivers.
+        self._ui.debugC(ARC, "{} starting end-drivers", self._getName())
         self._leftArchitect = DriverArchitect(
             self._ui, self._concurrency, self._rascal)
         self._rightArchitect = DriverArchitect(
@@ -148,6 +146,7 @@ class AccountArchitect(AccountArchitectInterface):
             )
 
         self._continueServing = True
+        self._ui.debugC(ARC, "{} starting account receiver", self._getName())
         self._accountReceiver.start(
             ConsumerRunner, # Top runner.
                 (

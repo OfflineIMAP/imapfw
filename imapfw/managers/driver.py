@@ -26,12 +26,7 @@ from ..constants import DRV
 from ..types.repository import RepositoryInterface
 
 
-
-class DriverManagerInterface(object):
-    pass #TODO
-
-
-class DriverManager(Manager, DriverManagerInterface):
+class DriverManager(Manager):
     """The driver manager.
 
     The receiver builds and runs the low-level driver (from rascal api.drivers).
@@ -85,7 +80,7 @@ class DriverManager(Manager, DriverManagerInterface):
 
             return driver
 
-        # Really start here.
+        ### Really start here ###
         repository = self.rascal.get(repositoryName, [RepositoryInterface])
 
         driver = chainControllers(repository) # Instanciate the driver.
