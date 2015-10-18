@@ -20,11 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from ..drivers.driver import DriverInterface
 
-
-class Controller(DriverInterface):
-    def fw_init(self, driver):
+class Controller(object):
+    def fw_chain(self, driver):
         self.driver = driver
 
     def __getattr__(self, name):

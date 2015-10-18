@@ -63,6 +63,7 @@ ImapConfA = {
 class MaildirA(types.Maildir):
     conf = MaildirConfA
     driver = drivers.Maildir # Default: drivers.Maildir.
+    controllers = [controllers.Controller]
 
 class MaildirB(types.Maildir):
     conf = MaildirConfB

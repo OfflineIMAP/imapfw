@@ -110,10 +110,22 @@ class Rascal(object):
         def createClass(name, base):
             return type(name, (base,), {})
 
+        def controllersConstructor(list_controllers):
+            controllers = []
+            for controller in list_controllers:
+                if type(controller) == dict:
+                    cls = controller.get('controller')
+                    cls.conf = controller.get('conf')
+                    controllers.append(cls)
+                else:
+                    controllers.append(controller)
+            return controllers
+
         def repositoryConstructor(conf):
             repository = createClass(conf.get('name'), conf.get('type'))
             repository.conf = conf.get('conf')
             repository.driver = conf.get('driver')
+            repository.controllers = conf.get('controllers')
             return repository
 
         def accountConstructor(conf):

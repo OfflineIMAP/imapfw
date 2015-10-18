@@ -48,9 +48,12 @@ class DriverBase(DriverInterface):
 
     @staticmethod
     def fw_sanityChecks(inst):
-        if not isinstance(inst, DriverInterface):
-            raise Exception("driver class %s does not satisfy DriverInterface"%
-                inst.__class__.__name__)
+        # Note: we can't use 'isinstance(inst, DriverInterface)' because the
+        # driver might be encapsulated into one or more controllers.
+        for attribute in dir(DriverInterface):
+            if not hasattr(inst, attribute):
+                raise Exception("driver class %s does not satisfy"
+                    " DriverInterface"% inst.__class__.__name__)
 
     def getName(self):
         return self.__class__.__name__

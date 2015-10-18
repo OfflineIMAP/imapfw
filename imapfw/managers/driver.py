@@ -69,19 +69,18 @@ class DriverManager(Manager, DriverManagerInterface):
             if hasattr(repository, 'controllers'):
                 controllers = repository.controllers
             else:
-                controllers = repository.conf.get('controllers')
-                if controllers is None:
-                    return driver # No controller defined.
+                controllers = []
+                #controllers = repository.conf.get('controllers')
+                #if controllers is None:
+                    #return driver # No controller defined.
 
             controllers.reverse() # Nearest from driver is the last in this list.
-            for controllerDef in controllers:
-                cls_controller = controllerDef['controller']
-
+            for cls_controller in controllers:
                 self.ui.debug("chaining '%s' with '%s'"%
                     (driver.getName(), cls_controller.__name__))
 
-                controller = cls_controller(driver) # Chains here.
-                controller.conf = controllerDef['conf']
+                controller = cls_controller()
+                controller.fw_chain(driver) # Chains here.
                 driver = controller # The next controller will drive this.
 
             return driver
