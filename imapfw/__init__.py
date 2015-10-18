@@ -20,7 +20,7 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #   THE SOFTWARE.
 
-__all__ = ['Imapfw']
+__all__ = ['api']
 
 __productname__ = 'Imapfw'
 __version__     = "0.1"
@@ -31,5 +31,6 @@ __description__ = "Easy IMAP framework for mail access and synchronization"
 __license__  = "The MIT License (MIT)"
 __homepage__ = "http://github.com/OfflineIMAP/imapfw"
 
-# Avoid circular dependencies.
-from imapfw.init import Imapfw
+
+from imapfw.init import Imapfw # Avoid circular dependencies.
+from . import api
