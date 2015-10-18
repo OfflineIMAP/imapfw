@@ -20,6 +20,57 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+"""
+
+Syncing is basically an end-to-end connection. Both ends can then be updateed
+with a predefind algorithm.
+
+So, the design of this module is to connect both ends with a kind of pipeline
+for each folder, in the limit imposed by the rascal. Pipelines are as
+independents as possible.
+
+Setting up the pipelines is the responsability of the architects. Each end is a
+driver to access the data. In the "middle", it is put an engine implementing the
+syncing.
+
+SCHEMATIC OVERVIEW
+------------------
+
+                +--------------+               +-------------+
+                |              |               |             |
+      +---------|  architect   |<------------->|  architect  |----------------------------+
+      |         |              |--------+      |             |                            |
+      |         +--------------+        |      +-------------+                            |
+      |                |                |                          (handle)               |
+      |                +-------------+  +-----------------------------+                   |
+      |                              |                                |                   |
+      v                              v                                v      ***          |
+  {worker}                        {worker}                         {worker}    *          |
++----------+                    +----------+                     +----------+  *          |
+|          |      (drives)      |          |      (drives)       |          |  *          |
+|  driver  |<-------------------|  engine  +-------------------->|  driver  |  * pipeline |
+|          |                    |          |                     |          |  *          |
++----------+                    +----------+                     +----------+  *          |
+                                                                               *          |
+                                                                             ***          |
+                                                                                          |
+                                                                                          |
+                                                                             ***          |
+  {worker}                        {worker}                         {worker}    *          |
++----------+                    +----------+                     +----------+  *          |
+|          |      (drives)      |          |      (drives)       |          |  *          |
+|  driver  |<-------------------|  engine  +-------------------->|  driver  |  * pipeline |
+|          |                    |          |                     |          |  *          |
++----------+                    +----------+                     +----------+  *          |
+     ^                                ^                               ^        *          |
+     |                                |                               |      ***          |
+     |                                |   (handle)                    +-------------------+
+     |                                +---------------------------------------------------+
+     +------------------------------------------------------------------------------------+
+
+
+"""
+
 from imapfw import runtime
 
 from .interface import ActionInterface

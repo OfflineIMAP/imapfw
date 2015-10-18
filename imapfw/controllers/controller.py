@@ -20,6 +20,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+"""
+
+A controller is defined on a repository to control its end-driver.
+
+Controllers have the same public interface as the drivers. Each responds like a
+driver, does its job and relays the requests (results) to (from) the underlying
+driver.
+
+Controllers can be chained to each others so that the flows is passed into
+each.
+
+They can either be passive or active. Passive controllers follow-up the requests
+as-is and returns the unchanged results. Active controllers changes the flow to
+achieve their tasks. IOW, each controller can only view what the underlying
+controller accepts to show. Hence, the order is important.
+
+The controller base "Controller" is a passive controller (see code below).
+
+The chain of controller is defined in the rascal.
+
+
+SCHEMATIC OVERVIEW EXAMPLE (half part)
+--------------------------------------
+                 (filter)      (tracker)      (encoder)
+                              notifications,  UTF-7/UTF-8
+                               debugging
++----------+   +----------+   +----------+   +----------+   +----------+
+|          |   |          |   |          |   |          |   |          |
+|  engine  |<->|controller+<->|controller|<->|controller|<->|  driver  |
+|          |   |          |   |          |   |          |   |          |
++----------+   +----------+   +----------+   +----------+   +----------+
+
+
+"""
 
 class Controller(object):
     def fw_drive(self, driver):
