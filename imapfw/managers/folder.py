@@ -1,32 +1,24 @@
-
-"""
-
-Communication between workers can be done using managers.
-
-A manager defines and implements all the actions of a receiver and what can be
-remotely controlled.
-
-The "splitManager" function takes a manager and returns both an emitter (with
-the exposed methods) and a receiver which "execute the orders".
-
-So, if an emitter is run within a worker keep in mind that there is an inversion
-of control: the child worker will give orders.
-
-At low level, communication between workers is done via two queues per worker:
-- one to send data (from the emitter to the receiver)
-- the other to send the result back (from the receiver to the emitter).
-Internally, it really is "passing by message".
-
-The manager module aims at making communication between workers cool and easy.
-Communicating can be achieved like almost any other method call.
-
-"""
-
-
-import time
-
-from ..static import Constant
-
+# The MIT License (MIT)
+#
+# Copyright (c) 2015, Nicolas Sebrecht & contributors
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 
 #class FolderManager(AccountFolderManagerBase):

@@ -1,3 +1,24 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2015, Nicolas Sebrecht & contributors
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 """
 
@@ -8,26 +29,6 @@ Define runners for the workers.
 import traceback
 
 from ..constants import WRK
-
-
-
-def driverRunner(ui, workerName, controller):
-    """The "proteted" runner for a driver controller."""
-
-    try:
-        if not driver.initialize(): # Initialize the driver and connect.
-            raise DriverError("driver cannot connect")
-        while not driver.stopNow():
-            driver.serve_nowait() # Relay controller requests.
-    except DriverError as e:
-        ui.critical("could not initialize driver")
-    except Exception as e:
-        ui.critical("%s got Exception %s", workerName, str(e))
-        # No!
-        controller.interruptAll(str(e))
-    finally:
-        ui.debugC(WRK, "runner ended")
-        controller.declareStopped() # Stop serving this worker!
 
 
 def ConsumerRunner(runner, ui, workerName, tasks, emitter):
@@ -55,4 +56,3 @@ def ConsumerRunner(runner, ui, workerName, tasks, emitter):
     except Exception as e:
         ui.critical("%s got Exception", workerName)
         emitter.unkownInterruptionError(str(e))
-
