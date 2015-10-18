@@ -56,34 +56,11 @@ class DriverManager(Manager):
         Take the end driver defined in the repository and chain it with all the
         controllers."""
 
-        def chainControllers(repository):
-            """Chain the controllers on top of the driver. Controllers are run
-            in the driver worker."""
-
-            driver = repository.driver() # Instanciate the driver.
-            if hasattr(repository, 'controllers'):
-                controllers = repository.controllers
-            else:
-                controllers = []
-                #controllers = repository.conf.get('controllers')
-                #if controllers is None:
-                    #return driver # No controller defined.
-
-            controllers.reverse() # Nearest from driver is the last in this list.
-            for cls_controller in controllers:
-                self.ui.debugC(DRV, "chaining driver '%s' with controller '%s'"%
-                    (driver.__class__.__name__, cls_controller.__name__))
-
-                controller = cls_controller()
-                controller.fw_chain(driver) # Chains here.
-                driver = controller # The next controller will drive this.
-
-            return driver
-
         ### Really start here ###
         repository = self.rascal.get(repositoryName, [RepositoryInterface])
+        repository.fw_init(self.ui)
 
-        driver = chainControllers(repository) # Instanciate the driver.
+        driver = repository.fw_chainControllers()
         driver.fw_init(self.ui, repository.conf, repositoryName) # Initialize.
         driver.fw_sanityChecks(driver) # Catch common errors early.
 

@@ -20,12 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from .controller import Controller
 
-class Controller(object):
-    def fw_drive(self, driver):
-        self.driver = driver
+#TODO
+class ExamineController(Controller):
+    """Controller to examine a repository."""
 
-    def __getattr__(self, name):
-        return getattr(self.driver, name)
+    def connect(self, *args):
+        self.ui.info("## Configuration")
+        self.ui.info("")
+        for k, v in self.driver.conf.items():
+            if k == 'password' and isinstance(v, (str, bytes)):
+                v = '<hidden>'
+            self.ui.info("* %s: %s"% (k, v))
+        return self.driver.connect(*args)
 
-
+    def getFolders(self):
+        folders = self.driver.getFolders()
+        self.ui.info("")
+        self.ui.info("## Infos")
+        self.ui.info("")
+        self.ui.info("Found %i folders: %s"%(len(folders), folders))
+        self.ui.info("")
+        return folders

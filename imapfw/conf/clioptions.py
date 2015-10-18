@@ -79,7 +79,6 @@ class CLIOptions(object):
                 " 'imapfw ACTION -h' to know more.",
             metavar='ACTION',
             dest='action',
-            #help='choose one of the following actions',
             )
 
         # Action: dev
@@ -93,6 +92,11 @@ class CLIOptions(object):
         # Action: unitTests
         actions.add_parser('unitTests',
             help="run the integrated unit tests")
+
+        # Action: examine
+        actions.add_parser('examine',
+            help="examine repositories")
+
 
         # Action: syncAccounts
         syncAccounts = actions.add_parser('syncAccounts',

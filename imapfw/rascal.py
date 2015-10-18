@@ -66,6 +66,17 @@ class Rascal(object):
         raise TypeError("class '%s' is not a sub-class of '%s'"%
             (name, expectedTypes))
 
+    def getAll(self, targetTypes):
+        instances = []
+        for literal in dir(self._rascal):
+            if literal.startswith('_'):
+                continue
+            try:
+                instances.append(self.get(literal, targetTypes))
+            except TypeError as e:
+                pass
+        return instances
+
     def getExceptionHook(self):
         return self._getHook('exceptionHook')
 
@@ -125,7 +136,9 @@ class Rascal(object):
             repository = createClass(conf.get('name'), conf.get('type'))
             repository.conf = conf.get('conf')
             repository.driver = conf.get('driver')
-            repository.controllers = conf.get('controllers')
+            controllers = conf.get('controllers')
+            if controllers is None:
+                repository.controllers = []
             return repository
 
         def accountConstructor(conf):

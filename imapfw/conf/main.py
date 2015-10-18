@@ -43,9 +43,10 @@ class ImapfwConfig(object):
         actionName = self.getAction()
         mapping = {
             'devel': [],
+            'examine': ['repositories'],
             'noop': [],
-            'unitTests': [],
             'syncAccounts': ['accounts', 'engine'],
+            'unitTests': [],
         }
         options = {}
 
@@ -53,7 +54,6 @@ class ImapfwConfig(object):
             options[option] = self._cli.get(option)
         options['action'] = actionName
         return options
-
 
     def getConcurrency(self):
         return self._concurrency

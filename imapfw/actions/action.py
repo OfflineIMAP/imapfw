@@ -1,15 +1,17 @@
 
+from .devel import Devel
+from .examine import Examine
+from .noop import Noop
 from .syncaccounts import SyncAccounts
 from .unittests import UnitTests
-from .noop import Noop
-from .devel import Devel
 
 
 Actions = {
     'devel': Devel,
+    'examine': Examine,
     'noop': Noop,
-    'unitTests': UnitTests,
     'syncAccounts': SyncAccounts,
+    'unitTests': UnitTests,
 }
 
 

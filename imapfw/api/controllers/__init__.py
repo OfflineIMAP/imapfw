@@ -11,6 +11,7 @@ and how to structure the underlying code.
 __all__ = [
     'Controller',
     'Duplicate',
+    'Examine',
     'Filter',
     'NameTrans',
     'Transcoder',
@@ -18,6 +19,7 @@ __all__ = [
 
 from ...controllers.controller import Controller
 from ...controllers.duplicate import Duplicate
+from ...controllers.examine import ExamineController as Examine
 from ...controllers.filter import Filter
 from ...controllers.nametrans import NameTrans
 from ...controllers.transcoder import Transcoder

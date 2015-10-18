@@ -22,10 +22,14 @@
 
 
 class RepositoryIntenalInterface(object):
-    def fw_init(self): raise NotImplementedError
+    def fw_init(self):              raise NotImplementedError
+    def fw_addController(self):     raise NotImplementedError
+    def fw_chainControllers(self):  raise NotImplementedError
+    def fw_examine(self):           raise NotImplementedError
 
 
 class RepositoryInterface(RepositoryIntenalInterface):
+
     conf = None
     driver = None
     isLocal = None
@@ -35,18 +39,48 @@ class RepositoryInterface(RepositoryIntenalInterface):
     def getFolders(self):   raise NotImplementedError
 
 
+from ..constants import DRV
+
 class RepositoryBase(RepositoryInterface):
+
     conf = None
     driver = None
 
-    def fw_init(self, controller):
-        self.controller = controller
+    def fw_init(self, ui):
+        self.ui = ui
+
+        if not hasattr(self, 'controllers'):
+            controllers = self.conf.get('controllers')
+            if controllers is None:
+                controllers = []
+            self.controllers = controllers
+
+    def fw_addController(self, controller):
+        self.controllers.insert(0, controller)
+
+    def fw_chainControllers(self):
+        """Chain the controllers on top of the driver.
+
+        Controllers are run in the driver worker, so return the result."""
+
+        controllers = self.controllers # Avoid changing this attribute.
+        driver = self.driver() # Instanciate end-driver.
+        controllers.reverse() # Nearest from driver is the last in this list.
+        for cls_controller in controllers:
+            self.ui.debugC(DRV, "chaining driver '%s' with controller '%s'"%
+                (driver.__class__.__name__, cls_controller.__name__))
+
+            controller = cls_controller()
+            controller.fw_drive(driver) # Chains here.
+            driver = controller # The next controller will drive this.
+
+        return driver
 
     def fetchFolders(self):
-        return self.controller.fetchFolders()
+        return self.driver.fetchFolders()
 
     def getFolders(self):
-        return self.controller.getFolders()
+        return self.driver.getFolders()
 
     def getName(self):
         return self.__class__.__name__
