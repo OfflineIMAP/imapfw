@@ -35,7 +35,7 @@ def run_action(concurrency, rascal, options):
     ui.configure()
     ui.enableDebugCategories(options.get('debug'))
     ui.setCurrentWorkerNameFunction(lambda *args: None)
-    ui.setInfoLevel(0)
+    ui.setInfoLevel(3)
     action = SyncAccounts()
     action.init(ui, concurrency, rascal, options)
     action.run()
