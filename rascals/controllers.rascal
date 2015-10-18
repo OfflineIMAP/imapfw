@@ -3,19 +3,6 @@
 #
 
 MainConf = {
-
-    # Concurrency backend to use for the workers:
-    # - multiprocessing;
-    # - threading;
-    #
-    # Because most of the wait time is due to I/O (disk and network, there
-    # should be no visible performance differences.
-    #
-    # Be aware that the rascal gets COPIED into each worker. This means that
-    # any changed ressource (including global variable) after the call to
-    # configure() won't be updated for all the running code.
-    'concurrency_backend': 'multiprocessing',
-
     # The number of concurrent workers for the accounts. Default is the number
     # of accounts to sync.
     'max_sync_accounts': 7,
@@ -30,11 +17,11 @@ def configure(ui):
 def preHook(actionName, actionOptions, hook):
     hook.ended()
 
-def postHook():
-    pass
+def postHook(hook):
+    hook.ended()
 
-def exceptionHook(error):
-    pass
+def exceptionHook(error, hook):
+    hook.ended()
 
 from imapfw.api import engines, controllers, types, drivers
 
@@ -53,7 +40,7 @@ MaildirConfB = {
 
 
 ImapConfA = {
-    'backend':  'imaplib2',
+    'backend':  'imaplib3',
     'host':      '127.0.0.1',
     'port':     '10143',
     'username': 'nicolas',

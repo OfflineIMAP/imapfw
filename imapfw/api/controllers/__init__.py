@@ -11,13 +11,13 @@ and how to structure the underlying code.
 __all__ = [
     'Controller',
     'Duplicate',
-    'Encoder',
     'Filter',
     'NameTrans',
+    'Transcoder',
 ]
 
 from ...controllers.controller import Controller
 from ...controllers.duplicate import Duplicate
-from ...controllers.encoder import Encoder
 from ...controllers.filter import Filter
 from ...controllers.nametrans import NameTrans
+from ...controllers.transcoder import Transcoder
