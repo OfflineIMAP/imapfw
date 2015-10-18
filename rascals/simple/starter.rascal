@@ -81,6 +81,7 @@ ImapConfExample = {
 }
 
 ImapRepositoryExample = {
+    'name': 'ImapRepositoryExample',
     'type': types.Imap,
     'conf': ImapConfExample,
     'driver': drivers.Imap,
@@ -112,7 +113,7 @@ MainConf = {
                 'type': types.Maildir,
                 'driver': drivers.Maildir,
                 'conf': {
-                    'path': '~/Maildir/MaildirA',
+                    'path': '~/.imapfw/Mail/MaildirA',
                     'max_connections': 2,
                 },
             },
@@ -126,6 +127,7 @@ MainConf = {
 # from above can be removed and the configuration can be defined like this:
 #
 #MaildirExample = {
+#    'name': MaildirExample,
 #    'type': types.Maildir,
 #    'driver': drivers.Maildir,
 #    'conf': {

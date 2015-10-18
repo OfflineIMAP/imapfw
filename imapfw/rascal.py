@@ -41,9 +41,12 @@ class Rascal(object):
         self._mainConf = None
 
     def _isDict(self, obj):
-        if not isinstance(obj, dict):
+        try:
+            return type(obj) == dict
+        except:
             raise TypeError("'%s' must be a dictionnary, got '%s'"%
-                obj.__name__, type(obj))
+                (obj.__name__, type(obj)))
+
     def _getHook(self, name):
         try:
             return self.getFunction(name)
@@ -54,14 +57,14 @@ class Rascal(object):
         return getattr(self._rascal, name)
 
     def get(self, name, expectedTypes):
-        literal = self._getLiteral(name)
+        cls = self._getLiteral(name)
 
         for expectedType in expectedTypes:
-            if issubclass(literal, expectedType):
-                return literal()
+            if issubclass(cls, expectedType):
+                return cls()
 
-        raise TypeError("literal '%s' has unexpected type '%s'"%
-            (name, type(literal)))
+        raise TypeError("class '%s' is not a sub-class of '%s'"%
+            (name, expectedTypes))
 
     def getExceptionHook(self):
         return self._getHook('exceptionHook')
@@ -104,8 +107,8 @@ class Rascal(object):
         def inject(literal, obj):
             setattr(self._rascal, literal, obj)
 
-        def createClass(literal, base):
-            return type(literal, (base,), {})
+        def createClass(name, base):
+            return type(name, (base,), {})
 
         def repositoryConstructor(conf):
             repository = createClass(conf.get('name'), conf.get('type'))
@@ -114,13 +117,19 @@ class Rascal(object):
             return repository
 
         def accountConstructor(conf):
-            account = createClass(conf.get('name'), conf.get('type'))
-            account.conf = conf.get('conf')
+            cls_account = createClass(conf.get('name'), conf.get('type'))
+            cls_account.conf = conf.get('conf')
             for side in ['left', 'right']:
-                if type(side) == dict:
-                    repository = repositoryConstructor(conf.get('side'))
-                    setattr(account, side, repository)
-            return account
+                side_obj = conf.get(side)
+                if type(side_obj) == dict:
+                    repository = repositoryConstructor(side_obj)
+                    setattr(cls_account, side, repository)
+                    inject(repository.__name__, repository)
+                else:
+                    repository = conf.get('side')
+                    setattr(cls_account, side, repository)
+                    inject(repository.__name__, repository)
+            return cls_account
 
         # Really start here.
         # Create empty module.
@@ -134,7 +143,7 @@ class Rascal(object):
         self._mainConf = self.getSettings('MainConf')
 
         # Turn accounts definitions from MainConf into literals.
-        if hasattr(self._mainConf, 'accounts'):
+        if 'accounts' in self._mainConf:
             for definition in self._mainConf.get('accounts'):
                 inject(definition.get('name'), definition)
 
@@ -143,13 +152,17 @@ class Rascal(object):
             if literal.startswith('_'):
                 continue
 
-            obj = getattr(self._rascal, literal)
-            if type(obj) == dict and hasattr(obj, 'name'):
+            obj = self._getLiteral(literal)
+            if obj is None:
+                continue
+            if type(obj) == dict and 'name' in obj:
                 name = obj.get('name')
-                clsName = obj.get('type')
-                cls = createClass(name, type)
+                clsType = obj.get('type')
+                cls = createClass(name, clsType)
                 if issubclass(cls, RepositoryBase):
                     cls = repositoryConstructor(obj)
-                if issubclass(cls, types.Account):
+                elif issubclass(cls, types.Account):
                     cls = accountConstructor(obj)
+                else:
+                    continue
                 inject(name, cls)

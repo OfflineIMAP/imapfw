@@ -102,7 +102,7 @@ def Imap(backendNameVersion):
 
     # imaplib3
     if backendName == 'imaplib3':
-        from .imapc.imaplib3 import imaplib3
+        from .imaplib3 import imaplib3
         return IMAPlib2_skater(imaplib3)
 
     raise Exception("unkown backend: %s"% backendName)
