@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from ..constants import DRV
+
 
 class RepositoryIntenalInterface(object):
     def fw_init(self):              raise NotImplementedError
@@ -38,8 +40,6 @@ class RepositoryInterface(RepositoryIntenalInterface):
     def getName(self):      raise NotImplementedError
     def getFolders(self):   raise NotImplementedError
 
-
-from ..constants import DRV
 
 class RepositoryBase(RepositoryInterface):
 
