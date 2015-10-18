@@ -60,10 +60,13 @@ ImapConfA = {
     'max_connections': 11,
 }
 
+class TestingController(controllers.Controller):
+    pass
+
 class MaildirA(types.Maildir):
     conf = MaildirConfA
     driver = drivers.Maildir # Default: drivers.Maildir.
-    controllers = [controllers.Controller]
+    controllers = [controllers.Controller, TestingController]
 
 class MaildirB(types.Maildir):
     conf = MaildirConfB

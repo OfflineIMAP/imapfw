@@ -76,8 +76,8 @@ class DriverManager(Manager, DriverManagerInterface):
 
             controllers.reverse() # Nearest from driver is the last in this list.
             for cls_controller in controllers:
-                self.ui.debug("chaining '%s' with '%s'"%
-                    (driver.getName(), cls_controller.__name__))
+                self.ui.debugC(DRV, "chaining driver '%s' with controller '%s'"%
+                    (driver.__class__.__name__, cls_controller.__name__))
 
                 controller = cls_controller()
                 controller.fw_chain(driver) # Chains here.
