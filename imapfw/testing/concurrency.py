@@ -41,7 +41,7 @@ class TestMultiProcessing(unittest.TestCase):
         workerName = 'worker'
         queue = self.backend.createQueue()
 
-        worker = self.backend.createBasicWorker(workerName, runner, (queue,))
+        worker = self.backend.createWorker(workerName, runner, (queue,))
 
         worker.start()
         self.assertEqual(worker.getName(), workerName)

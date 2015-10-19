@@ -52,7 +52,7 @@ MaildirConfB = {
 }
 
 ImapConfA = {
-    'backend':  'imaplib2',
+    'backend':  'imaplib3',
     'host':      '127.0.0.1',
     'port':     '10143',
     'username': 'nicolas',

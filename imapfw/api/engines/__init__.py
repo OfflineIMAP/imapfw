@@ -10,6 +10,8 @@ and how to structure the underlying code.
 
 __all__ = [
     'SyncAccount',
+    'SyncFolder',
 ]
 
-from ...runners.account import SyncAccount
+from ...engines.account import SyncAccount
+from ...engines.folder import SyncFolder

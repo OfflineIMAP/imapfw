@@ -129,7 +129,7 @@ class ImapDriverExample(drivers.Imap):
 ################
 
 ImapExampleConf = {
-    'backend':  'imaplib2',
+    'backend':  'imaplib3',
     'host':      'imap.gmail.com',
     'port':     '143',
     'username': 'myname',

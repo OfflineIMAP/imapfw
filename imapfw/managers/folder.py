@@ -20,34 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
 
-#class FolderManager(AccountFolderManagerBase):
-class FolderManager(object):
-    """Manage a folder worker. This aims to become the referent."""
+from .manager import Manager
 
-    # The interface for the folder runners.
-    proxy_expose = [
-        'declareStopped', # Inherited
-        'getTask', # Inherited
-        'interruptAll', # Inherited
-        'appendTask', # Inherited
-    ]
 
-    def __init__(self, managerName, tasks):
+class FolderManager(Manager):
+    def __init__(self):
+        super(FolderManager, self).__init__()
 
-        super(FolderManager, self).__init__(managerName, tasks)
-
-    def kill(self):
-        self.worker.kill()
-
-    def start(self, folderProxy):
-        self.worker = self.concurrency.createWorker(
-            name=self.managerName,
-            target=topRunner,
-            args=(
-                self.managerName,
-                folderProxy, # Manage this worker from inside the worker.
-                folderRunner,
-            )
-        )
-        self.worker.start()
+        self.rascal = runtime.rascal

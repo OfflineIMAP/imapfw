@@ -35,17 +35,17 @@ class DriverInterface(DriverInternalInterface):
     conf = {} # The configuration of the type has to be there.
     isLocal = None
 
-    def connect(self):      raise NotImplementedError
-    def getFolders(self):   raise NotImplementedError
-    def getName(self):      raise NotImplementedError
-    def getOwner(self):     raise NotImplementedError
-    def logout(self):       raise NotImplementedError
+    def connect(self):          raise NotImplementedError
+    def getFolders(self):       raise NotImplementedError
+    def getName(self):          raise NotImplementedError
+    def getOwnerName(self):     raise NotImplementedError
+    def logout(self):           raise NotImplementedError
 
 
 class DriverBase(DriverInterface):
-    def fw_init(self, conf, owner):
+    def fw_init(self, conf, ownerName):
         self.conf = conf # Comes from the type.
-        self._owner = owner
+        self._ownerName = ownerName
 
         # Keep this so that any use of self.ui from a controller fallbacks here.
         self.ui = runtime.ui
@@ -62,5 +62,5 @@ class DriverBase(DriverInterface):
     def getName(self):
         return self.__class__.__name__
 
-    def getOwner(self):
-        return self._owner
+    def getOwnerName(self):
+        return self._ownerName

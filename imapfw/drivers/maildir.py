@@ -22,11 +22,14 @@
 
 import os
 
+from imapfw import runtime
+
 from .driver import DriverBase
 
 from ..toolkit import expandPath
 from ..error import DriverFatalError
 from ..types.folder import Folders, Folder
+from ..constants import DRV
 
 
 class Maildir(DriverBase):
@@ -34,9 +37,12 @@ class Maildir(DriverBase):
 
     isLocal = True
 
-    def fw_init(self, conf, owner):
-        super(Maildir, self).fw_init(conf, owner)
+    def fw_init(self, conf, ownerName):
+        super(Maildir, self).fw_init(conf, ownerName)
         self._folders = None
+
+    def _debug(self, msg):
+        runtime.ui.debugC(DRV, "driver of %s %s"% (self.getOwnerName(), msg))
 
     def _recursiveScanMaildir(self, relativePath=None):
         """Scan the Maildir recusively.
@@ -99,6 +105,7 @@ class Maildir(DriverBase):
                 scanChildren(fullPath, relativePath)
 
     def connect(self):
+        self._debug('connecting')
         path = expandPath(self.conf.get('path'))
         try:
             os.mkdir(path)
@@ -110,12 +117,14 @@ class Maildir(DriverBase):
         if not os.path.isdir(path):
             raise DriverFatalError("path is not a directory: %s"% path)
         self.conf['path'] = path # Record expanted path.
+        self._debug('connected')
         return True
 
     def getFolders(self):
         self._folders = Folders() # Erase whatever we had.
-        self._recursiveScanMaildir()
+        self._debug('scanning folders')
+        self._recursiveScanMaildir() # Put result into self._folders.
         return self._folders
 
     def logout(self):
-        pass
+        self._debug('logging out')

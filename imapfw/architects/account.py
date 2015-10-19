@@ -25,21 +25,15 @@ from imapfw import runtime
 from .driver import DriverArchitect
 
 from ..constants import ARC
-from ..error import InterruptionError
 
 from ..managers.account import AccountManager
-from ..runners.account import SyncAccount
-from ..runners.runner import ConsumerRunner
+from ..engines.account import SyncAccount
 
 
-#TODO: rework
-class AccountArchitectEventsInterface(object):
-    def joinEndDrivers(self):   raise NotImplementedError
-    def killEndDrivers(self):   raise NotImplementedError
 
-class AccountArchitectInterface(AccountArchitectEventsInterface):
+class AccountArchitectInterface(object):
     def continueServing(self):  raise NotImplementedError
-    def serve_nowait(self):     raise NotImplementedError
+    def serve_next(self):       raise NotImplementedError
     def start(self):            raise NotImplementedError
     def kill(self):             raise NotImplementedError
 
@@ -56,58 +50,37 @@ class AccountArchitect(AccountArchitectInterface):
 
     def __init__(self):
         self.ui = runtime.ui
+        self.concurrency = runtime.concurrency
 
         self._leftArchitect = None
         self._rightArchitect = None
-        self._accountEmitter = None
         self._accountReceiver = None
-        self._syncAccount = None
+        self._worker = None
         self._workerName = None
-        self._accountTasks = None
-        self._continueServing = False
-        self._foldersArchitect = None
 
     def _getName(self):
         return self.__class__.__name__
 
-    def continueServing(self):
-        return self._continueServing
-
-    def joinEndDrivers(self):
-        self.ui.debugC(ARC, "%s joining end-drivers"% self._getName())
+    def join(self):
+        self.ui.debugC(ARC, "%s joining"% self._getName())
+        self._join()
         self._leftArchitect.join()
         self._rightArchitect.join()
 
     def kill(self):
-        self._continueServing = False
-        self.killEndDrivers()
-        self.ui.debugC(ARC, "%s killing account receiver"% self._getName())
-        self._accountReceiver.kill()
-
-    def killEndDrivers(self):
-        self.ui.debugC(ARC, "%s killing end-drivers"% self._getName())
+        self.ui.debugC(ARC, "%s killing"% self._getName())
+        self._worker.kill()
         self._leftArchitect.kill()
         self._rightArchitect.kill()
 
-    def serve_nowait(self):
-        """Serve the emitter."""
-
-        try:
-            self._continueServing = self._accountReceiver.serve_nowait()
-            if self._continueServing is False:
-                self.ui.debugC(ARC, "%s joining account receiver"% self._getName())
-                #FIXME: join end-drivers if needed.
-                self._accountReceiver.join()
-        except InterruptionError:
-            self.ui.debugC(ARC, "%s got InterruptionError"% self._getName())
-            self.kill()
+    def serve_next(self):
+        return self._accountReceiver.serve_next()
 
     def start(self, workerName, accountTasks, engineName):
         self.ui.debugC(ARC, "{} starting setup for '{}'", self._getName(),
             workerName)
 
         self._workerName = workerName
-        self._accountTasks = accountTasks
 
         # Build and initialize the manager for this account worker.
         accountManager = AccountManager(self._workerName)
@@ -115,39 +88,37 @@ class AccountArchitect(AccountArchitectInterface):
         # Get the emitter and receiver from the manager:
         # - the accountEmitter will run in the worker.
         # - the accountReceiver executes the orders of both the emitter and
-        # the caller. It embedds the worker, too.
-        self._accountEmitter, self._accountReceiver = accountManager.split()
+        # the caller.
+        self._accountReceiver, accountEmitter = accountManager.split()
 
         # Setup and start both end-drivers.
         self.ui.debugC(ARC, "{} starting end-drivers", self._getName())
 
-        self._leftArchitect = DriverArchitect()
-        self._rightArchitect = DriverArchitect()
+        self._leftArchitect = DriverArchitect("%s.Driver.0"% self._workerName)
+        self._rightArchitect = DriverArchitect("%s.Driver.1"% self._workerName)
 
-        self._leftArchitect.start("%s.Driver.0"% self._workerName, self._accountEmitter)
-        self._rightArchitect.start("%s.Driver.1"% self._workerName, self._accountEmitter)
+        self._leftArchitect.start(accountEmitter)
+        self._rightArchitect.start(accountEmitter)
 
-        # Build the syncAccount runner which consumes the accountTasks. This is
-        # the target of the worker. Notice the emitter of the account is passed
-        # to this runner and the receiver is kept here: it's the engine (run
-        # by the runner) which knows when to stop. Also, the receiver running in
-        # the main worker, will be asked to start other workers.
-        self._syncAccount = SyncAccount(
-            self._accountTasks,
-            self._accountEmitter, # The emitter for this account, yes.
+        # Build the syncAccount engine which consumes the accountTasks. This is
+        # the runner of the worker. Notice the emitter of the account is passed
+        # to the engine and the receiver is kept here: it's of the engine
+        # responsability to tell when to stop. Also, the receiver (running in
+        # the main worker) will be asked to start other workers which is not
+        # something possible from daemons.
+        syncAccount = SyncAccount(
+            workerName,
+            accountTasks,
+            accountEmitter, # The emitter for this account, yes.
             self._leftArchitect.getEmitter(),
             self._rightArchitect.getEmitter(),
             )
 
-        self._continueServing = True
-        self.ui.debugC(ARC, "{} starting account receiver", self._getName())
-        self._accountReceiver.start(
-            ConsumerRunner, # Top runner.
-                (
-                self._syncAccount,
-                self.ui,
-                self._workerName,
-                self._accountTasks,
-                self._accountEmitter,
-                ),
+        self._worker = self.concurrency.createWorker(
+            workerName,
+            syncAccount.run,
+            (),
             )
+
+        self.ui.debugC(ARC, "{} starting account receiver", self._getName())
+        self._worker.start()

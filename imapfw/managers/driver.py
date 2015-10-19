@@ -28,6 +28,7 @@ from ..constants import DRV
 from ..types.repository import RepositoryInterface
 
 
+#TODO: catch exceptions?
 class DriverManager(Manager):
     """The driver manager.
 
@@ -43,7 +44,9 @@ class DriverManager(Manager):
     All the code here runs inside the worker."""
 
     def __init__(self, workerName):
-        super(DriverManager, self).__init__(workerName)
+        super(DriverManager, self).__init__()
+
+        self._workerName = workerName
 
         self.ui = runtime.ui
         self.rascal = runtime.rascal
@@ -53,7 +56,7 @@ class DriverManager(Manager):
 
         self.ui.debugC(DRV, "%s manager created"% workerName)
 
-    def exposed_buildDriverForRepository_nowait(self, repositoryName):
+    def exposed_buildDriver(self, repositoryName):
         """Package the driver.
 
         Take the end driver defined in the repository and chain it with all the
@@ -73,31 +76,31 @@ class DriverManager(Manager):
 
         self._driver = driver
 
-    def exposed_connect_nowait(self):
+    def exposed_connect(self):
         if self._driver.isLocal:
-            self.ui.debugC(DRV, '{} working in {}', self._driver.getOwner(),
+            self.ui.debugC(DRV, '{} working in {}', self._driver.getOwnerName(),
                 self._driver.conf.get('path'))
         else:
-            self.ui.debugC(DRV, '{} connecting to {}:{}', self._driver.getOwner(),
-                self._driver.conf.get('host'), self._driver.conf.get('port'))
+            self.ui.debugC(DRV, '{} connecting to {}:{}',
+                self._driver.getOwnerName(), self._driver.conf.get('host'),
+                self._driver.conf.get('port'))
 
-        #TODO: catch exception.
         connected = self._driver.connect()
-        self.ui.debugC(DRV, "driver of {} connected", self._driver.getOwner())
+        self.ui.debugC(DRV, "driver of {} connected", self._driver.getOwnerName())
         if not connected:
-            raise Exception("%s: driver could not connect"% self.workerName)
+            raise Exception("%s: driver could not connect"% self._workerName)
 
-    def exposed_fetchFolders_nowait(self):
+    def exposed_fetchFolders(self):
         self.ui.debugC(DRV, "driver of {} starts fetching of folders",
-            self._driver.getOwner())
+            self._driver.getOwnerName())
         self._folders = self._driver.getFolders()
 
     def exposed_getFolders(self):
         self.ui.debugC(DRV, "driver of {} got folders: {}",
-            self._driver.getOwner(), self._folders)
+            self._driver.getOwnerName(), self._folders)
         return self._folders
 
     def exposed_logout(self):
         self._driver.logout()
-        self.ui.debugC(DRV, "driver of {} logged out", self._driver.getOwner())
+        self.ui.debugC(DRV, "driver of {} logged out", self._driver.getOwnerName())
         self._driver = None

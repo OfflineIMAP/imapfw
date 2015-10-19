@@ -30,10 +30,13 @@ process (for multiprocessing).
 
 """
 
-import time
+from imapfw import runtime
+
+from ..constants import WRK
 
 
 SimpleLock = None # Defined later.
+TIMEOUT=30
 
 
 def WorkerSafe(lock):
@@ -49,52 +52,29 @@ def WorkerSafe(lock):
     return decorate
 
 
-
-class BasicWorkerInterface(object):
-    def getName(self):
-        raise NotImplementedError
-
-    def kill(self):
-        raise NotImplementedError
-
-    def start(self):
-        raise NotImplementedError
-
-    def join(self):
-        raise NotImplementedError
+class WorkerInterface(object):
+    def getName(self):  raise NotImplementedError
+    def join(self):     raise NotImplementedError
+    def kill(self):     raise NotImplementedError
+    def start(self):    raise NotImplementedError
 
 
 class QueueInterface(object):
-    def get(self):
-        raise NotImplementedError
-
-    def get_nowait(self):
-        raise NotImplementedError
-
-    def put(self, data):
-        raise NotImplementedError
+    def get(self):          raise NotImplementedError
+    def get_nowait(self):   raise NotImplementedError
+    def put(self):          raise NotImplementedError
 
 
 class LockInterface(object):
-    def acquire(self):
-        raise NotImplementedError
-
-    def release(self):
-        raise NotImplementedError
+    def acquire(self):  raise NotImplementedError
+    def release(self):  raise NotImplementedError
 
 
 class ConcurrencyInterface(object):
-    def createLock(self):
-        raise NotImplementedError
-
-    def createQueue(self):
-        raise NotImplementedError
-
-    def createBasicWorker(self, name, target, args):
-        raise NotImplementedError
-
-    def getCurrentWorkerNameFunction(self):
-        raise NotImplementedError
+    def createLock(self):                   raise NotImplementedError
+    def createQueue(self):                  raise NotImplementedError
+    def createWorker(self):            raise NotImplementedError
+    def getCurrentWorkerNameFunction(self): raise NotImplementedError
 
 
 class LockBase(LockInterface):
@@ -104,15 +84,18 @@ class LockBase(LockInterface):
     def __exit__(self, t, v, tb):
         self.lock.release()
 
+
 class ThreadingBackend(ConcurrencyInterface):
-    def createBasicWorker(self, name, target, args):
+    def createWorker(self, name, target, args):
         from threading import Thread
 
-        class BasicWorker(BasicWorkerInterface):
+        class Worker(WorkerInterface):
             def __init__(self, name, target, args):
+                self._name = name
+
+                self.ui = runtime.ui
                 self._thread = Thread(name=name, target=target, args=args,
                     daemon=True)
-                self._name = name
 
             def getName(self):
                 return self._name
@@ -121,15 +104,18 @@ class ThreadingBackend(ConcurrencyInterface):
                 # No kill possible with threading. That's why we set the threads
                 # in daemon mode: workers get's killed once the main thread
                 # stop.
-                pass
+                self.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._thread.start()
+                self.ui.debugC(WRK, "%s started"% self._name)
 
             def join(self):
+                self.ui.debugC(WRK, "%s join"% self._name)
                 self._thread.join() # Block until process is done.
+                self.ui.debugC(WRK, "%s stopped"% self._name)
 
-        return BasicWorker(name, target, args)
+        return Worker(name, target, args)
 
     def createLock(self):
         from threading import Lock
@@ -153,30 +139,23 @@ class ThreadingBackend(ConcurrencyInterface):
         return TLock(Lock())
 
     def createQueue(self):
-        from collections import deque # Thread-safe.
-
-        from ..constants import Constants
+        from queue import Queue, Empty # Thread-safe.
 
         class TQueue(QueueInterface):
             def __init__(self):
-                self._queue = deque()
+                self._queue = Queue()
 
             def get(self):
-                # Must be "blocking" to match multiprocessing.
-                while True:
-                    try:
-                        return self._queue.pop() # At right side.
-                    except IndexError:
-                        time.sleep(Constants.SLEEP)
+                return self._queue.get(timeout=TIMEOUT)
 
             def get_nowait(self):
                 try:
-                    return self._queue.pop() # At right side.
-                except IndexError:
+                    return self._queue.get_nowait()
+                except Empty:
                     return None
 
             def put(self, data):
-                self._queue.appendleft(data)
+                self._queue.put(data)
 
         return TQueue()
 
@@ -189,28 +168,36 @@ class ThreadingBackend(ConcurrencyInterface):
 
 
 class MultiProcessingBackend(ConcurrencyInterface):
-    def createBasicWorker(self, name, target, args):
+    def createWorker(self, name, target, args):
         from multiprocessing import Process
 
-        class BasicWorker(BasicWorkerInterface):
+        class Worker(WorkerInterface):
             def __init__(self, name, target, args):
-                self._process = Process(name=name, target=target, args=args)
                 self._name = name
+
+                self.ui = runtime.ui
+                self._process = Process(name=name, target=target, args=args)
 
             def getName(self):
                 return self._name
 
             def kill(self):
                 self._process.terminate() # Send SIGTERM.
-                self._process.join()
+                self.join(verbose=False)
+                self.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._process.start()
+                self.ui.debugC(WRK, "%s started"% self._name)
 
-            def join(self):
+            def join(self, verbose=True):
+                if verbose is True:
+                    self.ui.debugC(WRK, "%s join"% self._name)
                 self._process.join() # Block until process is done.
+                if verbose is True:
+                    self.ui.debugC(WRK, "%s stopped"% self._name)
 
-        return BasicWorker(name, target, args)
+        return Worker(name, target, args)
 
     def createLock(self):
         from multiprocessing import Lock
@@ -236,7 +223,7 @@ class MultiProcessingBackend(ConcurrencyInterface):
                 self._queue = Queue()
 
             def get(self):
-                return self._queue.get()
+                return self._queue.get(timeout=TIMEOUT)
 
             def get_nowait(self):
                 try:

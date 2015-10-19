@@ -24,6 +24,7 @@ import imp #TODO: use library importlib instead of deprecated imp.
 
 from .api import types
 from .types.repository import RepositoryBase
+from .types.account import Account
 
 
 class Rascal(object):

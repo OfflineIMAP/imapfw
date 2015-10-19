@@ -110,7 +110,7 @@ class Imapfw(object):
             except Exception as actionError:
                 outputException(actionError, "exception occured while running"
                     " internal 'action.exception()': %s"% str(actionError))
+            raise #TODO: raise only unkown errors.
 
-            raise
 
         sys.exit(action.getExitCode())

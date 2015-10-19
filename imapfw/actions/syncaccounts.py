@@ -89,6 +89,8 @@ class SyncAccounts(ActionInterface):
         self._exitCode = 0
 
         self.ui = runtime.ui
+        self.concurrency = runtime.concurrency
+
         self.rascal = runtime.rascal
         self._accountList = None
         self._engineName = None
@@ -121,12 +123,10 @@ class SyncAccounts(ActionInterface):
         responsability to handle them."""
 
 
-        from ..concurrency.task import Tasks
-
         # Turn the list of accounts into a queue of tasks.
-        accountTasks = Tasks()
+        accountTasks = self.concurrency.createQueue()
         for name in self._accountList:
-            accountTasks.append(name)
+            accountTasks.put(name)
 
         # Setup the architecture.
         accountArchitects = []
@@ -145,8 +145,8 @@ class SyncAccounts(ActionInterface):
         while len(accountArchitects) > 0: # Are all account workers done?
             try:
                 for accountArchitect in accountArchitects:
-                    accountArchitect.serve_nowait() # Does not block if nothing to do.
-                    if accountArchitect.continueServing() is False:
+                    continueServing = accountArchitect.serve_next()
+                    if continueServing is False:
                         accountArchitects.remove(accountArchitect)
             except:
                 for accountArchitect in accountArchitects:

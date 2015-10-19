@@ -96,8 +96,11 @@ class TTY(UIinterface, UIbackendInterface):
 
     def debugC(self, category, *args):
         if self._debugCategories.get(category) is True:
-            self._safeLog('debug', "%s: %s",
-                self._currentWorkerName(), self.format(*args))
+            self._safeLog('debug', "%s %s [%s]",
+                self._currentWorkerName(),
+                self.format(*args),
+                category,
+                )
 
     def enableDebugCategories(self, categories):
         if 'all' in categories:
@@ -115,8 +118,8 @@ class TTY(UIinterface, UIbackendInterface):
         format_args = args[1:]
         try:
             return args[0].format(*format_args)
-        except IndexError:
-            return args
+        except (IndexError, KeyError):
+            return args[0] % args[1:]
 
 
     def info(self, *args):

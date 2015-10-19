@@ -20,27 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import time
+"""
+
+"""
+
+from ..types.repository import RepositoryBase
 
 
-def folderRunner(workerName, controller, left, right):
-    """The runner for syncing folders in a worker."""
+class EngineInterface(object):
+    def getRepositories(self):  raise NotImplementedError
+    def run(self):              raise NotImplementedError
 
-    #TODO: proceed.
-    time.sleep(1)
 
-    #def what():
-        ##TODO: reuse the connectionWorker in the first folder worker.
-
-        ## The account class is defined in the rascal.
-        #cls_account = self._rascal.getAccountClass(accountName)
-
-        ## Connect the drivers first.
-        #self._left.connect()
-        #self._right.connect()
-
-        ##TODO: use the engine for this account as defined in the rascal.
-        #engine = cls_account.engine()
-        #engine.run()
-        ## Get the folders from both ends.
-        #folders = self._engine.mergeFolders()
+class Engine(EngineInterface):
+    @staticmethod
+    def getRepositories(account, rascal):
+        left = rascal.get(account.left.__name__, [RepositoryBase])
+        rght = rascal.get(account.right.__name__, [RepositoryBase])
+        left.fw_init()
+        rght.fw_init()
+        return left, rght

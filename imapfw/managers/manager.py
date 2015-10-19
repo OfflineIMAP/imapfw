@@ -22,33 +22,124 @@
 
 """
 
-Managers are handy objects to handle both how a worker is managed (`start`,
-`join`, `kill`) and how the worker interacts with other workers. They must
-derivate from the `Manager` class.
+Overview
+========
+
+Managers are handy objects to communicate between workers, implementing the
+"passing by message" design. They must derivate from the `Manager` class.
 
 In order to interact with other workers, each manager aims to be splitted via a
 call to `split` which returns two new objects::
-    - the emitter
-    - the receiver
+    - the `Emitter` instance
+    - the `Receiver` instance
 
-Both objects aims at running in different workers. They are the "passing by
-message" implementation to communicate intuitively between workers.
+The emitter controls the receiver with simple method calls.
 
-The emitter controls the receiver with simple method calls like this:
+:Example:
 
-    result = emitter.doSomething(any, parameter, to=send)
+>>> result = emitter.doSomething(whatever, parameter=optional, to=send)
 
-The code implemented in "doSomething" is run by the receiver.
 
-The limitation is about the parameters and the returned values whose must
-be accepted by the queues. Don't expect to pass your SO_WONDERFULL objects.
-Take this limitation as a chance to write good code and objects with simple
-APIs. However, if you really need to pass objects, consider implementing the
-.serializer.SerializerInterface class.
+The code implemented in the "doSomething" method is run by the receiver.
 
+The managers support three kinds of communication:
+    - synchronized mode;
+    - partially asynchronized mode;
+    - asynchronized mode.
+
+The communication mode to use relies on optional arguments given to the emitter
+(_nowait and _trigger).
+
+Synchronized mode
+-----------------
+
+In synchronized mode, the emitter blocks until the receiver send the result.
+
+:Example:
+
+>>> # Waits for the result.
+>>> result = emitter.doSomething(whatever, parameter=optional, to=send)
+
+Partially aynchronized mode
+---------------------------
+
+In partially synchronized mode, the emitter won't wait for a result. The emitter
+will wait for the receiver to finish the task at the next call to any
+synchronized method.
+
+:Example:
+
+>>> emitter.longRequest(_nowait=True) # no wait
+>>> whatever_statements
+>>> result = emitter.getLongRequestResult()
+>>> doSomethingWith(result) # result is correct
+
+The "emmiter code" will wait at emitter.getLongRequestResult() and get the
+CORRECT result because the receiver won't even start the method
+getLongRequestResult() before the previous call to longRequest() is done.
+
+:Example:
+
+>>> emitter.longRequest(_nowait=True) # no wait
+>>> whatever_statements
+>>> result_of_doAnythingElse = emitter.doAnythinElse() # wait here
+
+The above code would wait here for emitter.longRequest() to finish be.
+
+:Example:
+
+>>> emitter.longRequest(_nowait) # no wait
+>>> whatever_statements
+>>> emitter.doAnotherThing(arg_for_receiver=whatever, _nowait=True) # no wait
+>>> result = emitter.getLongRequestResult() # wait here
+
+The above code would neither wait for longRequest() nor doAnotherThing(). It
+would wait for BOTH to be done at the getLongRequestResult() call. The returned
+value result is CORRECT.
+
+Asynchronized mode
+------------------
+
+Asynchronized mode relies on triggers. They must be callable and are defined at
+the emitter side at the time of the call with the special '_trigger' parameter.
+
+:Example:
+
+>>> emitter.longRequest(_trigger=(emitter_side_callable, (args), kw={})) # no wait
+>>> whatever_statements
+>>> emitter.doAnotherThing(arg_for_receiver, _trigger=(another_callable)) # no wait
+>>> result = emitter.async() # honor triggers, wait here
+>>> other_statements # emitter_side_callable and another_callable are finished
+
+The triggers "emitter_side_callable" and "another_callable" defined at
+longRequest() and doAnotherThing() respectively are executed when
+emitter.async() is called. The returned value "result" is always None. The order
+the triggers are executed is **undefined**. emitter.async() blocks until all the
+previous triggers are executed.
+
+Optionally, you can define when the emitter.async() stop blocking by passing the
+callable to wait for. TODO, not imlemented yet.
+
+:Example:
+
+>>> emitter.longRequest(_trigger=(emitter_side_callable, params)) # no wait
+>>> whatever_statements
+>>> emitter.doAnotherThing(arg_for_receiver, _trigger=(another_callable)) # no wait
+>>> emitter.async(another_callable) # wait here for another_callable() to be executed
+>>> other_statements
+>>> emitter.async() # honor remaining triggers, wait here for emitter_side_callable()
+
+If emitter.async() is call while there is no pending trigger to honor,
+emitter.async() is noop.
+
+
+The manager
+===========
+
+All the code implemented in the manager is executed by the receiver. What methods get
+exposed and callable by the emitter relies on name conventions.
 
 Name conventions
-================
 
 Because the manager gets splitted, the methods of a manager can intend different
 purposes:
@@ -58,151 +149,130 @@ purposes:
     - code for the caller of the receiver instance;
     - code to expose with the emitter.
 
-Name conventions helps to know what how the method will be used.  Also, the
+Name conventions helps to know what how the method will be used. Also, the
 `split` operation relies on those name conventions.
 
-- 'exposed_' (prefix): will be available in the emitter.
-- 'manager_' (prefix): factorized code.
-- _nowait' (suffix): the emitter won't wait for a result from the receiver.
-  This is how aync calls must be done. Returns None.
+:'exposed_' (prefix): mandatory: will be exposed, callable from in the emitter.
+:'manager_' (prefix): optional: factorized code for the manager, gets removed
+    in the receiver.
+:no prefix: code for the user of the receiver (or manager) instance.
 
-The prefix 'exposed_' and suffix '_nowait' are stripped on the emmiter side.
+When exposing a method, the prefix "exposed_" is stripped from the name.
+
+For easier usage, the method `exposed_stopServing` is already implemented.
 
 
 The receiver
 ============
 
-The receiver executes the orders. It is added the method `serve_nowait` so it
+The receiver executes the orders. It is added the method `serve_next` so it
 can serve the emitter. This method returns True or False whether it should
 continue serving or not.
 
-All the requested methods are executed and the results sent back to the Emmiter.
-This is sequential: each request ends before the next is started (they are
-internally put in a queue). So, it's fine to implement methods like this in the
-manager:
+:Example:
 
-    def __init__(self):
-        self.result = None
+>>> while receiver.serve_next():
+>>>     pass
 
-    def exposed_longRequest_nowait(self):
-        # Code taking a very long time; self.result gets True or
-        # False.
-        self.result = theResultIsTrueOrFalse()
+The serve_next() blocks while a request is being executed, one per loop.
 
-    def exposed_getLongRequestResult(self):
-        return self.result
+Whatever communication mode is used by the emitter, each request ends before the
+next is started in the order they are called by the emitter (they are internally
+put in a queue). The processing is a sequential. So, it's fine to implement
+methods like this in the manager:
 
-The emitter won't have to worry at all.
+:Example:
 
-Case A
-------
+>>> def __init__(self):
+>>>     self.result = None
+>>> 
+>>> def exposed_longRequest(self):
+>>>     # Code taking a very long time; self.result gets True or
+>>>     # False.
+>>>     if condition:
+>>>         self.result = True
+>>>     self.result = True
+>>> 
+>>> def exposed_getLongRequestResult(self):
+>>>     return self.result
 
-    emitter.longRequest() # async
-    this_is_called_NOW() # don't wait here
-    result = emitter.getLongRequestResult() # wait here (1)
-    doSomethingWith(result) # result is either True or False but
-                            # NEVER None
+The emitter will get the correct result as long as it calls
+longRequest() before getLongRequestResult().
 
-(1) The "emmiter code" will wait at emitter.getLongRequestResult() and get the
-CORRECT result because the receiver won't even start the method
-getLongRequestResult() before the previous call to longRequest() is done.
+The emitter does not have to worry about the order of execution since it's
+guaranted they are executed in the same order of the calls.
 
-Case B
-------
 
-    emitter.longRequest() # async
-    this_is_called_NOW() # don't wait here
-    emitter.doAnythinElse() # wait here (2)
-    result = emitter.getLongRequestResult() # don't wait here
-    doSomethingWith(result) # result is either True or False but
-                            # NEVER None
+Error handling
+==============
 
-(2) The above code would wait here for emitter.longRequest() to finish.
+The manager supports error handling. The emitter is exposed the method
+`interruptionError` to allow relaying the exception to the receiver.
 
-Case C
-------
 
-    emitter.longRequest() # async, don't wait here
-    this_is_called_NOW() # don't wait here
-    emitter.doAnotherThing() # async, don't wait here (3)
+Limitations
+===========
 
-    result = emitter.getLongRequestResult() # wait here
+:passed values: The main limitation is about the parameters and the returned values whose must
+be accepted by the queues. Don't expect to pass your SO_WONDERFULL objects. Take
+this limitation as a chance to write good code and objects with simple APIs.
++
+However, if you really need to pass objects, consider implementing the
+`.serializer.SerializerInterface` class.
 
-    doSomethingWith(result) # result is either True or False but
-                            # NEVER None
 
-(3) The above code would neither wait for longRequest() nor doAnotherThing(). It
-would wait for BOTH to be done at the getLongRequestResult() call. The returned
-value is CORRECT.
+:same worker: The emitter and receiver objects are usually aimed at running in
+different workers, one of them possibly being the main worker. However, it's
+possible to implement a manager only to handle advanced communication between
+objects. If you do this, the sync and async mode will both deadock. You must
+only use the partially asynchrone mode (with "_nowait).
+
 
 """
 
 import inspect
+from datetime import datetime
 
 from imapfw import runtime
 
-from ..constants import WRK, EMT
-from ..error import InterruptionError
+from ..constants import EMT
 
 
-class ManagerCallerInterface(object):
-    def join(self):                 raise NotImplementedError
-    def kill(self):                 raise NotImplementedError
-    def split(self):                raise NotImplementedError
-    def start(self, target, args):  raise NotImplementedError
+class ManagerInterface(object):
+    def getEmitter(self):   raise NotImplementedError
+    def split(self):        raise NotImplementedError
 
 
 class ManagerEmitterInterface(object):
-    def interruptAll(self): raise NotImplementedError
     def stopServing(self):  raise NotImplementedError
 
 
-class Manager(ManagerCallerInterface, ManagerEmitterInterface):
+class Manager(ManagerInterface, ManagerEmitterInterface):
     """The manager base class."""
 
-    def __init__(self, workerName):
-        self.workerName = workerName
-
+    def __init__(self):
         self.ui = runtime.ui
         self.concurrency = runtime.concurrency
-        self._worker = None
         self._stopServing = False
         self._emitter = None
-
-    def manager_setEmitter(self, emitter):
-        self._emitter = emitter
 
     def manager_shouldServe(self):
         return not self._stopServing
 
 
-    def exposed_unkownInterruptionError(self, reason):
-        raise Exception("%s got following interruption: %s"%
-            (self.workerName, reason))
+    def exposed_interruptionError(self, cls_exception, reason):
+        """Raise the exception cls_exception with the reason."""
 
-
-    def exposed_interruptionError(self, reason):
-        raise InterruptionError("%s got following interruption: %s"%
-            (self.workerName, reason))
+        raise cls_exception(reason)
 
     def exposed_stopServing(self):
+        """You should not ovrerride this method."""
+
         self._stopServing = True
 
 
     def getEmitter(self):
         return self._emitter
-
-    def getWorkerName(self):
-        return self.workerName
-
-    def join(self):
-        self.ui.debugC(WRK, "%s join"% self.workerName)
-        self._worker.join()
-        self.ui.debugC(WRK, "%s stopped"% self.workerName)
-
-    def kill(self):
-        self._worker.kill()
-        self.ui.debugC(WRK, "%s killed"% self.workerName)
 
     def split(self):
         """Split this manager
@@ -212,68 +282,96 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
         class Receiver(object):
             """Receiver base class. Executes the orders of the emitter."""
 
-            def __init__(self, incomingQueue, resultQueue, manager):
-                self.__incomingQueue = incomingQueue
-                self.__resultQueue = resultQueue
+            def __init__(self, inQueue, outQueue, triggerOutQueue, manager):
+                self.__inQueue = inQueue
+                self.__outQueue = outQueue
+                self.__triggerOutQueue = triggerOutQueue
                 self.__obj = manager # Embedd the full manager.
 
             def __getattr__(self, name):
                 # Return the requested method of the embedded manager.
+                if name.startswith('manager_'):
+                    raise AttributeError("attempted to call '%s' from the"
+                        " receiver"% name)
                 return getattr(self.__obj, name)
 
             def get_obj(self):
                 return self.__obj
 
-            def serve_nowait(self):
+            def serve_next(self):
                 """Serve the pending requests."""
 
-                while self.__obj.manager_shouldServe():
-                    # Read each pending incoming request.
-                    request = self.__incomingQueue.get_nowait()
-                    if request is None:
-                        break
+                # Read one pending incoming request.
+                request = self.__inQueue.get_nowait()
+                if request is None:
+                    return self.__obj.manager_shouldServe()
 
-                    # Execute the request.
-                    method, args, kwargs = request
-                    if len(args) > 0:
-                        if len(kwargs) > 0:
-                            result = getattr(
-                                self.__obj, method)(*args, **kwargs)
-                        else:
-                            result = getattr(
-                                self.__obj, method)(*args)
-                    else:
-                        if len(kwargs) > 0:
-                            result = getattr(
-                                self.__obj, method)(**kwargs)
-                        else:
-                            result = getattr(
-                                self.__obj, method)()
-                    if not method.endswith('_nowait'):
-                        # Send the results back to the emitter.
-                        self.__resultQueue.put(result)
+                # Execute the request.
+                (mode, triggerId), (name, args, kwargs) = request[0]
+                for flagMode in ['_nowait', '_trigger']:
+                    if flagMode in kwargs:
+                        kwargs.pop(flagMode)
+                result = getattr(self.__obj, name)(*args, **kwargs)
+
+                if mode == '_trigger':
+                    self.__triggerOutQueue.put((triggerId, result))
+                elif mode == '_sync':
+                    self.__outQueue.put(result)
+
+                # Send the result back to the emitter.
                 # Let the caller know if the receiver should continue to serve.
                 return self.__obj.manager_shouldServe()
 
-        def Emitter(ui, incomingQueue, resultQueue, manager):
-            """The emitter factory."""
+        def Emitter(inQueue, outQueue, triggerOutQueue, manager):
+            """The Emitter factory."""
 
-            def proxy_method(name, waitResult):
-                def nowait(self, *args, **kwargs):
-                    ui.debugC(EMT, "calling %s: %s %s %s"%
-                        (self.__class__.__name__, name, args, kwargs))
-                    self.__incomingQueue.put((name, args, kwargs))
+            def expose_method(name):
+                def attached_method(self, *args, **kwargs):
+                    from imapfw import runtime
+                    ui = runtime.ui
+                    mode = '_sync' # Default.
+                    triggerId = None
+                    # Handle the communication modes.
+                    if '_nowait' in kwargs:
+                        mode = '_nowait'
+                        kwargs.pop('_nowait')
+                    elif '_trigger' in kwargs:
+                        # Store the trigger so it can be retrieved later.
+                        mode = '_async'
+                        trigger, targs, tkwargs = kwargs.pop('_trigger')
+                        triggerId = datetime.now().timestamp()
+                        self.__triggers[triggerId] = (trigger, targs, tkwargs)
+                        kwargs['_trigger'] = triggerId
+
+                    request = (mode, triggerId), (name, args, kwargs)
+
+                    ui.debugC(EMT, "{} sending (({}, {}), ({}, {}, {})",
+                        self.__class__.__name__, mode, triggerId,
+                        name, args, kwargs)
+
+                    self.__inQueue.put((request,))
+
+                    if mode == '_sync':
+                        values = self.__outQueue.get()
+                        ui.debugC(EMT, "{} result for {}: ({})",
+                            self.__class__.__name__, name, values)
+                        return values
                     return None
 
-                def wait(self, *args, **kwargs):
-                    ui.debugC(EMT, "calling %s: %s %s %s"%
-                        (self.__class__.__name__, name, args, kwargs))
-                    self.__incomingQueue.put((name, args, kwargs))
-                    return self.__resultQueue.get()
+                return attached_method
 
-                if waitResult is True:
-                    return wait
-                return nowait
+            def expose_async():
+                def async(self, *args, **kwargs):
+                    from imapfw import runtime
+                    ui = runtime.ui
+                    while len(self.__triggers) > 0:
+                        triggerId, result = self.__triggerOutQueue.get()
+                        ui.debugC(EMT, "{} trigger ({}, {})",
+                            self.__class__.__name__, triggerId, result)
+                        func, trigger_args, trigger_kwargs = self.__triggers.pop(
+                            triggerId)
+                        func(result, *trigger_args, **trigger_kwargs) # Execute trigger.
+                return async
 
             # Build the class.
             cls_Emitter = type(
@@ -283,37 +381,33 @@ class Manager(ManagerCallerInterface, ManagerEmitterInterface):
             for name in [attr[0] for attr in inspect.getmembers(manager)]:
                 if name.startswith('exposed_'):
                     exposedName = name[8:] # Remove 'exposed_' from the name.
-                    if name.endswith('_nowait'):
-                        exposedName = exposedName[:-7]
-                        setattr(cls_Emitter, exposedName,
-                            proxy_method(name, waitResult=False))
-                    else:
-                        setattr(cls_Emitter, exposedName,
-                            proxy_method(name, waitResult=True))
+                    if exposedName in ['async']:
+                        raise Exception("the manager %s implements the"
+                            " forbidden 'exposed_%s' method"%
+                            (self.__class__.__name__, exposedName))
+                    setattr(cls_Emitter, exposedName, expose_method(name))
+            setattr(cls_Emitter, 'async', expose_async())
             emitter = cls_Emitter()
             # Fix attributes of the emitter.
-            emitter.__incomingQueue = incomingQueue
-            emitter.__resultQueue = resultQueue
+            emitter.__triggers = {}
+            emitter.__inQueue = inQueue
+            emitter.__outQueue = outQueue
+            emitter.__triggerOutQueue = triggerOutQueue
 
-            ui.debugC(EMT, "new instance %s: %s"% (emitter.__class__.__name__,
+            self.ui.debugC(EMT, "new instance %s: %s"% (emitter.__class__.__name__,
                 [x for x in dir(emitter) if not x.startswith('_')]))
             return emitter # The instance.
 
         # split() really starts here.
-        incomingQueue = self.concurrency.createQueue()
-        resultQueue = self.concurrency.createQueue()
+        inQueue = self.concurrency.createQueue()
+        outQueue = self.concurrency.createQueue()
+        triggerOutQueue = self.concurrency.createQueue()
 
-        receiver = Receiver(incomingQueue, resultQueue, self)
-        emitter = Emitter(self.ui, incomingQueue, resultQueue, self)
+        emitter = Emitter(inQueue, outQueue, triggerOutQueue, self)
+        self._emitter = emitter
+        receiver = Receiver(inQueue, outQueue, triggerOutQueue, self)
 
-        receiver.manager_setEmitter(emitter) # Let the receiver keep track on his emitter.
-        return emitter, receiver
-
-    def start(self, target, args):
-        self._worker = self.concurrency.createBasicWorker(
-            name=self.workerName, target=target, args=args)
-        self._worker.start()
-        self.ui.debugC(WRK, "%s started"% self.workerName)
+        return receiver, emitter
 
 
 if __name__ == '__main__':
@@ -403,5 +497,5 @@ if __name__ == '__main__':
     e, r = tt.split()
     r.start(runner, (e,))
 
-    while r.serve_nowait():
+    while r.serve_next():
         pass

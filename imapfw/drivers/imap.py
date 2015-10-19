@@ -39,6 +39,7 @@ class Imap(DriverBase):
         self.imap.configure()
 
     def connect(self):
+        #TODO: if already connected, pass.
         return True
         #return self.imap.connect(host, port)
 
