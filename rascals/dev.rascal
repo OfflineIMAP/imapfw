@@ -3,19 +3,6 @@
 #
 
 MainConf = {
-
-    # Concurrency backend to use for the workers:
-    # - multiprocessing;
-    # - threading;
-    #
-    # Because most of the wait time is due to I/O (disk and network, there
-    # should be no visible performance differences.
-    #
-    # Be aware that the rascal gets COPIED into each worker. This means that
-    # any changed ressource (including global variable) after the call to
-    # configure() won't be updated for all the running code.
-    'concurrency_backend': 'multiprocessing',
-
     # The number of concurrent workers for the accounts. Default is the number
     # of accounts to sync.
     'max_sync_accounts': 7,
@@ -66,7 +53,6 @@ class TestingController(controllers.Controller):
 class MaildirA(types.Maildir):
     conf = MaildirConfA
     driver = drivers.Maildir # Default: drivers.Maildir.
-    controllers = [controllers.Controller, TestingController]
 
 class MaildirB(types.Maildir):
     conf = MaildirConfB
@@ -75,6 +61,7 @@ class MaildirB(types.Maildir):
 class ImapA(types.Imap):
     conf = ImapConfA
     driver = drivers.Imap # Default: drivers.Imap.
+    controllers = [controllers.Controller, TestingController]
 
 
 class AccountA(types.Account):
