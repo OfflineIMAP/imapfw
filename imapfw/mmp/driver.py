@@ -56,16 +56,13 @@ class DriverManager(Manager):
 
         self.ui.debugC(DRV, "%s manager created"% workerName)
 
-    def exposed_buildDriver(self, repositoryName):
-        """Package the driver.
+    def connect(self, repositoryName):
+        """Connect the driver for this repository (name)."""
 
-        Take the end driver defined in the repository and chain it with all the
-        controllers."""
-
-        ### Really start here ###
         repository = self.rascal.get(repositoryName, [RepositoryInterface])
         repository.fw_init()
 
+        # Build the driver.
         driver = repository.fw_chainControllers()
         driver.fw_init(repository.conf, repositoryName) # Initialize.
         driver.fw_sanityChecks(driver) # Catch common errors early.
@@ -74,33 +71,39 @@ class DriverManager(Manager):
             driver.getName(), repositoryName)
         self.ui.debugC(DRV, "'{}' has conf {}", repositoryName, driver.conf)
 
-        self._driver = driver
-
-    def exposed_connect(self):
-        if self._driver.isLocal:
-            self.ui.debugC(DRV, '{} working in {}', self._driver.getOwnerName(),
-                self._driver.conf.get('path'))
+        # Ready, connect.
+        if driver.isLocal:
+            self.ui.debugC(DRV, '{} working in {}', driver.getOwnerName(),
+                driver.conf.get('path'))
         else:
             self.ui.debugC(DRV, '{} connecting to {}:{}',
-                self._driver.getOwnerName(), self._driver.conf.get('host'),
-                self._driver.conf.get('port'))
+                driver.getOwnerName(), driver.conf.get('host'),
+                driver.conf.get('port'))
 
-        connected = self._driver.connect()
-        self.ui.debugC(DRV, "driver of {} connected", self._driver.getOwnerName())
-        if not connected:
+        connected = driver.connect()
+        self.ui.debugC(DRV, "driver of {} connected", driver.getOwnerName())
+        if connected:
+            self._driver = driver
+        else:
             raise Exception("%s: driver could not connect"% self._workerName)
 
-    def exposed_fetchFolders(self):
+    def ex_account_connect(self):
+        self.connect()
+
+    def ex_account_fetchFolders(self):
         self.ui.debugC(DRV, "driver of {} starts fetching of folders",
             self._driver.getOwnerName())
         self._folders = self._driver.getFolders()
 
-    def exposed_getFolders(self):
+    def ex_account_getFolders(self):
         self.ui.debugC(DRV, "driver of {} got folders: {}",
             self._driver.getOwnerName(), self._folders)
         return self._folders
 
-    def exposed_logout(self):
+    def ex_account_logout(self):
         self._driver.logout()
         self.ui.debugC(DRV, "driver of {} logged out", self._driver.getOwnerName())
         self._driver = None
+
+    def ex_architect_stopServing(self):
+        self.stopServing()

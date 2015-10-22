@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import traceback
-
 from imapfw import runtime
 
 from .engine import Engine
@@ -30,59 +28,62 @@ from ..types.account import Account
 from ..constants import WRK
 
 
+    #def exposed_startFolderWorkers(self, syncfolders, maxFolderWorkers,
+        #accountName):
+
+        #self.ui.debugC(WRK, "creating the folders workers for %s"% accountName)
+
+        #self._foldersArchitect = FoldersArchitect(accountName)
+        ## Build the required child workers.
+        #self._foldersArchitect.start(syncfolders, maxFolderWorkers)
+
 class SyncAccount(Engine):
     """The sync account engine.
 
-    Designed to be used by the generic ConsummerRunner. Consumes account names,
-    one by one.
+    Used by the account manager."""
 
-    Prepare the environement inside the worker and run the engine.
-    """
-
-    def __init__(self, workerName, tasks, accountEmitter, leftEmitter, rightEmitter):
+    def __init__(self, workerName, leftEmitter, rightEmitter):
         self._workerName = workerName
-        self._tasks = tasks
-        self._accountEmitter = accountEmitter
-        self._left = leftEmitter  # Control the left driver (emitter).
-        self._rght = rightEmitter # Control the right driver (emitter).
+        self._left = leftEmitter
+        self._rght = rightEmitter
 
         self.ui = runtime.ui
         self.rascal = runtime.rascal
 
-    def _consume(self, accountName):
-        account = self.rascal.get(accountName, [Account])
-        leftRepository, rghtRepository = self.getRepositories(
-            account, self.rascal)
+        self._accountName = None
+        self._leftFolders = None
+        self._rghtFolders = None
+        self._maxFolderWorkers = None
+        self._runResults = None, None, None
 
-        self._left.buildDriver(leftRepository.getName(), _nowait=True)
-        self._rght.buildDriver(rghtRepository.getName(), _nowait=True)
+        # Define the flow of actions.
+        self._left.getFolders.addOnSuccess(self._onLeftGetFolders)
+        self._left.getFolders.addOnSuccess(self._mergeFolders)
+        self._rght.getFolders.addOnSuccess(self._onRghtGetFolders)
+        self._left.getFolders.addOnSuccess(self._mergeFolders)
 
-        # Connect the drivers.
-        self._left.connect(_nowait=True)
-        self._rght.connect(_nowait=True)
+    def _onLeftGetFolders(self, folders):
+        self._leftFolders = folders
 
-        # Fetch folders concurrently.
-        self._left.fetchFolders(_nowait=True)
-        self._rght.fetchFolders(_nowait=True)
+    def _onRghtGetFolders(self, folders):
+        self._rghtFolders = folders
 
-        # Get the folders from both sides so we can feed the folder tasks.
-        leftFolders = self._left.getFolders()
-        rghtFolders = self._rght.getFolders()
-
-        # Free the connections since we don't need them anymore.
-        self._left.logout(_nowait=True)
-        self._rght.logout(_nowait=True)
+    def _mergeFolders(self, _):
+        if None in [self._leftFolders, self._rghtFolders]:
+            return
 
         # Merge the folder lists.
         mergedFolders = []
-        for sideFolders in [leftFolders, rghtFolders]:
+        for sideFolders in [self._leftFolders, self._rghtFolders]:
             for folder in sideFolders:
                 if folder not in mergedFolders:
                     mergedFolders.append(folder)
-        self.ui.infoL(3, "%s merged folders %s"% (accountName, mergedFolders))
+
+        self.ui.infoL(3, "%s merged folders %s"%
+            (self._accountName, mergedFolders))
 
         # Pass the list to the rascal.
-        rascalFolders = account.syncFolders(mergedFolders)
+        rascalFolders = self._account.syncFolders(mergedFolders)
 
         # The rascal might request for non-existing folders!
         syncFolders = []
@@ -95,46 +96,57 @@ class SyncAccount(Engine):
 
         if len(ignoredFolders) > 0:
             self.ui.warn("rascal, you asked to sync non-existing folders"
-                " for '%s': %s", account.getName(), ignoredFolders)
+                " for '%s': %s", self._account.getName(), ignoredFolders)
 
         if len(syncFolders) < 1:
-            return # Nothing to do, stop here.
-        self.ui.infoL(3, "%s syncing folders %s"% (accountName, syncFolders))
+            self._runResults = None, None, None
+            return # Nothing more to do, stop here.
+
+        self.ui.infoL(3, "%s syncing folders %s"%
+            (self._accountName, syncFolders))
 
         #TODO: make max_connections mandatory.
-        maxFolderWorkers = min(
-            len(syncFolders),
+        maxFolderWorkers = min(len(syncFolders), self._maxFolderWorkers)
+
+        self._runResults = syncFolders, maxFolderWorkers, self._accountName
+
+    def _run(self, accountName):
+        # Get the account instance from the rascal.
+        self._account = self.rascal.get(accountName, [Account])
+        # Get the repository instances from the rascal.
+        leftRepository, rghtRepository = self.getRepositories(
+            self._account, self.rascal)
+
+        self._maxFolderWorkers = min(
             rghtRepository.conf.get('max_connections'),
             leftRepository.conf.get('max_connections'))
 
-        # Start the folder workers.
-        self._accountEmitter.startFolderWorkers(
-            syncFolders, maxFolderWorkers, accountName)
+        self._left.buildDriver(leftRepository.getName())
+        self._rght.buildDriver(rghtRepository.getName())
 
-        # Blok until all folders are synced. The loop must stand here because:
-        # - we don't want to block the main worker while syncing this lone account;
-        # - we don't need extra machinery to get notified when the work is done.
-        while self._accountEmitter.serve_next():
-            pass
+        # Connect the drivers.
+        self._left.connect()
+        self._rght.connect()
 
-    def run(self):
+        # Get the folders from both sides so we can feed the folder tasks.
+        self._left.getFolders()
+        self._rght.getFolders()
+
+        # Disable the emitters since we don't need them anymore.
+        self._left.disable()
+        self._rght.disable()
+
+    def getResults(self):
+        return self._runResults
+
+    def run(self, accountName):
+        self._accountName = accountName
+
         try:
-            while True:
-                task =  self._tasks.get_nowait()
-                if task is None: # No more task.
-                    break # Quit the consumer loop.
+            self.ui.infoL(2, "syncing %s"% self._accountName)
+            self._run()
+            self.ui.infoL(3, "syncing %s done"% self._accountName)
+        except Exception:
+            self.ui.error("could not sync account %s"% self._accountName)
+            raise
 
-                self.ui.infoL(2, "syncing %s"% task)
-                self._consume(task)
-                self.ui.infoL(3, "syncing %s done"% task)
-
-            self._left.stopServing()
-            self._rght.stopServing()
-            self._accountEmitter.stopServing()
-            self.ui.debugC(WRK, "runner ended")
-        except Exception as e:
-            self.ui.error('%s exception occured: %s\n%s', self._workerName, e,
-                traceback.format_exc())
-            # In threading: will send logout() to drivers from driver architect.
-            # In multiprocessing: will send SIGTERM.
-            self._accountEmitter.interruptionError(e.__class__, str(e))

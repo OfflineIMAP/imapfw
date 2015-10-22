@@ -23,7 +23,7 @@
 import logging
 import logging.config
 
-from ..constants import DEBUG_CATEGORIES
+from ..constants import DEBUG_CATEGORIES, DEFAULT_DEBUG_CATEGORIES
 
 logging_config = {
     'version': 1,
@@ -104,7 +104,7 @@ class TTY(UIinterface, UIbackendInterface):
 
     def enableDebugCategories(self, categories):
         if 'all' in categories:
-            categories = DEBUG_CATEGORIES
+            categories = DEFAULT_DEBUG_CATEGORIES
         for category in categories:
             self._debugCategories[category] = True
 

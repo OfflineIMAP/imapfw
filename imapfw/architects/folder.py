@@ -24,7 +24,7 @@ from imapfw import runtime
 
 from .driver import DriverArchitect
 
-from ..managers.folder import FolderManager
+from ..mmp.folder import FolderManager
 from ..engines.folder import SyncFolder
 from ..constants import ARC
 

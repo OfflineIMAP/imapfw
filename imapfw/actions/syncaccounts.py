@@ -75,7 +75,6 @@ from imapfw import runtime
 
 from .interface import ActionInterface
 
-from ..constants import WRK
 from ..architects.account import AccountArchitect
 
 
@@ -86,25 +85,21 @@ class SyncAccounts(ActionInterface):
     requireRascal = True
 
     def __init__(self):
-        self._exitCode = 0
-
         self.ui = runtime.ui
         self.concurrency = runtime.concurrency
-
         self.rascal = runtime.rascal
+
         self._accountList = None
         self._engineName = None
-
         self._accountsManager = None
-        self._receivers = []
+        self._exitCode = -1
 
     def _concurrentAccountsNumber(self):
         return min(self.rascal.getMaxSyncAccounts(), len(self._accountList))
 
     def exception(self, e):
-        self._exitCode = 3
-        for receiver in self._receivers:
-            receiver.kill()
+        # This should not happen since all exceptions are handled at lower level.
+        pass
 
     def getExitCode(self):
         return self._exitCode
@@ -116,14 +111,10 @@ class SyncAccounts(ActionInterface):
     def run(self):
         """Enable the syncing of the accounts in an async fashion.
 
-        Code here is about setting up the environment in order to start syncing
-        at the very end.
+        Code here is about setting up the environment, start the jobs and
+        monitor."""
 
-        This method won't catch unexpected exceptions. This is of caller's
-        responsability to handle them."""
-
-
-        # Turn the list of accounts into a queue of tasks.
+        # The account names are the tasks for the account workers.
         accountTasks = self.concurrency.createQueue()
         for name in self._accountList:
             accountTasks.put(name)
@@ -131,25 +122,16 @@ class SyncAccounts(ActionInterface):
         # Setup the architecture.
         accountArchitects = []
         for i in range(self._concurrentAccountsNumber()):
-            workerName = "Account.Worker.%i"% i
+            workerName = "Account.%i"% i
 
-            accountName = self._accountList.pop(0)
-
-            accountArchitect = AccountArchitect()
-            accountArchitect.start(workerName, accountTasks, self._engineName)
+            accountArchitect = AccountArchitect(self._engineName)
             accountArchitects.append(accountArchitect)
+            # The real start of the process is async.
+            accountArchitect.start(workerName, accountTasks)
 
-
-        # Serve all the account workers.
-        self.ui.debugC(WRK, "serving accounts")
-        while len(accountArchitects) > 0: # Are all account workers done?
-            try:
-                for accountArchitect in accountArchitects:
-                    continueServing = accountArchitect.serve_next()
-                    if continueServing is False:
-                        accountArchitects.remove(accountArchitect)
-            except:
-                for accountArchitect in accountArchitects:
-                    accountArchitect.kill()
-                raise
-        self.ui.debugC(WRK, "serving accounts stopped")
+        # Monitor.
+        while self._exitCode < 0:
+            for accountArchitect in accountArchitects:
+                exitCode = accountArchitect.getExitCode()
+                if exitCode >= 0 and self._exitCode != 0:
+                    self._exitCode = exitCode

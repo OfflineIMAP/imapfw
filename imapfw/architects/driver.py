@@ -22,71 +22,64 @@
 
 from imapfw import runtime
 
-from ..managers.driver import DriverManager
+from ..mmp.driver import DriverManager
+from ..mmp.manager import receiverRunner
 from ..constants import ARC
-
-import traceback
-
-from ..constants import WRK, DRV
-
-
-def driverRunner(ui, workerName, driverReceiver, handlerEmitter):
-    """The runner for a driver."""
-
-    try:
-        ui.debugC(DRV, "starts serving")
-        while driverReceiver.serve_next():
-            pass
-        ui.debugC(DRV, "stopped serving")
-        ui.debugC(WRK, "runner ended")
-
-    except Exception as e:
-        ui.critical('%s exception occured: %s\n%s',
-            workerName, str(e), traceback.format_exc())
-        handlerEmitter.interruptionError(e.__class__, str(e))
 
 
 class DriverArchitectInterface(object):
     def getEmitter(self):   raise NotImplementedError
-    def join(self):         raise NotImplementedError
+    def stop(self):         raise NotImplementedError
     def kill(self):         raise NotImplementedError
     def start(self):        raise NotImplementedError
 
 
 class DriverArchitect(DriverArchitectInterface):
-    """Architect to seup the driver manager."""
+    """Architect to manage a driver worker."""
+
     def __init__(self, workerName):
         self._workerName = workerName
 
         self.ui = runtime.ui
         self.concurrency = runtime.concurrency
+
+        self._manager = None
         self._emitter = None
         self._worker = None
+        self._name = self.__class__.__name__
 
         self.ui.debugC(ARC, "{} created", self._workerName)
 
-    def getEmitter(self):
-        return self._emitter
+    def getEmitter(self, name):
+        self.ui.debugC(ARC, "{} get emitter '{}'",
+            self._name, name)
+        return self._manager.getEmitter(name)
 
-    def join(self):
+    def stop(self):
+        self.ui.debugC(ARC, "{} stopping driver manager '{}'",
+            self._name, self._workerName)
         self._emitter.stopServing()
         self._worker.join()
 
     def kill(self):
+        self.ui.debugC(ARC, "{} killing driver manager '{}'",
+            self._name, self._workerName)
+        self._emitter.stopServing()
         self._worker.kill()
 
-    def start(self, handlerEmitter):
+    def start(self):
         self.ui.debugC(ARC, "{} starting driver manager '{}'",
-            self.__class__.__name__, self._workerName)
+            self._name, self._workerName)
 
-        driverManager = DriverManager(self._workerName)
-        receiver, self._emitter = driverManager.split()
+        self._manager = DriverManager(self._workerName)
+
+        receiver = self._manager.getReceiver()
+        self._emitter = self._manager.getEmitter('architect')
+
         self._worker = self.concurrency.createWorker(
             self._workerName,
-            driverRunner, (
-                self.ui,
-                self._workerName,
-                receiver,
-                handlerEmitter,
-            ))
+            receiverRunner,
+            (receiver,),
+            )
+
         self._worker.start()
