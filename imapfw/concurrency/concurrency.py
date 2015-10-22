@@ -36,7 +36,6 @@ from ..constants import WRK
 
 
 SimpleLock = None # Defined later.
-TIMEOUT=30
 
 
 def WorkerSafe(lock):
@@ -146,7 +145,7 @@ class ThreadingBackend(ConcurrencyInterface):
                 self._queue = Queue()
 
             def get(self):
-                return self._queue.get(timeout=TIMEOUT)
+                return self._queue.get()
 
             def get_nowait(self):
                 try:
@@ -223,7 +222,7 @@ class MultiProcessingBackend(ConcurrencyInterface):
                 self._queue = Queue()
 
             def get(self):
-                return self._queue.get(timeout=TIMEOUT)
+                return self._queue.get()
 
             def get_nowait(self):
                 try:
