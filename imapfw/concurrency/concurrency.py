@@ -85,8 +85,24 @@ class LockBase(LockInterface):
 
 
 class ThreadingBackend(ConcurrencyInterface):
+    """
+    Handling signals with threading
+    ===============================
+
+    SIGTERM
+    -------
+
+    Main thread get KeyboardInterrupt. Only daemon childs gets killed.
+
+    SIGKILL
+    -------
+
+    Kills everything (the process is killed, so the threads).
+    """
+
     def createWorker(self, name, target, args):
         from threading import Thread
+        from signal import pthread_kill, SIGTERM
 
         class Worker(WorkerInterface):
             def __init__(self, name, target, args):
@@ -100,10 +116,14 @@ class ThreadingBackend(ConcurrencyInterface):
                 return self._name
 
             def kill(self):
-                # No kill possible with threading. That's why we set the threads
-                # in daemon mode: workers get's killed once the main thread
-                # stop.
-                self.ui.debugC(WRK, "%s killed"% self._name)
+                """Kill a worker.
+
+                This is only usefull for the workers working with a failed
+                worker. In daemon mode: workers get's killed when the main thread
+                gets killed."""
+
+                pthread_kill(self._thread.get_indent(), SIGTERM)
+                self.ui.debugC(WRK, "%s killed (fake)"% self._name)
 
             def start(self):
                 self._thread.start()
@@ -111,8 +131,8 @@ class ThreadingBackend(ConcurrencyInterface):
 
             def join(self):
                 self.ui.debugC(WRK, "%s join"% self._name)
-                self._thread.join() # Block until process is done.
-                self.ui.debugC(WRK, "%s stopped"% self._name)
+                self._thread.join() # Block until thread is done.
+                self.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
@@ -167,6 +187,22 @@ class ThreadingBackend(ConcurrencyInterface):
 
 
 class MultiProcessingBackend(ConcurrencyInterface):
+    """
+    Handling signals with multiprocessing
+    =====================================
+
+    SIGTERM
+    -------
+
+    Signal is sent to all workers by multiprocessing.
+
+    SIGKILL
+    -------
+
+    Current process is killed. Other processes continue (orphaned if main
+    process was killed).
+    """
+
     def createWorker(self, name, target, args):
         from multiprocessing import Process
 
@@ -181,6 +217,12 @@ class MultiProcessingBackend(ConcurrencyInterface):
                 return self._name
 
             def kill(self):
+                """Kill a worker.
+
+                This is only usefull for the workers working with a failed
+                worker. KeyboardInterrupt is natively sent to all workers by
+                multiprocessing."""
+
                 self._process.terminate() # Send SIGTERM.
                 self.join(verbose=False)
                 self.ui.debugC(WRK, "%s killed"% self._name)
@@ -194,7 +236,7 @@ class MultiProcessingBackend(ConcurrencyInterface):
                     self.ui.debugC(WRK, "%s join"% self._name)
                 self._process.join() # Block until process is done.
                 if verbose is True:
-                    self.ui.debugC(WRK, "%s stopped"% self._name)
+                    self.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
