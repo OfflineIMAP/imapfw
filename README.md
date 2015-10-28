@@ -1,14 +1,28 @@
-[offlineimap]: https://github.com/OfflineIMAP/offlineimap
-[imapfw]: https://github.com/OfflineIMAP/imapfw
-[website]: http://offlineimap.org
-[blog]: http://offlineimap.org/posts.html
 
 # imapfw
 
-:Author: Nicolas Sebrecht
-:Source: http://github.com/OfflineIMAP/imapfw
-:License: The MIT License (MIT)
-:Status: Work In Progress
+<!-- Markdown sucks for tables without headers. -->
+
+<table>
+  <tr>
+    <td> Author </td>
+    <td> Nicolas Sebrecht </td>
+  </tr>
+  <tr>
+    <td> Source </td>
+    <td> http://github.com/OfflineIMAP/imapfw </td>
+  </tr>
+  <tr>
+    <td> License </td>
+    <td> The MIT License (MIT) </td>
+  </tr>
+  <tr>
+    <td> Status </td>
+    <td> Work In Progress </td>
+  </tr>
+</table>
+
+
 
 **imapfw is a simple and powerfull framework to work with IMAP and Maildir. It
 comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
@@ -20,7 +34,9 @@ comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 **Read the [blog][blog] to get last news about imapfw.**
 
 
-## Description <!-- Replace this with a "Features" section. -->
+## Description
+
+<!-- Replace this with a "Features" section. -->
 
 The main downside about IMAP is that you have to **trust** your email provider to
 not lose your mails. This is not something impossible while not very common.
@@ -49,10 +65,16 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 * Python v3.3
 
 
-## WARNING
+## Warning
 
 imapfw is still **WORK IN PROGRESS**. It won't do anything good for now while it
 should not hurt. This project is made public for **developpers**.
 
 Last WIP is in the `next` branch. Since this is still very early stage
 development, rebasing might happen everywhere.
+
+[offlineimap]: https://github.com/OfflineIMAP/offlineimap
+[imapfw]: https://github.com/OfflineIMAP/imapfw
+[website]: http://offlineimap.org
+[blog]: http://offlineimap.org/posts.html
+
