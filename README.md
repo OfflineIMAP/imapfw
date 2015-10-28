@@ -3,26 +3,24 @@
 [website]: http://offlineimap.org
 [blog]: http://offlineimap.org/posts.html
 
-# imafw
+# imapfw
 
+:Author: Nicolas Sebrecht
+:Source: http://github.com/OfflineIMAP/imapfw
+:License: The MIT License (MIT)
+:Status: Work In Progress
 
-## WARNING
-
-imapfw is still **WORK IN PROGRESS**. It won't do anything good for now. This
-project is made public for **developpers** only.
-
-Last WIP is in the `next` branch. Since this is still very early stage
-development, rebasing might happen everywhere.
-
-**Read the [blog][blog] to get last news.**
+**imapfw is a simple and powerfull framework to work with IMAP and Maildir. It
+comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 
 * [![Build Status: "master" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=master)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "master"
 * [![Build Status: "next" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=next)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "next"
 
-## Description
 
-imapfw is a simple and powerfull framework to work with IMAP and Maildir. It
-comes as a replacement to the [OfflineIMAP syncer][offlineimap].
+**Read the [blog][blog] to get last news about imapfw.**
+
+
+## Description <!-- Replace this with a "Features" section. -->
 
 The main downside about IMAP is that you have to **trust** your email provider to
 not lose your mails. This is not something impossible while not very common.
@@ -32,11 +30,6 @@ the [Maildir](https://en.wikipedia.org/wiki/Maildir).
 This allows reading your email while offline without the need for the mail
 reader (MUA) to support IMAP disconnected operations. Need an attachment from a
 message without internet connection? It's fine, the message is still there.
-
-
-## License
-
-The MIT License (MIT).
 
 
 ## Feedbacks and contributions
@@ -55,3 +48,11 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 
 * Python v3.3
 
+
+## WARNING
+
+imapfw is still **WORK IN PROGRESS**. It won't do anything good for now while it
+should not hurt. This project is made public for **developpers**.
+
+Last WIP is in the `next` branch. Since this is still very early stage
+development, rebasing might happen everywhere.
