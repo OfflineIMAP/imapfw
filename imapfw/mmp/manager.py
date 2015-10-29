@@ -316,7 +316,8 @@ Effectively using the receiver and emitters
 
 Because communication internally relies on queues and that queues must be
 **passed** to the workers, a manager is not helpfull in a worker. IOW, any
-worker requiring emitters can only work with predefined emitters.
+worker requiring emitters can only work with emitters built before the start of
+the worker.
 
 
 Receiver and emitter in the same worker
@@ -363,7 +364,7 @@ There are good demos at the end of the module. ,-)
 # The controls
 # ============
 #
-# This queue is used when the receiver and emitter need a syn to clear out
+# This queue is used when the receiver and emitter need a sync to clear out
 # the pending requests.
 #
 # Canonical format:
@@ -392,14 +393,14 @@ def _raiseError(cls_Exception, reason):
             raise RuntimeError("exception from receiver cannot be raised %s: %s"%
                 (cls_Exception.__name__, reason))
 
-def receiverRunner(receiver):
-    name = receiver.getName()
-    receiver.ui.debugC(EMT, "[runner] %s starts serving"% name)
+def receiverRunner(manager):
+    name = manager.getName()
+    manager.ui.debugC(EMT, "[runner] %s starts serving"% name)
     try:
-        receiver.serve()
-        receiver.ui.debugC(EMT, "[runner] %s stopped serving"% name)
+        manager.serve()
+        manager.ui.debugC(EMT, "[runner] %s stopped serving"% name)
     except Exception as e:
-        receiver.ui.debugC(EMT, "[runner] %s interrupted: %s"% (name, e))
+        manager.ui.debugC(EMT, "[runner] %s interrupted: %s"% (name, e))
         raise
 
 
