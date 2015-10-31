@@ -37,7 +37,7 @@ class FolderArchitectInterface(object):
 
 
 class FolderArchitect(FolderArchitectInterface):
-    """The emitter is run in the worker."""
+    """The agent is run in the worker."""
 
     def __init__(self, workerName, accountName):
         self._workerName = workerName
@@ -46,7 +46,7 @@ class FolderArchitect(FolderArchitectInterface):
         self.ui = runtime.ui
         self.concurrency = runtime.concurrency
         self._worker = None
-        self._folderReceiver = None
+        self._folderSink = None
         self._leftArchitect = None
         self._rightArchitect = None
 
@@ -65,7 +65,7 @@ class FolderArchitect(FolderArchitectInterface):
 
     def serve_next(self):
         try:
-            return self._folderReceiver.serve_next()
+            return self._folderSink.serve_next()
         except Exception as e:
             self.ui.error("%s raised exception %s"%
                 (self._worker.getName(), str(e)))
@@ -76,21 +76,21 @@ class FolderArchitect(FolderArchitectInterface):
         self._debug("starting")
 
         folderManager = FolderManager()
-        self._folderReceiver, folderEmitter = folderManager.split()
+        self._folderSink, folderAgent = folderManager.split()
 
         self._leftArchitect = DriverArchitect("%s.Driver.0"% self._workerName)
         self._rightArchitect = DriverArchitect("%s.Driver.1"% self._workerName)
 
-        self._leftArchitect.start(folderEmitter)
-        self._rightArchitect.start(folderEmitter)
+        self._leftArchitect.start(folderAgent)
+        self._rightArchitect.start(folderAgent)
 
         syncFolder = SyncFolder(
             self._workerName,
             folderTasks,
-            self._leftArchitect.getEmitter(),
-            self._rightArchitect.getEmitter(),
+            self._leftArchitect.getAgent(),
+            self._rightArchitect.getAgent(),
             self._accountName,
-            folderEmitter,
+            folderAgent,
             )
 
         self._worker = self.concurrency.createWorker(

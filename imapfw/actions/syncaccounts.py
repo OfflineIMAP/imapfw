@@ -72,10 +72,9 @@ SCHEMATIC OVERVIEW
 """
 
 from imapfw import runtime
+from imapfw.architects.account import AccountArchitect
 
 from .interface import ActionInterface
-
-from ..architects.account import AccountArchitect
 
 
 class SyncAccounts(ActionInterface):
@@ -99,7 +98,7 @@ class SyncAccounts(ActionInterface):
 
     def exception(self, e):
         # This should not happen since all exceptions are handled at lower level.
-        pass
+        raise NotImplementedError
 
     def getExitCode(self):
         return self._exitCode
@@ -124,14 +123,13 @@ class SyncAccounts(ActionInterface):
         for i in range(self._concurrentAccountsNumber()):
             workerName = "Account.%i"% i
 
-            accountArchitect = AccountArchitect(self._engineName)
+            accountArchitect = AccountArchitect()
             accountArchitects.append(accountArchitect)
             # The real start of the process is async.
-            accountArchitect.start(workerName, accountTasks)
+            accountArchitect.start(workerName, accountTasks, self._engineName)
 
         # Monitor.
         while self._exitCode < 0:
-            for accountArchitect in accountArchitects:
-                exitCode = accountArchitect.getExitCode()
-                if exitCode >= 0 and self._exitCode != 0:
+            for exitCode in [x.getExitCode() for x in accountArchitects]:
+                if exitCode >= 0 and self._exitCode < 1:
                     self._exitCode = exitCode

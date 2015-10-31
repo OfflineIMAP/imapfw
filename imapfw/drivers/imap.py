@@ -22,8 +22,8 @@
 
 from .driver import DriverBase
 
-from ..imap.imap import Imap as ImapBackend
-from ..types.folder import Folder, Folders
+from imapfw.imap.imap import Imap as ImapBackend
+from imapfw.types.folder import Folder, Folders
 
 
 class Imap(DriverBase):

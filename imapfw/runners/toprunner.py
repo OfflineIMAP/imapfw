@@ -20,21 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .folder import Folders
+from imapfw import runtime
+from imapfw.constants import WRK
 
 
-class AccountInterface(object):
-    def getName(self):      raise NotImplementedError
-    def syncFolders(self):  raise NotImplementedError
-
-
-class Account(AccountInterface):
-
-    left = None
-    right = None
-
-    def getName(self) -> str:
-        return self.__class__.__name__
-
-    def syncFolders(self, folders: Folders) -> Folders:
-        return folders
+def topRunner(runner, workerName, *args):
+    ui = runtime.ui
+    ui.debugC(WRK, "[runner] %s starts"% workerName)
+    try:
+        runner(workerName, *args)
+    except Exception as e:
+        ui.error("[runner] %s interrupted: %s"% (workerName, e))
+        ui.exception(e)
+    ui.debugC(WRK, "[runner] %s stopped"% workerName)

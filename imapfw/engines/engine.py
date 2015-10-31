@@ -20,12 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-"""
 
-"""
+from imapfw import runtime
 
-from ..types.repository import RepositoryBase
+from imapfw.types.repository import RepositoryBase
 
+# Annotations.
+from imapfw.types.account import Account
 
 class EngineInterface(object):
     def getRepositories(self):  raise NotImplementedError
@@ -34,9 +35,13 @@ class EngineInterface(object):
 
 class Engine(EngineInterface):
     @staticmethod
-    def getRepositories(account, rascal):
-        left = rascal.get(account.left.__name__, [RepositoryBase])
-        rght = rascal.get(account.right.__name__, [RepositoryBase])
+    def getRepositories(account: Account):
+        """
+        Return the left and right repositories instances for this account.
+        """
+
+        left = runtime.rascal.get(account.left.__name__, [RepositoryBase])
+        rght = runtime.rascal.get(account.right.__name__, [RepositoryBase])
         left.fw_init()
         rght.fw_init()
         return left, rght

@@ -29,8 +29,8 @@ class FolderInternalInterface(object):
 
 
 class FolderInterface(FolderInternalInterface):
-    def getName(self):              raise NotImplementedError
-    def setName(self, name):        raise NotImplementedError
+    def getName(self):  raise NotImplementedError
+    def setName(self):  raise NotImplementedError
 
 
 @total_ordering
@@ -86,4 +86,4 @@ class Folders(UserList):
     """A list of Folder instances."""
 
     def __init__(self, *args):
-        self.data = list(args)
+        super(Folders, self).__init__(list(args))

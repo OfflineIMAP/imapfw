@@ -21,105 +21,39 @@
 # THE SOFTWARE.
 
 from imapfw import runtime
+from imapfw.types.folder import Folders
 
 from .engine import Engine
 
-from ..types.account import Account
-from ..constants import WRK
+# Annotations.
+from imapfw.edmp import Emitter
+from imapfw.types.account import Account
 
-
-    #def exposed_startFolderWorkers(self, syncfolders, maxFolderWorkers,
-        #accountName):
-
-        #self.ui.debugC(WRK, "creating the folders workers for %s"% accountName)
-
-        #self._foldersArchitect = FoldersArchitect(accountName)
-        ## Build the required child workers.
-        #self._foldersArchitect.start(syncfolders, maxFolderWorkers)
 
 class SyncAccount(Engine):
     """The sync account engine.
 
-    Used by the account manager."""
+    Used by the account runner."""
 
-    def __init__(self, workerName, leftEmitter, rightEmitter):
+    def __init__(self, workerName: str, referent: Emitter,
+            left: Emitter, right: Emitter):
+
         self._workerName = workerName
-        self._left = leftEmitter
-        self._rght = rightEmitter
+        self._referent = referent
+        self._left = left
+        self._rght = right
 
         self.ui = runtime.ui
-        self.rascal = runtime.rascal
 
         self._accountName = None
         self._leftFolders = None
         self._rghtFolders = None
         self._maxFolderWorkers = None
-        self._runResults = None, None, None
+        self._exitCode = -1
 
-        # Define the flow of actions.
-        self._left.getFolders.addOnSuccess(self._onLeftGetFolders)
-        self._left.getFolders.addOnSuccess(self._mergeFolders)
-        self._rght.getFolders.addOnSuccess(self._onRghtGetFolders)
-        self._left.getFolders.addOnSuccess(self._mergeFolders)
-
-    def _onLeftGetFolders(self, folders):
-        self._leftFolders = folders
-
-    def _onRghtGetFolders(self, folders):
-        self._rghtFolders = folders
-
-    def _mergeFolders(self, _):
-        if None in [self._leftFolders, self._rghtFolders]:
-            return
-
-        # Merge the folder lists.
-        mergedFolders = []
-        for sideFolders in [self._leftFolders, self._rghtFolders]:
-            for folder in sideFolders:
-                if folder not in mergedFolders:
-                    mergedFolders.append(folder)
-
-        self.ui.infoL(3, "%s merged folders %s"%
-            (self._accountName, mergedFolders))
-
-        # Pass the list to the rascal.
-        rascalFolders = self._account.syncFolders(mergedFolders)
-
-        # The rascal might request for non-existing folders!
-        syncFolders = []
-        ignoredFolders = []
-        for folder in rascalFolders:
-            if folder in mergedFolders:
-                syncFolders.append(folder)
-            else:
-                ignoredFolders.append(folder)
-
-        if len(ignoredFolders) > 0:
-            self.ui.warn("rascal, you asked to sync non-existing folders"
-                " for '%s': %s", self._account.getName(), ignoredFolders)
-
-        if len(syncFolders) < 1:
-            self._runResults = None, None, None
-            return # Nothing more to do, stop here.
-
-        self.ui.infoL(3, "%s syncing folders %s"%
-            (self._accountName, syncFolders))
-
-        #TODO: make max_connections mandatory.
-        maxFolderWorkers = min(len(syncFolders), self._maxFolderWorkers)
-
-        self._runResults = syncFolders, maxFolderWorkers, self._accountName
-
-    def _run(self, accountName):
-        # Get the account instance from the rascal.
-        self._account = self.rascal.get(accountName, [Account])
+    def _run(self, account):
         # Get the repository instances from the rascal.
-        leftRepository, rghtRepository = self.getRepositories(
-            self._account, self.rascal)
-
-        self._maxFolderWorkers = min(
-            rghtRepository.conf.get('max_connections'),
-            leftRepository.conf.get('max_connections'))
+        leftRepository, rghtRepository = self.getRepositories(account)
 
         self._left.buildDriver(leftRepository.getName())
         self._rght.buildDriver(rghtRepository.getName())
@@ -128,24 +62,68 @@ class SyncAccount(Engine):
         self._left.connect()
         self._rght.connect()
 
+        self._left.fetchFolders()
+        self._rght.fetchFolders()
+
         # Get the folders from both sides so we can feed the folder tasks.
-        self._left.getFolders()
-        self._rght.getFolders()
+        leftFolders = self._left.getFolders_sync()
+        rghtFolders = self._rght.getFolders_sync()
 
-        # Disable the emitters since we don't need them anymore.
-        self._left.disable()
-        self._rght.disable()
+        # Merge the folder lists.
+        mergedFolders = Folders()
+        for sideFolders in [leftFolders, rghtFolders]:
+            print(sideFolders)
+            print([leftFolders, rghtFolders])
+            for folder in sideFolders:
+                if folder not in mergedFolders:
+                    mergedFolders.append(folder)
 
-    def getResults(self):
-        return self._runResults
+        self.ui.infoL(3, "%s merged folders %s"%
+            (self._accountName, mergedFolders))
 
-    def run(self, accountName):
-        self._accountName = accountName
+        # Pass the list to the rascal.
+        rascalFolders = account.syncFolders(mergedFolders)
+
+        # The rascal might request for non-existing folders!
+        syncFolders = Folders()
+        ignoredFolders = Folders()
+        for folder in rascalFolders:
+            if folder in mergedFolders:
+                syncFolders.append(folder)
+            else:
+                ignoredFolders.append(folder)
+
+        if len(ignoredFolders) > 0:
+            self.ui.warn("rascal, you asked to sync non-existing folders"
+                " for '%s': %s", account.getName(), ignoredFolders)
+
+        if len(syncFolders) < 1:
+            self.ui.infoL(3, "%s: no folder to sync"% account)
+            return # Nothing more to do.
+
+        self.ui.infoL(3, "%s syncing folders %s"%
+            (self._accountName, syncFolders))
+
+        #XXX: make max_connections mandatory in rascal?
+        maxFolderWorkers = min(
+            len(syncFolders),
+            rghtRepository.conf.get('max_connections'),
+            leftRepository.conf.get('max_connections'))
+
+        # Syncing folders is not the job of this engine.
+        self._referent.syncFolders(self._accountName, maxFolderWorkers,
+                syncFolders)
+
+        self._exitCode = 0
+
+    def run(self, account: Account):
+        self._accountName = account.getName()
 
         try:
             self.ui.infoL(2, "syncing %s"% self._accountName)
-            self._run()
+            self._run(account)
             self.ui.infoL(3, "syncing %s done"% self._accountName)
+            return self._exitCode
         except Exception:
             self.ui.error("could not sync account %s"% self._accountName)
             raise

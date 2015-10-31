@@ -74,7 +74,7 @@ class Rascal(object):
                 continue
             try:
                 instances.append(self.get(literal, targetTypes))
-            except TypeError as e:
+            except TypeError:
                 pass
         return instances
 

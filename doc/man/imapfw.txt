@@ -43,6 +43,8 @@ Exit codes
 
 4:: The timeout was reached while running the preHook.
 
+10:: At least one account task did not end successfully.
+
 
 
 Main authors

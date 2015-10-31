@@ -33,15 +33,15 @@ from ..constants import WRK
 class SyncFolder(Engine):
     """The engine to sync a folder in a worker."""
 
-    def __init__(self, workerName, tasks, leftEmitter, rightEmitter,
-        accountName, folderEmitter):
+    def __init__(self, workerName, tasks, leftAgent, rightAgent,
+        accountName, folderAgent):
 
         self._workerName = workerName
         self._tasks = tasks
-        self._left = leftEmitter
-        self._rght = rightEmitter
+        self._left = leftAgent
+        self._rght = rightAgent
         self._accountName = accountName
-        self._folderEmitter = folderEmitter
+        self._folderAgent = folderAgent
 
         self.ui = runtime.ui
         self.rascal = runtime.rascal
@@ -77,7 +77,7 @@ class SyncFolder(Engine):
             self._rght.logout(_nowait=True)
             self._left.stopServing(_nowait=True)
             self._rght.stopServing(_nowait=True)
-            self._folderEmitter.stopServing(_nowait=True)
+            self._folderAgent.stopServing(_nowait=True)
             self.ui.debugC(WRK, "runner ended")
         except Exception as e:
             self.ui.error('%s exception occured: %s\n%s', self._workerName,
@@ -85,4 +85,4 @@ class SyncFolder(Engine):
             # In threading: will send logout() to drivers from
             # driverArchitect.kill().
             # In multiprocessing: will send SIGTERM.
-            self._folderEmitter.interruptionError(e.__class__, str(e))
+            self._folderAgent.interruptionError(e.__class__, str(e))

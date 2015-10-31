@@ -22,9 +22,9 @@
 
 from imapfw import runtime
 
-from ..mmp.driver import DriverManager
-from ..mmp.manager import receiverRunner
-from ..constants import ARC
+from imapfw.constants import ARC
+from imapfw.edmp import newEmitterReceiver
+from imapfw.runners import DriverRunner, topRunner
 
 
 class DriverArchitectInterface(object):
@@ -37,49 +37,42 @@ class DriverArchitectInterface(object):
 class DriverArchitect(DriverArchitectInterface):
     """Architect to manage a driver worker."""
 
-    def __init__(self, workerName):
+    def __init__(self, workerName: str):
         self._workerName = workerName
 
         self.ui = runtime.ui
-        self.concurrency = runtime.concurrency
 
-        self._manager = None
         self._emitter = None
         self._worker = None
         self._name = self.__class__.__name__
 
-        self.ui.debugC(ARC, "{} created", self._workerName)
+        self._debug("created")
 
-    def getEmitter(self, name):
-        self.ui.debugC(ARC, "{} get emitter '{}'",
-            self._name, name)
-        return self._manager.getEmitter(name)
+    def _debug(self, msg):
+        self.ui.debugC(ARC, "%s [%s] %s"% (self._name, self._workerName, msg))
+
+    def getEmitter(self):
+        return self._emitter
 
     def stop(self):
-        self.ui.debugC(ARC, "{} stopping driver manager '{}'",
-            self._name, self._workerName)
+        self._debug("stopping driver")
         self._emitter.stopServing()
         self._worker.join()
 
     def kill(self):
-        self.ui.debugC(ARC, "{} killing driver manager '{}'",
-            self._name, self._workerName)
+        self._debug("killing driver")
         self._emitter.stopServing()
         self._worker.kill()
 
     def start(self):
-        self.ui.debugC(ARC, "{} starting driver manager '{}'",
-            self._name, self._workerName)
+        self._debug("starting driver")
 
-        self._manager = DriverManager(self._workerName)
+        receiver, self._emitter = newEmitterReceiver(self._workerName)
+        driverRunner = DriverRunner(receiver)
 
-        receiver = self._manager.getReceiver()
-        self._emitter = self._manager.getEmitter('architect')
-
-        self._worker = self.concurrency.createWorker(
-            self._workerName,
-            receiverRunner,
-            (receiver,),
-            )
+        self._worker = runtime.concurrency.createWorker(self._workerName,
+                topRunner,
+                (driverRunner.run, self._workerName)
+                )
 
         self._worker.start()

@@ -23,7 +23,7 @@ def postHook(hook):
 def exceptionHook(error, hook):
     hook.ended()
 
-from imapfw.api import engines, controllers, types, drivers
+from imapfw.api import controllers, types, drivers
 
 maildirsPath = "~/.imapfw/Mail"
 
@@ -65,7 +65,7 @@ class ImapA(types.Imap):
 
 
 class AccountA(types.Account):
-    engine = engines.SyncAccount # Default: engine.SyncAccount.
+    engine = 'SyncAccount'
     left = MaildirA
     right = ImapA
 
