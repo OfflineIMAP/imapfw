@@ -16,6 +16,9 @@ branches:
 # command to install dependencies
 #install: "pip install -r requirements.txt"
 
+before_script:
+  - cp -a ./tests "$TRAVIS_BUILD_DIR"
+
 # command to run tests
 script:
   - python3 -m imapfw.edmp
@@ -25,3 +28,4 @@ script:
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
 
+# vim: expandtab ts=2 :
