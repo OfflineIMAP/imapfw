@@ -20,5 +20,6 @@ branches:
 script:
   - ./imapfw.py -h
   - ./imapfw.py noop
+  - python3 -m imapfw.edmp
   - ./imapfw.py unitTests
 
