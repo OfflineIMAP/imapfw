@@ -72,8 +72,6 @@ class SyncAccount(Engine):
         # Merge the folder lists.
         mergedFolders = Folders()
         for sideFolders in [leftFolders, rghtFolders]:
-            print(sideFolders)
-            print([leftFolders, rghtFolders])
             for folder in sideFolders:
                 if folder not in mergedFolders:
                     mergedFolders.append(folder)
