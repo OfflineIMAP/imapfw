@@ -16,8 +16,8 @@ branches:
 # command to install dependencies
 #install: "pip install -r requirements.txt"
 
-before_script:
-  - cp -a ./tests "$TRAVIS_BUILD_DIR"
+#before_script:
+  #- cp -a ./tests "$TRAVIS_BUILD_DIR"
 
 # command to run tests
 script:
