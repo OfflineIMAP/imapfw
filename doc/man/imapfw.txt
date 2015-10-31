@@ -41,10 +41,13 @@ Exit codes
   An exception occured while running the requested ACTION, requiring to stop
   the run.
 
-4:: The timeout was reached while running the preHook.
+4:: The timeout was reached while running a hook.
 
 10:: At least one account task did not end successfully.
 
+99:: Internal logic error.
+
+>99:: Reserved for the user.
 
 
 Main authors

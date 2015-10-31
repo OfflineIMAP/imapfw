@@ -58,14 +58,14 @@ class AccountRunner(object):
         self.ui = runtime.ui
 
         self._workerName = None
-        self.__exitCode = -1 # Force to set exit code at least once.
+        self._exitCode = -1 # Force the run to set a valid exit code.
 
     def _debug(self, msg: str):
         runtime.ui.debugC(WRK, "%s: %s"% (self._workerName, msg))
 
     def _setExitCode(self, exitCode):
-        if exitCode > self.__exitCode:
-            self.__exitCode = exitCode
+        if exitCode > self._exitCode:
+            self._exitCode = exitCode
 
     def run(self, workerName: str, accountQueue: Queue):
         """The runner for the topRunner.
@@ -74,10 +74,13 @@ class AccountRunner(object):
 
         self._workerName = workerName
 
+        #
+        # Loop over the available account names.
+        #
+        engine = None
         for accountName in Channel(accountQueue):
             self._debug("processing task: %s"% accountName)
 
-            engine = None
             # The engine will let expode errors it can't recover from.
             try:
                 # Get the account instance from the rascal.
@@ -94,11 +97,12 @@ class AccountRunner(object):
                     engine = SyncAccount(self._workerName, self._referent,
                             self._left, self._rght)
 
-                if engine is None:
-                    self.ui.error("could not build the engine '%s'"% engineName)
-                    self._setExitCode(10)
-
                 exitCode = engine.run(account)
+                if exitCode < 0:
+                    self.ui.critical("%s engine '%s' did not return a valid exit"
+                        " code: %i"% (self._workerName,
+                        engine.__class__.__name__, self._exitCode))
+                    exitCode = 99 # See manual.
                 self._setExitCode(exitCode)
 
             except Exception as e:
@@ -107,4 +111,10 @@ class AccountRunner(object):
                 self._setExitCode(10) # See manual.
 
         #TODO: should we stop or wait until referent orders to?
-        self._referent.runDone(self.__exitCode)
+        if self._exitCode < 0:
+            if engine is None:
+                self.ui.critical("%s had no account to sync"% self._workerName)
+            else:
+                self.ui.critical("%s exit code not set correctly"% self._workerName)
+            self._setExitCode(99)
+        self._referent.runDone(self._exitCode)

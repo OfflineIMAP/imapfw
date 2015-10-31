@@ -49,9 +49,11 @@ class SyncAccount(Engine):
         self._leftFolders = None
         self._rghtFolders = None
         self._maxFolderWorkers = None
-        self._exitCode = -1
+        self._exitCode = 5 # See manual.
 
     def _run(self, account):
+        self.ui.infoL(2, "merging folders of %s"% self._accountName)
+
         # Get the repository instances from the rascal.
         leftRepository, rghtRepository = self.getRepositories(account)
 
@@ -112,17 +114,16 @@ class SyncAccount(Engine):
         self._referent.syncFolders(self._accountName, maxFolderWorkers,
                 syncFolders)
 
-        self._exitCode = 0
+        self.ui.infoL(3, "merging folders of %s done"% self._accountName)
+        return 0
 
     def run(self, account: Account):
         self._accountName = account.getName()
 
         try:
-            self.ui.infoL(2, "syncing %s"% self._accountName)
-            self._run(account)
-            self.ui.infoL(3, "syncing %s done"% self._accountName)
-            return self._exitCode
-        except Exception:
+            return self._run(account)
+        except Exception as e:
             self.ui.error("could not sync account %s"% self._accountName)
-            raise
+            self.ui.exception(e)
+            return 10
 

@@ -118,6 +118,16 @@ class SyncAccounts(ActionInterface):
         for name in self._accountList:
             accountTasks.put(name)
 
+        # Avoid race condition: an empty queue allows the account workers to
+        # quit without running. We have to make sure the queue is not empty
+        # before they start. accountList can't be empty as defined by the
+        # argument parser.
+        while accountTasks.empty():
+            pass
+        # Oops! This is still racy! This assumes that the NEXT task is available
+        # once the previous run is done. This should be reasonable assumption,
+        # though.
+
         # Setup the architecture.
         accountArchitects = []
         for i in range(self._concurrentAccountsNumber()):
