@@ -18,8 +18,10 @@ branches:
 
 # command to run tests
 script:
+  - python3 -m imapfw.edmp
   - ./imapfw.py -h
   - ./imapfw.py noop
-  - python3 -m imapfw.edmp
   - ./imapfw.py unitTests
+  - ./imapfw.py -r rascals/tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
+  - ./imapfw.py -r rascals/tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
 
