@@ -24,7 +24,8 @@ script:
   - python3 -m imapfw.edmp
   - ./imapfw.py -h
   - ./imapfw.py noop
-  - ./imapfw.py unitTests
+  - ./imapfw.py -c multiprocessing unitTests
+  - ./imapfw.py -c threading unitTests
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
 

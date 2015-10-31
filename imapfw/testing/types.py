@@ -21,39 +21,39 @@
 # THE SOFTWARE.
 
 import unittest
+import inspect
 
 from imapfw import runtime
-from imapfw.concurrency.concurrency import *
+from imapfw.types.account import *
+from imapfw.types.repository import *
 
 
-class TestConcurrency(unittest.TestCase):
-    def setUp(self):
-        def noop():
-            pass
+class TestTypeAccount(unittest.TestCase):
+    def test_account_interface(self):
+        interface = AccountInterface()
+        account = Account()
 
-        self.noop = noop
+        for name, method in inspect.getmembers(interface):
+            self.assertEqual(hasattr(account, name), True)
 
-    def test_concurrency_interface(self):
-        self.assertIsInstance(runtime.concurrency, ConcurrencyInterface)
+        for name in ['left', 'right']:
+            self.assertEqual(hasattr(account, name), True)
 
-    def test_queue_interface(self):
-        self.assertIsInstance(runtime.concurrency.createQueue(), QueueInterface)
 
-    def test_lock_interface(self):
-        self.assertIsInstance(runtime.concurrency.createLock(), LockBase)
+class TestTypeRepository(unittest.TestCase):
+    def test_repository_interface(self):
+        internal = RepositoryIntenalInterface()
+        interface = RepositoryInterface()
+        repo = RepositoryBase()
 
-    def test_worker_interface(self):
-        self.assertIsInstance(
-            runtime.concurrency.createWorker('noop', self.noop, ()),
-            WorkerInterface)
+        for name, method in inspect.getmembers(internal):
+            self.assertEqual(hasattr(repo, name), True)
 
-    def test_worker_start_join(self):
-        worker = runtime.concurrency.createWorker('noop', self.noop, ())
+        for name, method in inspect.getmembers(interface):
+            self.assertEqual(hasattr(repo, name), True)
 
-        worker.start()
-        self.assertEqual(worker.getName(), 'noop')
-
-        worker.join()
+        for name in ['conf', 'driver']:
+            self.assertEqual(hasattr(repo, name), True)
 
 
 if __name__ == '__main__':

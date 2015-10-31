@@ -24,7 +24,6 @@ import unittest
 import os
 
 from imapfw import runtime
-
 from imapfw.drivers.maildir import Maildir
 from imapfw.testing import libcore
 from imapfw.testing.nullui import NullUI

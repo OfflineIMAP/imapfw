@@ -29,7 +29,6 @@ class RepositoryIntenalInterface(object):
     def fw_init(self):              raise NotImplementedError
     def fw_addController(self):     raise NotImplementedError
     def fw_chainControllers(self):  raise NotImplementedError
-    def fw_examine(self):           raise NotImplementedError
 
 
 class RepositoryInterface(RepositoryIntenalInterface):
