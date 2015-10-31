@@ -35,7 +35,7 @@ from imapfw import runtime
 from ..constants import WRK
 
 
-SimpleLock = None # Defined later.
+SimpleLock = None # Defined at runtime.
 
 
 def WorkerSafe(lock):
@@ -59,6 +59,7 @@ class WorkerInterface(object):
 
 
 class QueueInterface(object):
+    def empty(self):        raise NotImplementedError
     def get(self):          raise NotImplementedError
     def get_nowait(self):   raise NotImplementedError
     def put(self):          raise NotImplementedError
@@ -72,7 +73,7 @@ class LockInterface(object):
 class ConcurrencyInterface(object):
     def createLock(self):                   raise NotImplementedError
     def createQueue(self):                  raise NotImplementedError
-    def createWorker(self):            raise NotImplementedError
+    def createWorker(self):                 raise NotImplementedError
     def getCurrentWorkerNameFunction(self): raise NotImplementedError
 
 
@@ -122,7 +123,8 @@ class ThreadingBackend(ConcurrencyInterface):
                 worker. In daemon mode: workers get's killed when the main thread
                 gets killed."""
 
-                pthread_kill(self._thread.get_indent(), SIGTERM)
+                #TODO: the get_indent() is available from within the thread...
+                # pthread_kill(self._thread.get_indent(), SIGTERM)
                 self.ui.debugC(WRK, "%s killed (fake)"% self._name)
 
             def start(self):
@@ -163,6 +165,9 @@ class ThreadingBackend(ConcurrencyInterface):
         class TQueue(QueueInterface):
             def __init__(self):
                 self._queue = Queue()
+
+            def empty(self):
+                return self._queue.empty()
 
             def get(self):
                 return self._queue.get()
@@ -263,6 +268,9 @@ class MultiProcessingBackend(ConcurrencyInterface):
             def __init__(self):
                 self._queue = Queue()
 
+            def empty(self):
+                return self._queue.empty()
+
             def get(self):
                 return self._queue.get()
 
@@ -271,9 +279,6 @@ class MultiProcessingBackend(ConcurrencyInterface):
                     return self._queue.get_nowait()
                 except queue.Empty:
                     return None
-
-            def empty(self):
-                return self._queue.empty()
 
             def put(self, data):
                 self._queue.put(data)
