@@ -38,7 +38,10 @@ def exceptionHook(error, hook):
 
 from imapfw.api import controllers, types, drivers
 
-maildirsPath = "~/.imapfw"
+import os
+maildirsPath = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "syncaccounts.1")
 
 
 MaildirConfA = {
