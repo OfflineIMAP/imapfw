@@ -3,3 +3,5 @@
 *~
 *.pyc
 __pycache__/
+/wiki/
+/website/

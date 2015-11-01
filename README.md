@@ -1,5 +1,5 @@
 
-# imapfw
+[![imapfw](logo.png)](https://github.com/OfflineIMAP/imapfw)
 
 <!-- Markdown sucks for tables without headers. -->
 
@@ -33,6 +33,11 @@ comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 
 **Read the [blog][blog] to get last news about imapfw.**
 
+![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/imapfw.gif)
+
+
+* autogen
+{:toc}
 
 ## Features
 
@@ -104,7 +109,7 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 
 * Python v3.3
 
-## Warning
+## Status
 
 imapfw is still **WORK IN PROGRESS**. Running imapfw should not hurt but all the
 features are not yet implemented since this is still early stage of development.
