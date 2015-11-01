@@ -335,8 +335,8 @@ class Receiver(object):
                     self._react(topic, args, kwargs)
                     return True
                 except Exception as e:
-                    self.ui.critical("%s unhandled exception occurred while"
-                        " reacting to event %s: %s('%s')"%
+                    self.ui.critical("%s unhandled error occurred while"
+                        " reacting to event %s: %s: %s"%
                         (self._name, event, e.__class__.__name__, e))
                     self.ui.exception(e)
 
@@ -350,8 +350,8 @@ class Receiver(object):
                         self._resultQueue.put(result)
                         return True
                     except Exception as e:
-                        self.ui.critical("%s unhandled exception occurred while"
-                            " reacting to event %s: %s('%s')"%
+                        self.ui.critical("%s unhandled error occurred while"
+                            " reacting to event %s: %s: %s"%
                             (self._name, event, e.__class__.__name__, e))
                         self.ui.exception(e)
                         self._errorQueue.put((e.__class__, str(e)))
