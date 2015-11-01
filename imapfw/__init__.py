@@ -20,7 +20,6 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #   THE SOFTWARE.
 
-__all__ = ['api']
 
 __productname__ = 'Imapfw'
 __version__     = "0.014"
@@ -33,5 +32,4 @@ __homepage__ = "http://github.com/OfflineIMAP/imapfw"
 
 
 from imapfw.init import Imapfw # Avoid circular dependencies.
-from . import api
-from . import runtime # Import this module ASAP.
+from imapfw import runtime # Import this module ASAP.
