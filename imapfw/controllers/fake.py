@@ -20,43 +20,60 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .driver import DriverBase
+from imapfw.types.folder import Folders, Folder
 
-from imapfw.imap.imap import Imap as ImapBackend
-from imapfw.types.folder import Folder, Folders
+from .controller import Controller
 
+class FakeDriver(Controller):
 
-class Imap(DriverBase):
-    """Imap driver possibly redefined by the rascal."""
+    conf = None
 
-    isLocal = False
+    ImapConf = {
+        'folders': [b'INBOX', b'INBOX/spam', b'INBOX/outbox',
+            b'INBOX/sp&AOk-cial',
+        ]
+    }
 
-    def fw_init(self, conf, owner):
-        super(Imap, self).fw_init(conf, owner)
+    MaildirConf = {
+        'folders': [b'INBOX', b'INBOX/maidir_archives']
+    }
 
-        self.imap = ImapBackend(self.conf.get('backend'))
-        self.imap.configure()
+    def __getattr__(self, name):
+        # Force to redefine all the driver and controller APIs.
+        raise AttributeError
+
+    def fw_init(self, *args):
+        self.driver.fw_init(*args)
+
+    def fw_initController(self, *args):
+        super(FakeDriver, self).fw_initController(*args)
+
+    def fw_drive(self, driver):
+        super(FakeDriver, self).fw_drive(driver)
+
+    def fw_sanityChecks(self, *args):
+        self.driver.fw_sanityChecks(*args)
 
     def connect(self):
-        #TODO: if already connected, pass.
         return True
-        #return self.imap.connect(host, port)
 
-    def getFolders(self):
-        return Folders(Folder(b'on'), Folder(b'imap'), Folder(b'side'))
-
-    def logout(self):
-        #self.imap.logout()
+    def fetchFolders(self):
         pass
 
-    #def append(self, server,  mail):
-        #response = server.append(mail)
-        #return response
+    def getFolders(self):
+        folders = Folders()
+        for folderName in self.conf.get('folders'):
+            folders.append(Folder(folderName))
+        return folders
 
-    #def update(self, server, mail):
-        #response = server.update(mail)
-        #return response
+    def getName(self):
+        self.driver.getName()
 
-    #def fetch(self, server, uids):
-        #response = server.fetch(uids)
-        #return response
+    def getOwnerName(self):
+        self.driver.getOwnerName()
+
+    def isLocal(self):
+        self.driver.isLocal
+
+    def logout(self):
+        pass

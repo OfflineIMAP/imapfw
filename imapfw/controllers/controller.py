@@ -57,6 +57,12 @@ SCHEMATIC OVERVIEW EXAMPLE (right side)
 """
 
 class Controller(object):
+
+    conf = {}
+
+    def fw_initController(self, conf):
+        self.conf = conf
+
     def fw_drive(self, driver):
         self.driver = driver
 

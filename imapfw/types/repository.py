@@ -22,7 +22,8 @@
 
 from imapfw import runtime
 
-from ..constants import DRV
+from imapfw.constants import DRV, CTL
+from imapfw.controllers.controller import Controller
 
 
 class RepositoryIntenalInterface(object):
@@ -62,16 +63,24 @@ class RepositoryBase(RepositoryInterface):
     def fw_chainControllers(self):
         """Chain the controllers on top of the driver.
 
-        Controllers are run in the driver worker, so return the result."""
+        Controllers are run in the driver worker."""
 
         controllers = self.controllers # Avoid changing this attribute.
         driver = self.driver() # Instanciate end-driver.
         controllers.reverse() # Nearest from driver is the last in this list.
-        for cls_controller in controllers:
-            self.ui.debugC(DRV, "chaining driver '%s' with controller '%s'"%
-                (driver.__class__.__name__, cls_controller.__name__))
+        for cls_or_inst_controller in controllers:
+            if isinstance(cls_or_inst_controller, Controller):
+                # This is an instance.
+                controller = cls_or_inst_controller
+            else:
+                # This is a class.
+                controller = cls_or_inst_controller()
+                # Initialize with the class attribute "conf".
+                controller.fw_initController(cls_or_inst_controller.conf)
 
-            controller = cls_controller()
+            self.ui.debugC(CTL, "chaining driver '%s' with controller '%s'"%
+                (driver.__class__.__name__, controller.__class__.__name__))
+
             controller.fw_drive(driver) # Chains here.
             driver = controller # The next controller will drive this.
 

@@ -12,14 +12,16 @@ __all__ = [
     'Controller',
     'Duplicate',
     'Examine',
+    'FakeDriver',
     'Filter',
     'NameTrans',
     'Transcoder',
 ]
 
-from ...controllers.controller import Controller
-from ...controllers.duplicate import Duplicate
-from ...controllers.examine import ExamineController as Examine
-from ...controllers.filter import Filter
-from ...controllers.nametrans import NameTrans
-from ...controllers.transcoder import Transcoder
+from imapfw.controllers.controller import Controller
+from imapfw.controllers.duplicate import Duplicate
+from imapfw.controllers.examine import ExamineController as Examine
+from imapfw.controllers.fake import FakeDriver
+from imapfw.controllers.filter import Filter
+from imapfw.controllers.nametrans import NameTrans
+from imapfw.controllers.transcoder import Transcoder
