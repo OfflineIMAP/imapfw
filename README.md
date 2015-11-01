@@ -42,9 +42,10 @@ As a framework, imapfw allows you to take control on what gets done.
 
 It comes with pre-configured actions requiring to write few to no Python code at
 all. For more control, a dedicated API allows to redefine the key parts of the
-frame in one file (called the rascal). Also, the more experienced users might
-rather directly import one or more modules and use them to write a full
-software: imapfw was written with *separation of concerns* in mind.
+frame in one file (called the *rascal*). Also, more experienced users might
+rather directly import one or more modules and use them to write a full software
+(using the framework as a "master-library"): imapfw is written with **separation
+of concerns** in mind.
 
 The choice of the level of control is left to the user.
 
@@ -55,16 +56,16 @@ missing, it's welcome to make requests.
 
 #### Simple
 
-imapfw provides nice embedded pre-configured actions for real beginners. It can
-be used as any other software sharing the same goals.
+imapfw provides nice embedded pre-configured actions. It can be used like any
+other software sharing the same goals.
 
 #### Fast
 
 imapfw is designed to be fully concurrent. It even let the choice of the
-concurrency backend to use (multiprocessing or threading, for now). To take
-real advantage of this, implemetation is made asynchronous everywhere.
+concurrency backend (multiprocessing or threading, for now). To take real
+advantage of this, implemetation is made asynchronous everywhere.
 
-Mainly relying on UIDs greatly helps to the purpose.
+Mainly relying on UIDs greatly helps to be fast, too.
 
 #### Good documentation
 
@@ -79,12 +80,12 @@ where it's the most relevant:
 
 Continous intergration is done with [Travis CI](https://travis-ci.org/OfflineIMAP/imapfw).
 
-The framework is developed with proven release cycle.
+The project is developed with a proven release cycle and release candidates.
 
 #### Code
 
 In order to offer the best, imapfw relies on the last Python 3 technologies. It
-uses the more usefull of what Python 3 provides such as annotations.
+uses the most usefull of what Python 3 provides such as annotations.
 
 
 ## Feedbacks and contributions
@@ -113,10 +114,13 @@ Last WIP is in the `next` branch.
 ## Supporting
 
 Please, support the efforts! Staring the project is a good start.
-Reviews and feedbacks are welcome, too. ,-)
+Reviews, feedbacks and pull requests are welcome, too. ,-)
+
+imapfw is a fun and *realistic* challenge but I guess it won't be met if
+developed by only one guy (me) during spare time.
+
 
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
 [website]: http://offlineimap.org
 [blog]: http://offlineimap.org/posts.html
-
