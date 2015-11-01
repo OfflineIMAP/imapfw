@@ -34,44 +34,86 @@ comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 **Read the [blog][blog] to get last news about imapfw.**
 
 
-## Description
+## Features
 
-<!-- Replace this with a "Features" section. -->
+#### Scalable
 
-The main downside about IMAP is that you have to **trust** your email provider to
-not lose your mails. This is not something impossible while not very common.
-With imapfw, you can download your Mailboxes and make you own backups of
-the [Maildir](https://en.wikipedia.org/wiki/Maildir).
+As a framework, imapfw allows you to take control on what gets done.
 
-This allows reading your email while offline without the need for the mail
-reader (MUA) to support IMAP disconnected operations. Need an attachment from a
-message without internet connection? It's fine, the message is still there.
+It comes with pre-configured actions requiring to write few to no Python code at
+all. For more control, a dedicated API allows to redefine the key parts of the
+frame in one file (called the rascal). Also, the more experienced users might
+rather directly import one or more modules and use them to write a full
+software: imapfw was written with *separation of concerns* in mind.
+
+The choice of the level of control is left to the user.
+
+#### All batteries included
+
+The framework is intended to provide everything is needed. If any key library is
+missing, it's welcome to make requests.
+
+#### Simple
+
+imapfw provides nice embedded pre-configured actions for real beginners. It can
+be used as any other software sharing the same goals.
+
+#### Fast
+
+imapfw is designed to be fully concurrent. It even let the choice of the
+concurrency backend to use (multiprocessing or threading, for now). To take
+real advantage of this, implemetation is made asynchronous everywhere.
+
+Mainly relying on UIDs greatly helps to the purpose.
+
+#### Good documentation
+
+Providing good documentation is a concern.
+
+#### Quality
+
+Testing the framework is done with both static and dynamic testing. Each is used
+where it's the most relevant:
+- low-level code and modules have unit tests;
+- features like *actions* have black box tests.
+
+Continous intergration is done with [Travis CI](https://travis-ci.org/OfflineIMAP/imapfw).
+
+The framework is developed with proven release cycle.
+
+#### Code
+
+In order to offer the best, imapfw relies on the last Python 3 technologies. It
+uses the more usefull of what Python 3 provides such as annotations.
 
 
 ## Feedbacks and contributions
 
 **The user discussions, development, announcements and all the exciting stuff
-take place on the OfflineIMAP's mailing list.** While not mandatory to send
-emails, you can [subscribe
+take place on the OfflineIMAP's mailing list and github.**
+
+While not mandatory to send emails, you can [subscribe
 here](http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project).
 
 Bugs, issues and contributions can be requested to both the mailing list or the
 [official Github project][imapfw].
 
 
-
 ## Requirements
 
 * Python v3.3
 
-
 ## Warning
 
-imapfw is still **WORK IN PROGRESS**. It won't do anything good for now while it
-should not hurt. This project is made public for **developpers**.
+imapfw is still **WORK IN PROGRESS**. Running imapfw should not hurt but all the
+features are not yet implemented since this is still early stage of development.
 
-Last WIP is in the `next` branch. Since this is still very early stage
-development, rebasing might happen everywhere.
+Last WIP is in the `next` branch.
+
+## Supporting
+
+Please, support the efforts! Staring the project is a good start.
+Reviews and feedbacks are welcome, too. ,-)
 
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
