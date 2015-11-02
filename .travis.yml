@@ -22,6 +22,7 @@ branches:
 # command to run tests
 script:
   - python3 -m imapfw.edmp
+  - python3 -m imapfw.mmp.manager
   - ./imapfw.py -h
   - ./imapfw.py noop
   - ./imapfw.py -c multiprocessing unitTests
