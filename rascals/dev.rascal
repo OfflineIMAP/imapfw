@@ -44,7 +44,7 @@ ImapConfA = {
     'port':     '10143',
     'username': 'nicolas',
     'password': 'sebrecht',
-    'max_connections': 11,
+    'max_connections': 3,
 }
 
 class FakeImapDriver(controllers.FakeDriver):

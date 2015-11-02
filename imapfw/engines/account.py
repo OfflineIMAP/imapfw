@@ -35,11 +35,9 @@ class SyncAccount(Engine):
 
     Used by the account runner."""
 
-    def __init__(self, workerName: str, referent: Emitter,
-            left: Emitter, right: Emitter):
+    def __init__(self, workerName: str, left: Emitter, right: Emitter):
 
         self._workerName = workerName
-        self._referent = referent
         self._left = left
         self._rght = right
 
@@ -49,7 +47,6 @@ class SyncAccount(Engine):
         self._leftFolders = None
         self._rghtFolders = None
         self._maxFolderWorkers = None
-        self._exitCode = 5 # See manual.
 
     def _run(self, account):
         self.ui.infoL(2, "merging folders of %s"% self._accountName)
@@ -110,20 +107,13 @@ class SyncAccount(Engine):
             rghtRepository.conf.get('max_connections'),
             leftRepository.conf.get('max_connections'))
 
-        # Syncing folders is not the job of this engine.
-        self._referent.syncFolders(self._accountName, maxFolderWorkers,
-                syncFolders)
-
         self.ui.infoL(3, "merging folders of %s done"% self._accountName)
-        return 0
+
+        # Syncing folders is not the job of this engine.
+        return maxFolderWorkers, syncFolders
 
     def run(self, account: Account):
         self._accountName = account.getName()
 
-        try:
-            return self._run(account)
-        except Exception as e:
-            self.ui.error("could not sync account %s"% self._accountName)
-            self.ui.exception(e)
-            return 10
+        return self._run(account)
 

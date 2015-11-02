@@ -27,6 +27,7 @@ from imapfw.edmp import newEmitterReceiver
 from imapfw.runners import AccountRunner, topRunner
 
 from .driver import DriverArchitect
+from .folder import FoldersArchitect
 
 # Annotations.
 from imapfw.concurrency import Queue
@@ -55,18 +56,32 @@ class AccountArchitect(AccountArchitectInterface):
         self._receiver = None
         self._worker = None
         self._name = self.__class__.__name__
+        self._folderExitCode = -1
         self._exitCode = -1 # Let the caller know that we are busy.
+        self._accountRunnerWait = False
+        self._foldersArchitect = None
 
     def _debug(self, msg):
         self.ui.debugC(ARC, "%s %s"% (self._name, msg))
 
     def _kill(self):
         self._debug("killing")
+        self._accountRunnerWait = False
         self._leftArchitect.kill()
         self._rightArchitect.kill()
         self._worker.kill()
 
-    def _runDone(self, exitCode: int):
+    def _running(self):
+        """The runner let us know when processing an new account."""
+
+        self._accountRunnerWait = True
+
+    def _setFolderExitCode(self, exitCode):
+        if exitCode > self._exitCode:
+            self._folderExitCode = exitCode
+
+    def _stop(self, exitCode: int):
+        self._accountRunnerWait = False
         self._leftArchitect.stop()
         self._rightArchitect.stop()
         self._worker.join()
@@ -74,7 +89,21 @@ class AccountArchitect(AccountArchitectInterface):
 
     def _syncFolders(self, accountName: str, maxFolderWorkers: int,
             folders: Folders):
-        self.ui.info("TODO: sync folders: %s"% folders)
+        """Start syncing of folders in async mode."""
+
+        self.ui.infoL(3, "syncing folders: %s"% folders)
+        self._foldersArchitect = FoldersArchitect(
+            self._worker.getName(), accountName)
+        # Let the foldersArchitect re-use our drivers.
+        self._foldersArchitect.start(
+            maxFolderWorkers,
+            folders,
+            self._leftArchitect.getEmitter(),
+            self._rightArchitect.getEmitter(),
+            )
+
+    def _wait(self):
+        return self._accountRunnerWait
 
     def getExitCode(self) -> int:
         """Caller must monitor the exit code to know when we are done.
@@ -87,10 +116,19 @@ class AccountArchitect(AccountArchitectInterface):
         # Event handler will update the exit code when appropriate.
         try:
             self._receiver.react()
+            if self._foldersArchitect is not None:
+                exitCode = self._foldersArchitect.getExitCode()
+                if exitCode >= 0:
+                    self._foldersArchitect = None
+                    self._setFolderExitCode(exitCode)
+                    self._accountRunnerWait = False
         except Exception as e:
             self.ui.critical("account receiver for %s got unexpected error '%s'"%
                 (self._name, e))
             self._kill()
+        if self._exitCode >= 0:
+            if self._folderExitCode > self._exitCode:
+                self._exitCode = self._folderExitCode
         return self._exitCode
 
     def start(self, workerName: str, accountTasks: Queue, engineName: str):
@@ -108,11 +146,12 @@ class AccountArchitect(AccountArchitectInterface):
 
         # Setup events.
         receiver, emitter = newEmitterReceiver(workerName)
-        receiver.accept('runDone', self._runDone)
+        receiver.accept('running', self._running)
+        receiver.accept('stop', self._stop)
         receiver.accept('syncFolders', self._syncFolders)
+        receiver.accept('wait', self._wait)
         self._receiver = receiver
 
-        # TODO
         accountRunner = AccountRunner(
             emitter,
             self._leftArchitect.getEmitter(),

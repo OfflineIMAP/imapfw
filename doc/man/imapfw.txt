@@ -43,7 +43,7 @@ Exit codes
 
 4:: The timeout was reached while running a hook.
 
-10:: At least one account task did not end successfully.
+10:: At least one concurrent task did not end successfully.
 
 99:: Internal logic error.
 

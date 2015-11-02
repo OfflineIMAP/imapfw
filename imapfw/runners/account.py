@@ -67,6 +67,22 @@ class AccountRunner(object):
         if exitCode > self._exitCode:
             self._exitCode = exitCode
 
+    # Outlined.
+    def _syncAccount(self, account, accountName):
+        try:
+            maxFolderWorkers, folders = self._engine.run(account)
+            self._referent.syncFolders(accountName, maxFolderWorkers,
+                    folders)
+
+            # Wait until folders are synced.
+            while self._referent.wait_sync():
+                pass
+
+        except Exception as e:
+            self.ui.error("could not sync account %s"% accountName)
+            self.ui.exception(e)
+            self._setExitCode(10)
+
     def run(self, workerName: str, accountQueue: Queue):
         """The runner for the topRunner.
 
@@ -80,6 +96,7 @@ class AccountRunner(object):
         engine = None
         for accountName in Channel(accountQueue):
             self._debug("processing task: %s"% accountName)
+            self._referent.running()
 
             # The engine will let expode errors it can't recover from.
             try:
@@ -93,17 +110,11 @@ class AccountRunner(object):
                     engineName = account.engine
 
                 if engineName == 'SyncAccount':
-                    # Build the syncAccount engine which consumes the accountQueue.
-                    engine = SyncAccount(self._workerName, self._referent,
+                    engine = SyncAccount(self._workerName,
                             self._left, self._rght)
-
-                exitCode = engine.run(account)
-                if exitCode < 0:
-                    self.ui.critical("%s engine '%s' did not return a valid exit"
-                        " code: %i"% (self._workerName,
-                        engine.__class__.__name__, self._exitCode))
-                    exitCode = 99 # See manual.
-                self._setExitCode(exitCode)
+                    self._engine = engine
+                    self._syncAccount(account, accountName)
+                    self._setExitCode(0)
 
             except Exception as e:
                 self.ui.exception(e)
@@ -117,4 +128,4 @@ class AccountRunner(object):
             else:
                 self.ui.critical("%s exit code not set correctly"% self._workerName)
             self._setExitCode(99)
-        self._referent.runDone(self._exitCode)
+        self._referent.stop(self._exitCode)
