@@ -36,10 +36,7 @@ comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 ![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/imapfw.gif)
 
 
-* autogen
-{:toc}
-
-## Features
+# Features
 
 #### Scalable
 
@@ -93,7 +90,7 @@ In order to offer the best, imapfw relies on the last Python 3 technologies. It
 uses the most usefull of what Python 3 provides such as annotations.
 
 
-## Feedbacks and contributions
+# Feedbacks and contributions
 
 **The user discussions, development, announcements and all the exciting stuff
 take place on the OfflineIMAP's mailing list and github.**
@@ -105,18 +102,18 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 [official Github project][imapfw].
 
 
-## Requirements
+# Requirements
 
 * Python v3.3
 
-## Status
+# Status
 
 imapfw is still **WORK IN PROGRESS**. Running imapfw should not hurt but all the
 features are not yet implemented since this is still early stage of development.
 
 Last WIP is in the `next` branch.
 
-## Supporting
+# Supporting
 
 Please, support the efforts! Staring the project is a good start.
 Reviews, feedbacks and pull requests are welcome, too. ,-)
