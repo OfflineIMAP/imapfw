@@ -28,20 +28,30 @@ from imapfw.constants import DEBUG_CATEGORIES, DEFAULT_DEBUG_CATEGORIES
 logging_config = {
     'version': 1,
     'formatters': {
-        'default': {
+        'brief': {
             'class': 'logging.Formatter',
             'format': '%(message)s',
+        },
+        'default': {
+            'class': 'logging.Formatter',
+            'format': '%(levelname)-8s: %(message)s',
+        },
+        'verbose': {
+            'class': 'logging.Formatter',
+            'format': '%(levelname)-8s %(module)s: %(message)s',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
+            'formatter': 'default',
         },
     },
-    'root': {
-        'level': 'DEBUG',
-        'handlers': ['console'],
+    'loggers': {
+        'debug': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
     },
 }
 
@@ -71,7 +81,6 @@ class TTY(UIinterface, UIbackendInterface):
     def __init__(self, lock):
         self._lock = lock
 
-        self._config = logging.config
         self._logger = None
         self._backend = logging
         self._currentWorkerName = lambda *args: ''
@@ -85,7 +94,7 @@ class TTY(UIinterface, UIbackendInterface):
 
     def configure(self, config=logging_config):
         self._backend.config.dictConfig(config)
-        self._logger = self._backend.getLogger('setup')
+        self._logger = self._backend.getLogger('debug')
 
     def critical(self, *args):
         self._safeLog('critical', *args)
