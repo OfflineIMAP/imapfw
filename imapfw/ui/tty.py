@@ -23,14 +23,14 @@
 import logging
 import logging.config
 
-from ..constants import DEBUG_CATEGORIES, DEFAULT_DEBUG_CATEGORIES
+from imapfw.constants import DEBUG_CATEGORIES, DEFAULT_DEBUG_CATEGORIES
 
 logging_config = {
     'version': 1,
     'formatters': {
         'default': {
             'class': 'logging.Formatter',
-            'format': '%(message}',
+            'format': '%(message)s',
         },
     },
     'handlers': {
@@ -49,23 +49,22 @@ logging_config = {
 
 
 class UIinterface(object):
-    def critical(self, *args): raise NotImplementedError
-    def debug(self, *args): raise NotImplementedError
-    def debugC(self, category, *args): raise NotImplementedError
-    def error(self, *args): raise NotImplementedError
-    def exception(self, *args): raise NotImplementedError
-    def format(self, *args): raise NotImplementedError
-    def info(self, *args): raise NotImplementedError
-    def infoL(self, level, *args): raise NotImplementedError
-    def setInfoLevel(self, level): raise NotImplementedError
-    def warn(self, *args): raise NotImplementedError
+    def critical(self):     raise NotImplementedError
+    def debug(self):        raise NotImplementedError
+    def debugC(self):       raise NotImplementedError
+    def error(self):        raise NotImplementedError
+    def exception(self):    raise NotImplementedError
+    def format(self):       raise NotImplementedError
+    def info(self):         raise NotImplementedError
+    def infoL(self):        raise NotImplementedError
+    def setInfoLevel(self): raise NotImplementedError
+    def warn(self):         raise NotImplementedError
 
 
 class UIbackendInterface(object):
-    def __init__(self, lock): raise NotImplementedError
-    def configure(self, config=logging_config): raise NotImplementedError
-    def enableDebugCategories(self, categories): raise NotImplementedError
-    def setCurrentWorkerNameFunction(self, func): raise NotImplementedError
+    def configure(self):                    raise NotImplementedError
+    def enableDebugCategories(self):        raise NotImplementedError
+    def setCurrentWorkerNameFunction(self): raise NotImplementedError
 
 
 class TTY(UIinterface, UIbackendInterface):

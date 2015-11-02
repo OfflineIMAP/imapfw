@@ -65,10 +65,11 @@ class AccountArchitect(AccountArchitectInterface):
         self.ui.debugC(ARC, "%s %s"% (self._name, msg))
 
     def _kill(self):
-        self._debug("killing")
+        self._debug("kill()")
         self._accountRunnerWait = False
         self._leftArchitect.kill()
         self._rightArchitect.kill()
+        self._foldersArchitect.kill()
         self._worker.kill()
 
     def _running(self):
@@ -77,10 +78,12 @@ class AccountArchitect(AccountArchitectInterface):
         self._accountRunnerWait = True
 
     def _setFolderExitCode(self, exitCode):
+        self._debug("_setExitCode(%i)"% exitCode)
         if exitCode > self._exitCode:
             self._folderExitCode = exitCode
 
     def _stop(self, exitCode: int):
+        self._debug("stop(%i)"% exitCode)
         self._accountRunnerWait = False
         self._leftArchitect.stop()
         self._rightArchitect.stop()
@@ -123,7 +126,7 @@ class AccountArchitect(AccountArchitectInterface):
                     self._setFolderExitCode(exitCode)
                     self._accountRunnerWait = False
         except Exception as e:
-            self.ui.critical("account receiver for %s got unexpected error '%s'"%
+            self.ui.critical("account receiver for %s got unexpected error: %s"%
                 (self._name, e))
             self._kill()
         if self._exitCode >= 0:
@@ -134,7 +137,8 @@ class AccountArchitect(AccountArchitectInterface):
     def start(self, workerName: str, accountTasks: Queue, engineName: str):
         """Setup and initiate one account worker. Not blocking."""
 
-        self._debug("starting start for '%s'"% workerName)
+        self._debug("start(%s, %s, %s)"% (workerName, repr(accountTasks),
+            engineName))
 
         # Setup and start both end-drivers.
         leftName, rightName = "%s.Driver.0"% workerName, "%s.Driver.1"% workerName

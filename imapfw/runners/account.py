@@ -28,13 +28,15 @@ from imapfw.edmp import Channel
 from imapfw.engines.account import SyncAccount
 from imapfw.types.account import Account
 
+from .runner import TwoSidesRunner
+
 # Annotations.
 from imapfw.concurrency import Queue
 from imapfw.edmp import Emitter
 
 
 
-class AccountRunner(object):
+class AccountRunner(TwoSidesRunner):
     """The account runner.
 
     Setup the engine and run it. So, this does NOT defines what the worker
@@ -49,83 +51,63 @@ class AccountRunner(object):
 
     def __init__(self, referent: Emitter, left: Emitter, right: Emitter,
             engineName=None):
-
-        self._referent = referent
-        self._left = left
-        self._rght = right
-        self._engineName = engineName
-
-        self.ui = runtime.ui
-
-        self._workerName = None
-        self._exitCode = -1 # Force the run to set a valid exit code.
-
-    def _debug(self, msg: str):
-        runtime.ui.debugC(WRK, "%s: %s"% (self._workerName, msg))
-
-    def _setExitCode(self, exitCode):
-        if exitCode > self._exitCode:
-            self._exitCode = exitCode
+        super(AccountRunner, self).__init__(referent, left, right, engineName)
 
     # Outlined.
     def _syncAccount(self, account, accountName):
         try:
-            maxFolderWorkers, folders = self._engine.run(account)
-            self._referent.syncFolders(accountName, maxFolderWorkers,
-                    folders)
+            maxFolderWorkers, folders = self.engine.run(account)
+            self.referent.syncFolders(accountName, maxFolderWorkers,
+                folders)
 
             # Wait until folders are synced.
-            while self._referent.wait_sync():
+            while self.referent.wait_sync():
                 pass
+
+            self.setExitCode(0)
 
         except Exception as e:
             self.ui.error("could not sync account %s"% accountName)
             self.ui.exception(e)
-            self._setExitCode(10)
+            self.setExitCode(10)
 
     def run(self, workerName: str, accountQueue: Queue):
         """The runner for the topRunner.
 
         Sequentially process the accounts, setup and run the engine."""
 
-        self._workerName = workerName
+        self.workerName = workerName
 
         #
         # Loop over the available account names.
         #
         engine = None
         for accountName in Channel(accountQueue):
-            self._debug("processing task: %s"% accountName)
-            self._referent.running()
+            self.processing(accountName)
+            self.referent.running()
 
             # The engine will let expode errors it can't recover from.
             try:
                 # Get the account instance from the rascal.
                 account = runtime.rascal.get(accountName, [Account])
 
-                if self._engineName is not None:
+                if self.engineName is not None:
                     # Engine defined at CLI.
-                    engineName = self._engineName
+                    engineName = self.engineName
                 else:
                     engineName = account.engine
 
                 if engineName == 'SyncAccount':
-                    engine = SyncAccount(self._workerName,
-                            self._left, self._rght)
-                    self._engine = engine
+                    engine = SyncAccount(self.workerName,
+                            self.left, self.right)
+                    self.engine = engine
                     self._syncAccount(account, accountName)
-                    self._setExitCode(0)
+                    self.setExitCode(0)
 
             except Exception as e:
                 self.ui.exception(e)
                 #TODO: honor hook!
-                self._setExitCode(10) # See manual.
+                self.setExitCode(10) # See manual.
 
-        #TODO: should we stop or wait until referent orders to?
-        if self._exitCode < 0:
-            if engine is None:
-                self.ui.critical("%s had no account to sync"% self._workerName)
-            else:
-                self.ui.critical("%s exit code not set correctly"% self._workerName)
-            self._setExitCode(99)
-        self._referent.stop(self._exitCode)
+        self.checkExitCode()
+        self.referent.stop(self.exitCode)

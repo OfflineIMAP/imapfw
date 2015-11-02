@@ -43,13 +43,14 @@ class SyncAccount(Engine):
 
         self.ui = runtime.ui
 
-        self._accountName = None
         self._leftFolders = None
         self._rghtFolders = None
         self._maxFolderWorkers = None
 
-    def _run(self, account):
-        self.ui.infoL(2, "merging folders of %s"% self._accountName)
+    def run(self, account: Account):
+        accountName = account.getName()
+
+        self.ui.infoL(3, "merging folders of %s"% accountName)
 
         # Get the repository instances from the rascal.
         leftRepository, rghtRepository = self.getRepositories(account)
@@ -76,7 +77,7 @@ class SyncAccount(Engine):
                     mergedFolders.append(folder)
 
         self.ui.infoL(3, "%s merged folders %s"%
-            (self._accountName, mergedFolders))
+            (accountName, mergedFolders))
 
         # Pass the list to the rascal.
         rascalFolders = account.syncFolders(mergedFolders)
@@ -99,7 +100,7 @@ class SyncAccount(Engine):
             return # Nothing more to do.
 
         self.ui.infoL(3, "%s syncing folders %s"%
-            (self._accountName, syncFolders))
+            (accountName, syncFolders))
 
         #XXX: make max_connections mandatory in rascal?
         maxFolderWorkers = min(
@@ -107,13 +108,7 @@ class SyncAccount(Engine):
             rghtRepository.conf.get('max_connections'),
             leftRepository.conf.get('max_connections'))
 
-        self.ui.infoL(3, "merging folders of %s done"% self._accountName)
+        self.ui.infoL(3, "merging folders of %s done"% accountName)
 
         # Syncing folders is not the job of this engine.
         return maxFolderWorkers, syncFolders
-
-    def run(self, account: Account):
-        self._accountName = account.getName()
-
-        return self._run(account)
-

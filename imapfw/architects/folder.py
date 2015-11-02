@@ -35,9 +35,8 @@ from imapfw.types.folder import Folders
 
 
 class FolderArchitectInterface(object):
-    def join(self):         raise NotImplementedError
+    def getExitCode(self):  raise NotImplementedError
     def kill(self):         raise NotImplementedError
-    def serve_next(self):   raise NotImplementedError
     def start(self):        raise NotImplementedError
 
 
@@ -48,47 +47,50 @@ class FolderArchitect(FolderArchitectInterface):
         self._workerName = workerName
         self._accountName = accountName
 
-        self.ui = runtime.ui
-        self.concurrency = runtime.concurrency
+        self._debug("__init__(%s, %s)"% (workerName, accountName))
+
         self._worker = None
         self._receiver = None
         self._leftArchitect = None
         self._rightArchitect = None
         self._exitCode = -1
 
-        self._debug("created")
-
     def _debug(self, msg):
-        self.ui.debugC(ARC, "%s architect %s"% (self._workerName, msg))
+        runtime.ui.debugC(ARC, "%s folderArchitect %s"% (self._workerName, msg))
+
+    def _setExitCode(self, exitCode: int):
+        self._debug("_setExitCode(%i)"% exitCode)
+        if exitCode > self._exitCode:
+            self._exitCode = exitCode
 
     def _stop(self, exitCode: int):
+        self._debug("stop(%i)"% exitCode)
         for architect in [self._leftArchitect, self._rightArchitect]:
             if architect is not None:
                 architect.stop()
         self._worker.join()
-        self._exitCode = exitCode
+        self._setExitCode(exitCode)
 
     def kill(self):
-        self._debug("will be killed")
+        self._debug("kill()")
+        for architect in [self._leftArchitect, self._rightArchitect]:
+            if architect is not None:
+                architect.kill()
         self._worker.kill()
 
     def getExitCode(self):
         try:
             self._receiver.react()
         except Exception as e:
-            #TODO: review
-            self.ui.error("%s raised exception %s"%
-                (self._worker.getName(), str(e)))
-            self.ui.exception(e)
+            runtime.ui.critical("folder receiver [%s] got unexpected error: %s"%
+                (self._worker.getName(), e))
+            runtime.ui.exception(e)
             self.kill()
+            self._setExitCode(10)
         return self._exitCode
 
     def start(self, folderTasks: Queue, left: Emitter, right: Emitter):
-        self._debug("starting")
-
-        receiver, emitter = newEmitterReceiver(self._workerName)
-        receiver.accept('stop', self._stop)
-        self._receiver = receiver
+        self._debug("start()")
 
         if left is None:
             self._leftArchitect = DriverArchitect(
@@ -101,10 +103,14 @@ class FolderArchitect(FolderArchitectInterface):
             self._rightArchitect.start()
             right = self._rightArchitect.getEmitter()
 
-        #TODO: SyncFolder from rascal.
+        receiver, emitter = newEmitterReceiver(self._workerName)
+        receiver.accept('stop', self._stop)
+        self._receiver = receiver
+
+        #TODO: 'SyncFolder' from rascal: review Account.engine.
         runner = FolderRunner(emitter, left, right, 'SyncFolder')
 
-        self._worker = self.concurrency.createWorker(
+        self._worker = runtime.concurrency.createWorker(
             self._workerName,
             topRunner,
             (runner.run, self._workerName, folderTasks),
@@ -114,10 +120,9 @@ class FolderArchitect(FolderArchitectInterface):
 
 
 class FoldersArchitectInterface(object):
-    def joinAll(self):      raise NotImplementedError
-    def killAll(self):      raise NotImplementedError
+    def getExitCode(self):  raise NotImplementedError
+    def kill(self):         raise NotImplementedError
     def start(self):        raise NotImplementedError
-    def serveAll(self):     raise NotImplementedError
 
 
 class FoldersArchitect(FoldersArchitectInterface):
@@ -129,24 +134,16 @@ class FoldersArchitect(FoldersArchitectInterface):
         self._accountName = accountName
         self._callerName = callerName
 
-        self.ui = runtime.ui
-        self.concurrency = runtime.concurrency
         self._folderArchitects = []
         self._exitCode = -1
 
-        self._debug('created')
 
     def _debug(self, msg):
-        self.ui.debugC(ARC, "%s architect %s"%
-            (self._accountName, msg))
-
-    #TODO
-    def _kill(self):
-        for folderArchitect in self._folderArchitects:
-            self._folderArchitects.remove(folderArchitect)
-            folderArchitect.kill()
+        runtime.ui.debugC(ARC, "%s foldersArchitect %s %s"%
+            (self._callerName, self._accountName, msg))
 
     def _setExitCode(self, exitCode):
+        self._debug("_setExitCode(%i)"% exitCode)
         if exitCode > self._exitCode:
             self._exitCode = exitCode
 
@@ -156,24 +153,34 @@ class FoldersArchitect(FoldersArchitectInterface):
             if exitCode >= 0:
                 self._folderArchitects.remove(folderArchitect)
                 self._setExitCode(exitCode)
+                self._debug("%i architect(s) remaining"%
+                    len(self._folderArchitects))
+
         if len(self._folderArchitects) < 1:
             return self._exitCode
         else:
             return -1 # Let caller know workers are busy.
 
+    def kill(self):
+        self._debug("kill()")
+        for folderArchitect in self._folderArchitects:
+            folderArchitect.kill()
+            self._folderArchitects.remove(folderArchitect)
+
     def start(self, maxFolderWorkers: int, folders: Folders,
             left=None, right=None):
-        self._debug("creating %i folder workers"% maxFolderWorkers)
+        self._debug("start(%i, %s, %s, %s)"% (maxFolderWorkers,
+            folders, repr(left), repr(right)))
 
-        folderTasks = self.concurrency.createQueue()
+        folderTasks = runtime.concurrency.createQueue()
         for folder in folders:
             folderTasks.put(folder)
-        # Avoid being racy. See actions.syncaccounts.
+        # Avoid race conditions. See actions.syncaccounts.
         while folderTasks.empty():
             pass
 
         for i in range(maxFolderWorkers):
-            workerName = "%s.Folder.%i"% (self._accountName, i)
+            workerName = "%s.Folder.%i"% (self._callerName, i)
 
             folderArchitect = FolderArchitect(workerName, self._accountName)
             folderArchitect.start(folderTasks, left, right)

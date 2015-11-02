@@ -47,7 +47,7 @@ class Folder(FolderInterface):
     """
 
     def __init__(self, name, encoding=None):
-        self._name = None
+        self._name = None # Must be bytes.
         self.setName(name, encoding)
 
     def __bytes__(self):

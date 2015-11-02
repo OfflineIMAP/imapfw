@@ -96,6 +96,10 @@ class SyncAccounts(ActionInterface):
     def _concurrentAccountsNumber(self):
         return min(self.rascal.getMaxSyncAccounts(), len(self._accountList))
 
+    def _setExitCode(self, exitCode):
+        if exitCode > self._exitCode:
+            self._exitCode = exitCode
+
     def exception(self, e):
         # This should not happen since all exceptions are handled at lower level.
         raise NotImplementedError
@@ -139,7 +143,9 @@ class SyncAccounts(ActionInterface):
             accountArchitect.start(workerName, accountTasks, self._engineName)
 
         # Monitor.
-        while self._exitCode < 0:
-            for exitCode in [x.getExitCode() for x in accountArchitects]:
-                if exitCode >= 0 and self._exitCode < 1:
-                    self._exitCode = exitCode
+        while len(accountArchitects) > 0:
+            for architect in accountArchitects:
+                exitCode = architect.getExitCode()
+                if exitCode >= 0:
+                    self._setExitCode(exitCode)
+                    accountArchitects.remove(architect)

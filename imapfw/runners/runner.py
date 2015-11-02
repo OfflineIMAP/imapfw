@@ -34,17 +34,32 @@ class TwoSidesRunner(object):
 
         self.referent = referent
         self.left = left
-        self.rght = right
+        self.right = right
         self.engineName = engineName
 
         self.ui = runtime.ui
 
         self.workerName = None
         self.exitCode = -1 # Force the run to set a valid exit code.
+        self.engine = None
+        self._gotTask = False
 
     def debug(self, msg: str):
         runtime.ui.debugC(WRK, "%s: %s"% (self.workerName, msg))
 
+    def processing(self, task: str):
+        self.ui.infoL(2, "%s processing: %s"% (self.workerName, task))
+        self._gotTask = True
+
     def setExitCode(self, exitCode):
         if exitCode > self.exitCode:
             self.exitCode = exitCode
+
+    def checkExitCode(self):
+        if self._gotTask is False:
+            self.setExitCode(0)
+        else:
+            if self.exitCode < 0:
+                self.ui.critical("%s exit code was not set correctly"%
+                    self.workerName)
+                self.setExitCode(99)

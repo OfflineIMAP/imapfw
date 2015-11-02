@@ -47,8 +47,10 @@ class FolderRunner(TwoSidesRunner):
     """
 
     def __init__(self, referent: Emitter, left: Emitter, right: Emitter,
-            engineName=None):
+            accountName: str, engineName=None):
         super(FolderRunner, self).__init__(referent, left, right, engineName)
+
+        self._accountName = accountName
 
     # Outlined.
     def _syncFolder(self, folder: 'TODO'):
@@ -73,48 +75,29 @@ class FolderRunner(TwoSidesRunner):
         Sequentially process the folders, setup and run the engine."""
 
         self.workerName = workerName
-        import time
-        import random
-        sleep = random.randint(7, 25)
-        self.debug('sleeping %i'% sleep)
-        time.sleep(sleep)
 
-        # #
-        # # Loop over the available account names.
-        # #
-        # engine = None
-        # for folder in Channel(folderQueue):
-            # self.debug("processing task: %s"% accountName)
-            # self.referent.running()
+        #
+        # Loop over the available folder names.
+        #
+        for folder in Channel(folderQueue):
+            self.processing(folder)
 
-            # # The engine will let expode errors it can't recover from.
-            # try:
-                # # Get the account instance from the rascal.
-                # account = runtime.rascal.get(accountName, [Account])
+            # The engine will let explode errors it can't recover from.
+            try:
+                engine = SyncFolder(self.workerName,
+                      self.left, self.right)
+                import time
+                import random
+                sleep = random.randint(1, 3)
+                self.debug('sleeping %i'% sleep)
+                time.sleep(sleep)
+                exitCode = engine.run()
+                self.setExitCode(exitCode)
 
-                # if self._engineName is not None:
-                    # # Engine defined at CLI.
-                    # engineName = self._engineName
-                # else:
-                    # engineName = account.engine
+            except Exception as e:
+                self.ui.exception(e)
+                #TODO: honor hook!
+                self.setExitCode(10) # See manual.
 
-                # if engineName == 'SyncAccount':
-                    # engine = SyncAccount(self._workerName,
-                            # self._left, self._rght)
-                    # self._engine = engine
-                    # self._syncAccount(account, accountName)
-
-            # except Exception as e:
-                # self.ui.exception(e)
-                # #TODO: honor hook!
-                # self._setExitCode(10) # See manual.
-
-        # #TODO: should we stop or wait until referent orders to?
-        # if self._exitCode < 0:
-            # if engine is None:
-                # self.ui.critical("%s had no account to sync"% self._workerName)
-            # else:
-                # self.ui.critical("%s exit code not set correctly"% self._workerName)
-            # self._setExitCode(99)
-        self.setExitCode(0) #TODO
+        self.checkExitCode()
         self.referent.stop(self.exitCode)

@@ -35,7 +35,7 @@ MaildirConfA = {
 
 MaildirConfB = {
     'path': maildirsPath + '/MaildirB',
-    'max_connections': 9,
+    'max_connections': 2,
 }
 
 ImapConfA = {
@@ -61,6 +61,7 @@ class MaildirA(types.Maildir):
 class MaildirB(types.Maildir):
     conf = MaildirConfB
     driver = drivers.Maildir
+    controllers = [FakeMaildirDriver]
 
 class ImapA(types.Imap):
     conf = ImapConfA
@@ -68,9 +69,14 @@ class ImapA(types.Imap):
     controllers = [FakeImapDriver]
 
 
-class AccountA(types.Account):
+class Home(types.Account):
     engine = 'SyncAccount'
     left = MaildirA
+    right = ImapA
+
+class Foundation(types.Account):
+    engine = 'SyncAccount'
+    left = MaildirB
     right = ImapA
 
 

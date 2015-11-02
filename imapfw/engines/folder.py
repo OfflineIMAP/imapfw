@@ -29,60 +29,46 @@ from .engine import Engine
 from ..types.account import Account
 from ..constants import WRK
 
+# Annotations.
+from imapfw.edmp import Emitter
 
 class SyncFolder(Engine):
     """The engine to sync a folder in a worker."""
 
-    def __init__(self, workerName, tasks, leftAgent, rightAgent,
-        accountName, folderAgent):
-
+    def __init__(self, workerName: str, left: Emitter, right: Emitter):
         self._workerName = workerName
-        self._tasks = tasks
-        self._left = leftAgent
-        self._rght = rightAgent
-        self._accountName = accountName
-        self._folderAgent = folderAgent
+        self._left = left
+        self._rght = right
 
         self.ui = runtime.ui
         self.rascal = runtime.rascal
-
-    def _consume(self, folder):
-        pass
 
     def _infoL(self, level, msg):
         self.ui.infoL(level, "%s %s"% (self._workerName, msg))
 
     def run(self):
-        try:
-            account = self.rascal.get(self._accountName, [Account])
-            leftRepository, rightRepository = self.getRepositories(
-                account, self.rascal)
+        return 0
+        # account = self.rascal.get(self._accountName, [Account])
+        # leftRepository, rightRepository = self.getRepositories(
+            # account, self.rascal)
 
-            self._left.buildDriver(leftRepository.getName(), _nowait=True)
-            self._rght.buildDriver(rightRepository.getName(), _nowait=True)
+        # self._left.buildDriver(leftRepository.getName(), _nowait=True)
+        # self._rght.buildDriver(rightRepository.getName(), _nowait=True)
 
-            self._left.connect(_nowait=True)
-            self._rght.connect(_nowait=True)
+        # self._left.connect(_nowait=True)
+        # self._rght.connect(_nowait=True)
 
-            while True:
-                task =  self._tasks.get_nowait()
-                if task is None: # No more task.
-                    break # Quit the consumer loop.
+        # while True:
+            # task =  self._tasks.get_nowait()
+            # if task is None: # No more task.
+                # break # Quit the consumer loop.
 
-                self._infoL(2, "syncing folder '%s'"% task)
-                self._consume(task)
-                self._infoL(3, "syncing folder '%s' done"% task)
+            # self._infoL(2, "syncing folder '%s'"% task)
+            # self._consume(task)
+            # self._infoL(3, "syncing folder '%s' done"% task)
 
-            self._left.logout(_nowait=True)
-            self._rght.logout(_nowait=True)
-            self._left.stopServing(_nowait=True)
-            self._rght.stopServing(_nowait=True)
-            self._folderAgent.stopServing(_nowait=True)
-            self.ui.debugC(WRK, "runner ended")
-        except Exception as e:
-            self.ui.error('%s exception occured: %s\n%s', self._workerName,
-                e, traceback.format_exc())
-            # In threading: will send logout() to drivers from
-            # driverArchitect.kill().
-            # In multiprocessing: will send SIGTERM.
-            self._folderAgent.interruptionError(e.__class__, str(e))
+        # self._left.logout(_nowait=True)
+        # self._rght.logout(_nowait=True)
+        # self._left.stopServing(_nowait=True)
+        # self._rght.stopServing(_nowait=True)
+        # self._folderAgent.stopServing(_nowait=True)

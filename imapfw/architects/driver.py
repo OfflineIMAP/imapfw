@@ -40,32 +40,31 @@ class DriverArchitect(DriverArchitectInterface):
     def __init__(self, workerName: str):
         self._workerName = workerName
 
-        self.ui = runtime.ui
-
         self._emitter = None
         self._worker = None
         self._name = self.__class__.__name__
 
-        self._debug("created")
+        self._debug("__init__(%s)"% workerName)
 
     def _debug(self, msg):
-        self.ui.debugC(ARC, "%s [%s] %s"% (self._name, self._workerName, msg))
+        runtime.ui.debugC(ARC, "%s %s"% (self._workerName, msg))
 
     def getEmitter(self):
+        self._debug("getEmitter()")
         return self._emitter
 
     def stop(self):
-        self._debug("stopping driver")
+        self._debug("stop()")
         self._emitter.stopServing()
         self._worker.join()
 
     def kill(self):
-        self._debug("killing driver")
+        self._debug("kill()")
         self._emitter.stopServing()
         self._worker.kill()
 
     def start(self):
-        self._debug("starting driver")
+        self._debug("start()")
 
         receiver, self._emitter = newEmitterReceiver(self._workerName)
         driverRunner = DriverRunner(receiver)
