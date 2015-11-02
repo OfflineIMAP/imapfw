@@ -209,8 +209,14 @@ There are good demos at the end of the module. ,-)
 
 """
 
+import time
+
 from imapfw import runtime
-from imapfw.constants import EMT
+from imapfw.constants import EMT, SLEEP
+
+
+#TODO: expose
+_SILENT_TIMES = 100
 
 
 # Outlined.
@@ -253,13 +259,33 @@ class Emitter(object):
         self._errorQueue = errorQueue
         self.ui = runtime.ui
 
+        self._previousTopic = None
+        self._previousTopicCount = 0
+
     def __getattr__(self, topic):
         """Dynamically create methods to send events."""
 
         def send_event(*args, **kwargs):
             request = (topic, args, kwargs)
-            self.ui.debugC(EMT, "emitter [%s] sends %s"%
+            if self._previousTopic != topic:
+                if self._previousTopicCount > 0:
+                    self.ui.debugC(EMT, "emitter [%s] sent %i times %s"%
+                        (self._name, _SILENT_TIMES, self._previousTopic))
+                self._previousTopicCount = 0
+                self._previousTopic = topic
+                self.ui.debugC(EMT, "emitter [%s] sends %s"%
                     (self._name, request))
+            else:
+                self._previousTopicCount += 1
+                if self._previousTopicCount == 2:
+                    self.ui.debugC(EMT, "emitter [%s] sends %s again,"
+                        " further sends for this topic made silent"%
+                        (self._name, request))
+                if self._previousTopicCount > (_SILENT_TIMES - 1):
+                    self.ui.debugC(EMT,
+                        "emitter [%s] sends for the %ith time %s"%
+                        (self._name, _SILENT_TIMES, self._previousTopic))
+                    self._previousTopicCount = 0
             self._eventQueue.put(request)
 
         def async(topic):
@@ -274,6 +300,7 @@ class Emitter(object):
                     if error is None:
                         result = self._resultQueue.get_nowait()
                         if result is None:
+                            time.sleep(SLEEP) # Don't eat all CPU.
                             continue
                         return result[0]
                     else:
@@ -301,6 +328,8 @@ class Receiver(object):
         self.ui = runtime.ui
 
         self._reactMap = {}
+        self._previousTopic = None
+        self._previousTopicCount = 0
 
     def _debug(self, msg):
         self.ui.debugC(EMT, "receiver [%s] %s"% (self._name, msg))
@@ -308,8 +337,27 @@ class Receiver(object):
     def _react(self, topic, args, kwargs):
         func, rargs = self._reactMap[topic]
         args = rargs + args
-        self._debug("reacting to '%s' with '%s', %s, %s"%
+
+        if self._previousTopic != topic:
+            if self._previousTopicCount > 0:
+                self._debug("reacted %i times to '%s'"%
+                    (self._previousTopicCount, self._previousTopic))
+            self._previousTopicCount = 0
+            self._previousTopic = topic
+            self._debug("reacting to '%s' with '%s', %s, %s"%
                 (topic, func.__name__, args, kwargs))
+
+        else:
+            self._previousTopicCount += 1
+            if self._previousTopicCount == 2:
+                self._debug("reacting to '%s' again, further messages made"
+                        " silent"% (topic))
+            if self._previousTopicCount > (_SILENT_TIMES - 1):
+                self._debug(
+                    "reacting for the %ith time to '%s' with '%s', %s, %s"%
+                    (_SILENT_TIMES, topic, func.__name__, args, kwargs))
+                self._previousTopicCount = 0
+
         return func(*args, **kwargs)
 
     def accept(self, event: str, func: callable, *args) -> None:
@@ -358,6 +406,7 @@ class Receiver(object):
 
             self.ui.error("receiver %s unhandled event %s"%
                     (self._name, event))
+        time.sleep(SLEEP) # Don't eat all CPU if caller is looping here.
         return True
 
 

@@ -34,3 +34,9 @@ MGR = 'managers'
 WRK = 'workers'
 
 IMAP = 'imap'
+
+
+# Time to sleep for a response of another worker. This value is used by the edmp
+# module where appropriate. This allows not eating too much CPU.
+#TODO: expose to the rascal.
+SLEEP = 0.02
