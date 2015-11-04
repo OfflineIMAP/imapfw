@@ -2,13 +2,35 @@
 #
 # Run the travis tests locally.
 
+GET_TESTS_FILE='get_tests.awk'
+
+cat <<EOF > "$GET_TESTS_FILE"
+#!/usr/bin/awk -f
+
+BEGIN {
+  FS="\n"
+}
+
+{
+  if (\$1 == "script:") {
+    FS="- "
+  }
+  else if (\$1 == "  ") {
+    print \$2
+  }
+}
+EOF
+
+chmod u+x "$GET_TESTS_FILE"
+
+
 errors=0
 total=0
 scripts=""
 
-./get_tests.awk .travis.yml | while read script
+./"$GET_TESTS_FILE" .travis.yml | while read script
 do
-  echo "\n=======  Running $script"
+  printf "\n=======  Running $script"
   total=$(($total + 1))
   $script
   if test $? -eq 0
@@ -22,7 +44,9 @@ do
 
   printf "\n\nTests done:"
   printf "$scripts\n"
-  printf "\nTotal: $total\n"
+  printf "\nTotal: $total, errors: $errors\n"
 done
+
+rm -f "$GET_TESTS_FILE" > /dev/null 2>&1
 
 # vim: expandtab ts=2 :
