@@ -27,6 +27,8 @@ script:
   - ./imapfw.py noop
   - ./imapfw.py -c multiprocessing unitTests
   - ./imapfw.py -c threading unitTests
+  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
+  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
 
