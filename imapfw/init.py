@@ -25,7 +25,7 @@
 import sys
 import traceback
 
-from imapfw.conf.main import ImapfwConfig
+from imapfw.conf.conf import ImapfwConfig
 from imapfw.actions.action import Action, Actions
 from imapfw.toolkit import runHook
 
