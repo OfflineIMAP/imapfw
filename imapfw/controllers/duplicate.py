@@ -30,9 +30,8 @@ class Duplicate(Controller):
 
     conf = None
 
-    def fw_init(self, driver, duplicateDriver):
-        super(Duplicate, self).fw_init(driver)
-        self.duplicateDriver = duplicateDriver #TODO: setup driver...
+    def fw_initController(self):
+        self.duplicateDriver = None #TODO: setup driver...
         self.ui = runtime.ui
 
         self.mode = self.conf.get('exception').lower() # fatal, warn or pass.

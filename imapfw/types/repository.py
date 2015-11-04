@@ -20,77 +20,111 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from imapfw import runtime
-
-from imapfw.constants import DRV, CTL
-from imapfw.controllers.controller import Controller
+from imapfw.controllers.controller import loadController
+from imapfw.drivers.driver import loadDriver
 
 
-class RepositoryIntenalInterface(object):
-    def fw_init(self):              raise NotImplementedError
-    def fw_addController(self):     raise NotImplementedError
-    def fw_chainControllers(self):  raise NotImplementedError
-
-
-class RepositoryInterface(RepositoryIntenalInterface):
+class RepositoryInterface(object):
 
     conf = None
     driver = None
     isLocal = None
 
-    def fetchFolders(self): raise NotImplementedError
-    def getName(self):      raise NotImplementedError
-    def getFolders(self):   raise NotImplementedError
+    def getClassName(self):      raise NotImplementedError
+    def init(self):              raise NotImplementedError
 
 
-class RepositoryBase(RepositoryInterface):
+class RepositoryIntenalInterface(object):
+    def fw_addController(self):     raise NotImplementedError
+    def fw_getDriver(self):         raise NotImplementedError
+    def fw_insertController(self):  raise NotImplementedError
+
+
+class Repository(RepositoryInterface, RepositoryIntenalInterface):
+    """The repository base class.
+
+    The `fw_` namespace is reserved to the framework internals. Any method of
+    this namespace must be overriden."""
 
     conf = None
     driver = None
+    controllers = []
 
-    def fw_init(self):
-        self.ui = runtime.ui
-
-        if not hasattr(self, 'controllers'):
-            controllers = self.conf.get('controllers')
-            if controllers is None:
-                controllers = []
-            self.controllers = controllers
+    def __init__(self):
+        # Turn the class attributes into instance attributes.
+        self.conf = self.conf.copy()
+        self.driver = self.driver
+        self.controllers = self.controllers.copy()
 
     def fw_addController(self, controller):
         self.controllers.insert(0, controller)
 
-    def fw_chainControllers(self):
+    def fw_getDriver(self):
         """Chain the controllers on top of the driver.
 
         Controllers are run in the driver worker."""
 
-        controllers = self.controllers # Avoid changing this attribute.
-        driver = self.driver() # Instanciate end-driver.
-        controllers.reverse() # Nearest from driver is the last in this list.
-        for cls_or_inst_controller in controllers:
-            if isinstance(cls_or_inst_controller, Controller):
-                # This is an instance.
-                controller = cls_or_inst_controller
-            else:
-                # This is a class.
-                controller = cls_or_inst_controller()
-                # Initialize with the class attribute "conf".
-                controller.fw_initController(cls_or_inst_controller.conf)
+        driver = loadDriver(self.driver, self.getClassName(), self.conf)
 
-            self.ui.debugC(CTL, "chaining driver '%s' with controller '%s'"%
-                (driver.__class__.__name__, controller.__class__.__name__))
+        # Chain the controllers.
+        controllers = self.controllers # Keep the original attribute as-is.
+        # Nearest to end-driver is the last in this list.
+        controllers.reverse()
+        for obj in controllers:
+            controller = loadController(obj, self.getClassName())
 
-            controller.fw_drive(driver) # Chains here.
+            controller.fw_drive(driver) # Chain here.
             driver = controller # The next controller will drive this.
 
         return driver
 
-    def fetchFolders(self):
-        return self.driver.fetchFolders()
+    def fw_insertController(self, controller):
+        self.controllers.insert(0, controller)
 
-    def getFolders(self):
-        return self.driver.getFolders()
-
-    def getName(self):
+    def getClassName(self):
         return self.__class__.__name__
+
+    def init(self):
+        """Override this method to make initialization in the rascal."""
+
+        pass
+
+
+def loadRepository(obj: 'Repository class or dict') -> Repository:
+
+    try:
+        if issubclass(obj, RepositoryInterface):
+            cls_repository = obj
+        else:
+            raise TypeError()
+
+    except TypeError:
+        try:
+            if not issubclass(obj, dict):
+                raise TypeError()
+
+            # The repository is defined in the dictionnary form in the rascal.
+            # Build the class.
+            cls_repository = type(obj.get('name'), obj.get('type'), {})
+
+            # Attached attributes.
+            for name, mandatory in {
+                    'conf': True,
+                    'driver': True,
+                    'controllers': [],
+                    }:
+                try:
+                    setattr(cls_repository, name, obj.get(name))
+                except KeyError:
+                    if mandatory is True:
+                        raise Exception("mandatory key '%s' is not defined for"
+                            " %s"% (name, cls_repository.__name__))
+                    setattr(cls_repository, name, mandatory)
+
+        except TypeError:
+            raise TypeError("'%s' for a repository is not supported"% type(obj))
+
+    repository = cls_repository()
+    repository.init()
+
+    return repository

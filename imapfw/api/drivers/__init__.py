@@ -9,9 +9,11 @@ and how to structure the underlying code.
 """
 
 __all__ = [
+    'FakeDriver',
     'Imap',
     'Maildir',
 ]
 
-from ...drivers.imap import Imap
-from ...drivers.maildir import Maildir
+from imapfw.drivers.fake import FakeDriver
+from imapfw.drivers.imap import Imap
+from imapfw.drivers.maildir import Maildir

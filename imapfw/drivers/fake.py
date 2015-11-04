@@ -20,60 +20,70 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from .driver import DriverInterface
+
 from imapfw.types.folder import Folders, Folder
 
-from .controller import Controller
 
-class FakeDriver(Controller):
+class FakeDriver(DriverInterface):
 
     conf = None
 
     ImapConf = {
+        'backend':  'imaplib3',
+        'host':      '127.0.0.1',
+        'port':     '10143',
+        'username': 'nicolas',
+        'password': 'sebrecht',
+        'max_connections': 3,
         'folders': [b'INBOX', b'INBOX/spam', b'INBOX/outbox',
             b'INBOX/sp&AOk-cial',
         ]
     }
 
     MaildirConf = {
+        'path': '/tmp/unused/path',
+        'max_connections': 2,
         'folders': [b'INBOX', b'INBOX/maidir_archives']
     }
 
+    def __init__(self, repositoryName, conf):
+        self.repositoryName = repositoryName
+        self.conf = conf
+
     def __getattr__(self, name):
         # Force to redefine all the driver and controller APIs.
-        raise AttributeError
+        raise AttributeError("no attribute %s"% name)
 
-    def fw_init(self, *args):
-        self.driver.fw_init(*args)
-
-    def fw_initController(self, *args):
-        super(FakeDriver, self).fw_initController(*args)
-
-    def fw_drive(self, driver):
-        super(FakeDriver, self).fw_drive(driver)
-
-    def fw_sanityChecks(self, *args):
-        self.driver.fw_sanityChecks(*args)
-
-    def connect(self):
-        return True
-
-    def fetchFolders(self):
-        pass
-
-    def getFolders(self):
+    def _folders(self):
         folders = Folders()
         for folderName in self.conf.get('folders'):
             folders.append(Folder(folderName))
         return folders
 
-    def getName(self):
-        self.driver.getName()
+    def connect(self):
+        return True
 
-    def getOwnerName(self):
-        self.driver.getOwnerName()
+    def fetchFolders(self):
+        return self._folders()
+
+    def getFolders(self):
+        return self._folders()
+
+    def getClassName(self):
+        return self.__class__.__name__
+
+    def getRepositoryName(self):
+        return self.repositoryName
+
+    def init(self):
+        pass
 
     def isLocal(self):
-        self.driver.isLocal
+        return self.isLocal
 
     def logout(self):
         pass
+
+    def select(self, folder):
+        return True

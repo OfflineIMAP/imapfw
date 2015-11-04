@@ -28,8 +28,7 @@ class NameTrans(Controller):
 
     conf = None
 
-    def fw_init(self, driver):
-        super(NameTrans, self).fw_init(driver)
+    def fw_initController(self):
         self._toDriverTrans = self.conf.get('toDriverTrans')
         self._fromDriverTrans = self.conf.get('fromDriverTrans')
         self._encoding = self.conf.get('encoding')

@@ -41,19 +41,7 @@ class TestTypeAccount(unittest.TestCase):
 
 
 class TestTypeRepository(unittest.TestCase):
-    def test_repository_interface(self):
-        internal = RepositoryIntenalInterface()
-        interface = RepositoryInterface()
-        repo = RepositoryBase()
-
-        for name, method in inspect.getmembers(internal):
-            self.assertEqual(hasattr(repo, name), True)
-
-        for name, method in inspect.getmembers(interface):
-            self.assertEqual(hasattr(repo, name), True)
-
-        for name in ['conf', 'driver']:
-            self.assertEqual(hasattr(repo, name), True)
+    pass
 
 
 if __name__ == '__main__':

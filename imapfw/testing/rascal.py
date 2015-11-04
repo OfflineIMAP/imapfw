@@ -44,7 +44,8 @@ class TestRascal(unittest.TestCase):
         self.empty = loadRascal(os.path.join(rascalsDir, 'empty.rascal'))
 
     def test_getAccountA(self):
-        self.assertIsInstance(self.rascal.get('AccountA', [types.Account]), types.Account)
+        cls_account = self.rascal.get('AccountA', [types.Account])
+        self.assertIsInstance(cls_account(), types.Account)
 
     def test_getExceptionHook(self):
         self.assertEqual(type(self.rascal.getExceptionHook()), type(lambda x:x))

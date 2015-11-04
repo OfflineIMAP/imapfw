@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from imapfw import runtime
+
 from .controller import Controller
 
 #TODO
@@ -27,19 +29,19 @@ class ExamineController(Controller):
     """Controller to examine a repository."""
 
     def connect(self, *args):
-        self.ui.info("## Configuration")
-        self.ui.info("")
+        runtime.ui.info("## Configuration")
+        runtime.ui.info("")
         for k, v in self.driver.conf.items():
             if k == 'password' and isinstance(v, (str, bytes)):
                 v = '<hidden>'
-            self.ui.info("* %s: %s"% (k, v))
+            runtime.ui.info("* %s: %s"% (k, v))
         return self.driver.connect(*args)
 
     def getFolders(self):
         folders = self.driver.getFolders()
-        self.ui.info("")
-        self.ui.info("## Infos")
-        self.ui.info("")
-        self.ui.info("Found %i folders: %s"%(len(folders), folders))
-        self.ui.info("")
+        runtime.ui.info("")
+        runtime.ui.info("## Infos")
+        runtime.ui.info("")
+        runtime.ui.info("Found %i folders: %s"%(len(folders), folders))
+        runtime.ui.info("")
         return folders

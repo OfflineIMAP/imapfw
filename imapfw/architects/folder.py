@@ -24,7 +24,8 @@ from imapfw import runtime
 
 from imapfw.constants import ARC
 from imapfw.edmp import newEmitterReceiver
-from imapfw.runners import FolderRunner, topRunner
+from imapfw.runners import topRunner
+from imapfw.engines import SyncFolders
 
 from .driver import DriverArchitect
 
@@ -107,13 +108,15 @@ class FolderArchitect(FolderArchitectInterface):
         receiver.accept('stop', self._stop)
         self._receiver = receiver
 
-        #TODO: 'SyncFolder' from rascal: review Account.engine.
-        runner = FolderRunner(emitter, left, right, 'SyncFolder')
+        #TODO: the architect must not know what engine will be used.
+        # 'SyncFolder' from rascal: review Account.engine.
+        engine = SyncFolders(self._workerName, emitter, left, right,
+            self._accountName)
 
         self._worker = runtime.concurrency.createWorker(
             self._workerName,
             topRunner,
-            (runner.run, self._workerName, folderTasks),
+            (self._workerName, engine.syncFolders, folderTasks),
             )
 
         self._worker.start()
@@ -168,7 +171,8 @@ class FoldersArchitect(FoldersArchitectInterface):
             self._folderArchitects.remove(folderArchitect)
 
     def start(self, maxFolderWorkers: int, folders: Folders,
-            left=None, right=None):
+            left: Emitter=None, right: Emitter=None):
+
         self._debug("start(%i, %s, %s, %s)"% (maxFolderWorkers,
             folders, repr(left), repr(right)))
 

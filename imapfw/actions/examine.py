@@ -24,9 +24,9 @@ from imapfw import runtime
 
 from .interface import ActionInterface
 
-from ..types.repository import RepositoryBase
-from ..controllers.examine import ExamineController
-from ..drivers.driver import DriverInterface
+from imapfw.types.account import Account, loadAccount
+from imapfw.controllers.examine import ExamineController
+from imapfw.drivers.driver import DriverInterface
 
 class Examine(ActionInterface):
     """Examine repositories (all run sequentially)."""
@@ -37,7 +37,6 @@ class Examine(ActionInterface):
     def __init__(self):
         self._exitCode = 0
         self.ui = runtime.ui
-        self.rascal = runtime.rascal
 
         self._architects = []
 
@@ -51,19 +50,23 @@ class Examine(ActionInterface):
         pass
 
     def run(self):
-        repositories = self.rascal.getAll([RepositoryBase])
+        cls_accounts = runtime.rascal.getAll([Account])
+
+        repositories = []
+        for cls_account in cls_accounts:
+            account = loadAccount(cls_account)
+            repositories.append(account.fw_getLeft())
+            repositories.append(account.fw_getRight())
 
         for repository in repositories:
             if isinstance(repository, DriverInterface):
                 continue
             try:
-                repository.fw_init()
                 repository.fw_addController(ExamineController)
-                driver = repository.fw_chainControllers()
-                driver.fw_init(repository.conf, None)
+                driver = repository.fw_getDriver()
 
                 self.ui.info("# Repository %s (type %s)"%
-                    (repository.getName(), driver.getName()))
+                    (repository.getClassName(), driver.getClassName()))
                 self.ui.info("")
                 self.ui.info("controllers: %s"% repository.controllers)
                 self.ui.info("")

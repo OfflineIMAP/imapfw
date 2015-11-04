@@ -23,26 +23,25 @@
 import os
 
 from imapfw import runtime
+from imapfw.toolkit import expandPath
+from imapfw.error import DriverFatalError
+from imapfw.constants import DRV
+from imapfw.types.folder import Folders, Folder
 
-from .driver import DriverBase
-
-from ..toolkit import expandPath
-from ..error import DriverFatalError
-from ..types.folder import Folders, Folder
-from ..constants import DRV
+from .driver import Driver
 
 
-class Maildir(DriverBase):
+class Maildir(Driver):
     """Exposed Maildir driver, possibly redefined by the rascal."""
 
     isLocal = True
 
-    def fw_init(self, conf, ownerName):
-        super(Maildir, self).fw_init(conf, ownerName)
+    def __init__(self, *args):
+        super(Maildir, self).__init__(*args)
         self._folders = None
 
     def _debug(self, msg):
-        runtime.ui.debugC(DRV, "driver of %s %s"% (self.getOwnerName(), msg))
+        runtime.ui.debugC(DRV, "driver of %s %s"% (self.getRepositoryName(), msg))
 
     def _recursiveScanMaildir(self, relativePath=None):
         """Scan the Maildir recusively.
@@ -105,7 +104,6 @@ class Maildir(DriverBase):
                 scanChildren(fullPath, relativePath)
 
     def connect(self):
-        self._debug('connecting')
         path = expandPath(self.conf.get('path'))
         try:
             os.mkdir(path)
@@ -117,7 +115,6 @@ class Maildir(DriverBase):
         if not os.path.isdir(path):
             raise DriverFatalError("path is not a directory: %s"% path)
         self.conf['path'] = path # Record expanted path.
-        self._debug('connected')
         return True
 
     def getFolders(self):

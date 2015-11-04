@@ -190,7 +190,6 @@ class ImapRepositoryExample(types.Imap):
 ############
 
 class AccountExample(types.Account):
-    engine = engines.SyncAccount # Default: engine.SyncAccount. (TODO)
     left = MaildirRepositoryExample
     right = ImapRepositoryExample
 

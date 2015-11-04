@@ -56,17 +56,55 @@ SCHEMATIC OVERVIEW EXAMPLE (right side)
 
 """
 
-class Controller(object):
+from imapfw import runtime
+from imapfw.constants import CTL
+
+
+class ControllerInternalInterface(object):
+    def fw_drive(self):     raise NotImplementedError
+
+
+class Controller(ControllerInternalInterface):
 
     conf = {}
 
-    def fw_initController(self, conf):
-        self.conf = conf
-
-    def fw_drive(self, driver):
-        self.driver = driver
+    def __init__(self):
+        # Turn the class attribute "conf" into an instance attribute.
+        self.conf = self.conf.copy()
+        self.driver = None
 
     def __getattr__(self, name):
         return getattr(self.driver, name)
 
+    def fw_drive(self, driver):
+        runtime.ui.debugC(CTL, "chaining driver '%s' with controller '%s'"%
+            (driver.getClassName(), self.getClassName()))
+        self.driver = driver
 
+    def getClassName(self):
+        return self.__class__.__name__
+
+    def init(self):
+        """Override this method to make initialization in the rascal."""
+
+        pass
+
+
+def loadController(obj: 'controller class or dict',
+        repositoryName: str) -> Controller:
+
+    if isinstance(obj, dict):
+        cls_controller = obj.get('type') # Must be the controller class.
+        setattr(cls_controller, 'conf', obj.get('conf'))
+    else:
+        cls_controller = obj
+
+    if not issubclass(cls_controller, Controller):
+        raise TypeError("controller %s of %s does not derivates from"
+            " types.controllers.Controller"%
+            (cls_controller.__name__, repositoryName))
+
+    controller = cls_controller()
+    controller.init()
+
+    return controller

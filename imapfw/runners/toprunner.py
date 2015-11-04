@@ -24,11 +24,11 @@ from imapfw import runtime
 from imapfw.constants import WRK
 
 
-def topRunner(runner, workerName, *args):
+def topRunner(workerName, runner, *args):
     ui = runtime.ui
     ui.debugC(WRK, "[runner] %s starts"% workerName)
     try:
-        runner(workerName, *args)
+        runner(*args)
     except Exception as e:
         ui.error("[runner] %s interrupted: %s"% (workerName, e))
         ui.exception(e)

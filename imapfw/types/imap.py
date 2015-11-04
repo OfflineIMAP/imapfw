@@ -26,9 +26,9 @@ Imap types and derivatives.
 
 """
 
-from .repository import RepositoryBase
+from .repository import Repository
 
 
-class Imap(RepositoryBase):
+class Imap(Repository):
 
     isLocal = False

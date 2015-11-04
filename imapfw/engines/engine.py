@@ -20,32 +20,51 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-
-#
-#TODO: remove all of this. Make engines functions.
-#
-
 from imapfw import runtime
 
-from imapfw.types.repository import RepositoryBase
+#TODO: engines debug logs.
+from imapfw.constants import WRK
 
 # Annotations.
-from imapfw.types.account import Account
+from imapfw.edmp import Emitter
+
 
 class EngineInterface(object):
-    def getRepositories(self):  raise NotImplementedError
     def run(self):              raise NotImplementedError
 
 
-class Engine(EngineInterface):
-    @staticmethod
-    def getRepositories(account: Account):
-        """
-        Return the left and right repositories instances for this account.
-        """
+class SyncEngineInterface(object):
+    def debug(self):            raise NotImplementedError
+    def processing(self):       raise NotImplementedError
+    def setExitCode(self):      raise NotImplementedError
+    def checkExitCode(self):    raise NotImplementedError
 
-        left = runtime.rascal.get(account.left.__name__, [RepositoryBase])
-        rght = runtime.rascal.get(account.right.__name__, [RepositoryBase])
-        left.fw_init()
-        rght.fw_init()
-        return left, rght
+
+class SyncEngine(EngineInterface):
+    def __init__(self, workerName: str):
+        self._exitCode = -1 # Force the run to set a valid exit code.
+        self._gotTask = False
+        self.workerName = workerName
+
+    def checkExitCode(self) -> None:
+        if self._gotTask is False:
+            self.setExitCode(0)
+        else:
+            if self._exitCode < 0:
+                runtime.ui.critical("%s exit code was not set correctly"%
+                    self.workerName)
+                self.setExitCode(99)
+
+    def debug(self, msg: str):
+        runtime.ui.debugC(WRK, "%s: %s"% (self.workerName, msg))
+
+    def getExitCode(self):
+        return self._exitCode
+
+    def processing(self, task: str):
+        runtime.ui.infoL(2, "%s processing: %s"% (self.workerName, task))
+        self._gotTask = True
+
+    def setExitCode(self, exitCode: int) -> None:
+        if exitCode > self._exitCode:
+            self._exitCode = exitCode

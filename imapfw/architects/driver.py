@@ -67,11 +67,11 @@ class DriverArchitect(DriverArchitectInterface):
         self._debug("start()")
 
         receiver, self._emitter = newEmitterReceiver(self._workerName)
-        driverRunner = DriverRunner(receiver)
+        driverRunner = DriverRunner(self._workerName, receiver)
 
         self._worker = runtime.concurrency.createWorker(self._workerName,
-                topRunner,
-                (driverRunner.run, self._workerName)
-                )
+            topRunner,
+            (self._workerName, driverRunner.run)
+            )
 
         self._worker.start()

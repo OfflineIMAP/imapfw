@@ -20,20 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .driver import DriverBase
+from .driver import Driver
 
 from imapfw.imap.imap import Imap as ImapBackend
 from imapfw.types.folder import Folder, Folders
 
 
-class Imap(DriverBase):
+class Imap(Driver):
     """Imap driver possibly redefined by the rascal."""
 
     isLocal = False
 
-    def fw_init(self, conf, owner):
-        super(Imap, self).fw_init(conf, owner)
-
+    def __init__(self, *args):
+        super(Imap, self).__init__(*args)
         self.imap = ImapBackend(self.conf.get('backend'))
         self.imap.configure()
 

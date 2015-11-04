@@ -26,9 +26,9 @@ Maildir types and derivatives.
 
 """
 
-from .repository import RepositoryBase
+from .repository import Repository
 
 
-class Maildir(RepositoryBase):
+class Maildir(Repository):
 
     isLocal = True

@@ -24,7 +24,7 @@ import inspect
 
 from imapfw import runtime
 from imapfw.constants import DRV
-from imapfw.types.repository import RepositoryInterface
+from imapfw.types.account import loadAccount
 
 # Annotations.
 from imapfw.edmp import Receiver
@@ -33,23 +33,24 @@ from imapfw.types.folder import Folders
 
 #TODO: catch exceptions?
 class DriverRunner(object):
-    """The Driver to make use of any driver with controllers.
+    """The Driver to make use of any driver (with the controllers).
 
-    This object builds and runs a low-level driver (from rascal api.drivers) so
-    it can be used in a worker.
+    Runs a complete low-level driver in a worker.
 
     The low-level drivers and controllers use the same low-level interface which
     is not directly exposed to the engine.
 
-    Also, this allow to re-use any running worker with different repositories
-    during its lifetime.
+    Also, this allows to re-use any running worker with different repositories
+    during its lifetime. This feature is a requirement of the SyncAccount
+    runner.
 
     Some tasks require a referent for the following events:
         - exception(msg: str)
         - folders(lst_folders: Folders)
     """
 
-    def __init__(self, receiver: Receiver):
+    def __init__(self, workerName: str, receiver: Receiver):
+        self._workerName = workerName
         self._receiver = receiver
 
         self.ui = runtime.ui
@@ -62,30 +63,38 @@ class DriverRunner(object):
         self._folders = None
         self._ownerName = None
 
+    def __getattr__(self, name):
+        return getattr(self._driver, name)
+
     def _debug(self, msg):
         self.ui.debugC(DRV, "%s %s"% (self._ownerName, msg))
 
-    def buildDriver(self, repositoryName: str):
-        self._ownerName = repositoryName
+    def buildDriver(self, accountName: str, side: str,
+            reuse: bool=False) -> None:
+        if reuse is True and self._driver is not None:
+            return None
+
+        # self._ownerName = repositoryName
         self._driver = None
 
-        repository = runtime.rascal.get(repositoryName, [RepositoryInterface])
-        repository.fw_init()
-
         # Build the driver.
-        driver = repository.fw_chainControllers()
-        driver.fw_init(repository.conf, repositoryName) # Initialize.
-        driver.fw_sanityChecks(driver) # Catch common errors early.
+        account = loadAccount(accountName)
+        repository = account.fw_getSide(side)
+        driver = repository.fw_getDriver()
 
+        #TODO: move to a debug controller.
         self.ui.debugC(DRV, "built driver '{}' for '{}'",
-                driver.getName(), repositoryName)
-        self.ui.debugC(DRV, "'{}' has conf {}", repositoryName, driver.conf)
+                driver.getClassName(), driver.getRepositoryName())
+        self.ui.debugC(DRV, "'{}' has conf {}", repository.getClassName(),
+                driver.conf)
 
         self._driver = driver
+        return driver
 
-    def connect(self):
+    def connect(self) -> bool:
         """Connect the driver for this repository (name)."""
 
+        #TODO: move those debug logs into a controller.
         if self._driver.isLocal:
             self._debug("working in %s"% self._driver.conf.get('path'))
         else:
@@ -94,7 +103,7 @@ class DriverRunner(object):
 
         return self._driver.connect()
 
-    def fetchFolders(self):
+    def fetchFolders(self) -> Folders:
         self._debug("starts fetching folder names")
         self._folders = self._driver.getFolders()
         return self._folders
@@ -103,15 +112,13 @@ class DriverRunner(object):
         self._debug("got folders: %s"% self._folders)
         return self._folders
 
-    def logout(self):
+    def logout(self) -> None:
         self._driver.logout()
         self._debug("logged out")
         self._driver = None
 
-    def run(self, workerName: str):
-        self._workerName = workerName
-
-        self.ui.debugC(DRV, "%s manager running"% workerName)
+    def run(self) -> None:
+        self.ui.debugC(DRV, "%s manager running"% self._workerName)
 
         # Bind all public methods to events.
         for name, method in inspect.getmembers(self):
@@ -121,3 +128,6 @@ class DriverRunner(object):
 
         while self._receiver.react():
             pass
+
+    def select(self, mailboxName: str) -> bool:
+        return self._driver.select(mailboxName)

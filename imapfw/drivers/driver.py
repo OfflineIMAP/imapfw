@@ -20,47 +20,52 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from imapfw import runtime
-
 
 class DriverInternalInterface(object):
-    """Users must NOT change those methods."""
-
-    def fw_init(self):          raise NotImplementedError
-    def fw_sanityChecks(self):  raise NotImplementedError
+    pass
 
 
-class DriverInterface(DriverInternalInterface):
+class DriverInterface(object):
 
     conf = {} # The configuration of the type has to be there.
     isLocal = None
 
-    def connect(self):          raise NotImplementedError
-    def getFolders(self):       raise NotImplementedError
-    def getName(self):          raise NotImplementedError
-    def getOwnerName(self):     raise NotImplementedError
-    def logout(self):           raise NotImplementedError
+    def connect(self):              raise NotImplementedError
+    def getClassName(self):         raise NotImplementedError
+    def getFolders(self):           raise NotImplementedError
+    def getRepositoryName(self):    raise NotImplementedError
+    def logout(self):               raise NotImplementedError
 
 
-class DriverBase(DriverInterface):
-    def fw_init(self, conf, ownerName):
-        self.conf = conf # Comes from the type.
-        self._ownerName = ownerName
+class Driver(DriverInterface):
+    """The Driver base class.
 
-        # Keep this so that any use of self.ui from a controller fallbacks here.
-        self.ui = runtime.ui
+    The `fw_` namespace is reserved to the framework internals."""
 
-    @staticmethod
-    def fw_sanityChecks(inst):
-        # Note: we can't use 'isinstance(inst, DriverInterface)' because the
-        # driver might be encapsulated into one or more controllers.
-        for attribute in dir(DriverInterface):
-            if not hasattr(inst, attribute):
-                raise Exception("driver class %s does not satisfy"
-                    " DriverInterface"% inst.__class__.__name__)
+    def __init__(self, repositoryName: str, conf: dict):
+        self.repositoryName = repositoryName
+        self.conf = conf
 
-    def getName(self):
+    def getClassName(self) -> str:
         return self.__class__.__name__
 
-    def getOwnerName(self):
-        return self._ownerName
+    def getRepositoryName(self) -> str:
+        return self.repositoryName
+
+    def init(self):
+        """Override this method to make initialization in the rascal."""
+
+        pass
+
+
+def loadDriver(cls_driver: object, repositoryName: str, conf: dict) -> Driver:
+
+    # Build the final end-driver.
+    if not issubclass(cls_driver, DriverInterface):
+        raise TypeError("driver %s of %s does not satisfy"
+            " DriverInterface"% (cls_driver.__name__, repositoryName))
+
+    driver = cls_driver(repositoryName, conf)
+    driver.init()
+
+    return driver

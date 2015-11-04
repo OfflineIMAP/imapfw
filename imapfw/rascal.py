@@ -22,9 +22,7 @@
 
 import imp #TODO: use library importlib instead of deprecated imp.
 
-from .api import types
-from .types.repository import RepositoryBase
-from .types.account import Account
+from imapfw.api import types
 
 
 class Rascal(object):
@@ -41,20 +39,20 @@ class Rascal(object):
         # Cached literals.
         self._mainConf = None
 
-    def _isDict(self, obj):
+    def _isDict(self, obj: object) -> bool:
         try:
             return type(obj) == dict
         except:
             raise TypeError("'%s' must be a dictionnary, got '%s'"%
                 (obj.__name__, type(obj)))
 
-    def _getHook(self, name):
+    def _getHook(self, name: str) -> callable:
         try:
             return self.getFunction(name)
         except:
             return lambda *args: None
 
-    def _getLiteral(self, name):
+    def _getLiteral(self, name: str) -> type:
         return getattr(self._rascal, name)
 
     def get(self, name, expectedTypes):
@@ -62,12 +60,12 @@ class Rascal(object):
 
         for expectedType in expectedTypes:
             if issubclass(cls, expectedType):
-                return cls()
+                return cls
 
         raise TypeError("class '%s' is not a sub-class of '%s'"%
             (name, expectedTypes))
 
-    def getAll(self, targetTypes):
+    def getAll(self, targetTypes: list) -> list:
         instances = []
         for literal in dir(self._rascal):
             if literal.startswith('_'):
@@ -78,16 +76,16 @@ class Rascal(object):
                 pass
         return instances
 
-    def getExceptionHook(self):
+    def getExceptionHook(self) -> callable:
         return self._getHook('exceptionHook')
 
-    def getFunction(self, name):
+    def getFunction(self, name: str) -> callable:
         func = self._getLiteral(name)
         if not callable(func):
             raise TypeError("function expected for '%s'"% name)
         return func
 
-    def getMaxConnections(self, accountName):
+    def getMaxConnections(self, accountName: str) -> int:
         def getValue(repository):
             try:
                 return int(repository.conf.get('max_connections'))
@@ -99,96 +97,36 @@ class Rascal(object):
             getValue(account.right))
         return max_sync
 
-    def getMaxSyncAccounts(self):
+    def getMaxSyncAccounts(self) -> int:
         return int(self._mainConf.get('max_sync_accounts'))
 
-    def getPostHook(self):
+    def getPostHook(self) -> callable:
         return self._getHook('postHook')
 
-    def getPreHook(self):
+    def getPreHook(self) -> callable:
         return self._getHook('preHook')
 
-    def getSettings(self, name):
+    def getSettings(self, name: str) -> dict:
         literal = getattr(self._rascal, name)
         if not isinstance(literal, dict):
             raise TypeError("expected dict for '%s', got '%s'"%
                 (name, type(literal)))
         return literal
 
-    def load(self, path):
-        def inject(literal, obj):
-            setattr(self._rascal, literal, obj)
-
-        def createClass(name, base):
-            return type(name, (base,), {})
-
-        def controllersConstructor(list_controllers):
-            controllers = []
-            for controller in list_controllers:
-                if type(controller) == dict:
-                    cls = controller.get('controller')
-                    cls.conf = controller.get('conf')
-                    controllers.append(cls)
-                else:
-                    controllers.append(controller)
-            return controllers
-
-        def repositoryConstructor(conf):
-            repository = createClass(conf.get('name'), conf.get('type'))
-            repository.conf = conf.get('conf')
-            repository.driver = conf.get('driver')
-            controllers = conf.get('controllers')
-            if controllers is None:
-                repository.controllers = []
-            return repository
-
-        def accountConstructor(conf):
-            cls_account = createClass(conf.get('name'), conf.get('type'))
-            cls_account.conf = conf.get('conf')
-            for side in ['left', 'right']:
-                side_obj = conf.get(side)
-                if type(side_obj) == dict:
-                    repository = repositoryConstructor(side_obj)
-                    setattr(cls_account, side, repository)
-                    inject(repository.__name__, repository)
-                else:
-                    repository = conf.get('side')
-                    setattr(cls_account, side, repository)
-                    inject(repository.__name__, repository)
-            return cls_account
-
-        ### Really start here ###
+    def load(self, path: str) -> None:
         # Create empty module.
         rascal_mod = imp.new_module('rascal')
         rascal_mod.__file__ = path
 
         with open(path) as rascal_file:
-            exec(compile(rascal_file.read(), path, 'exec'), rascal_mod.__dict__)
+            exec(compile(
+                rascal_file.read(), path, 'exec'), rascal_mod.__dict__)
         self._rascal = rascal_mod
 
         self._mainConf = self.getSettings('MainConf')
 
-        # Turn accounts definitions from MainConf into literals.
+        # Turn accounts definitions from MainConf into global of rascal
+        # literals.
         if 'accounts' in self._mainConf:
-            for definition in self._mainConf.get('accounts'):
-                inject(definition.get('name'), definition)
-
-        # Convert all the dicts definitions of objects into global objects.
-        for literal in dir(self._rascal):
-            if literal.startswith('_'):
-                continue
-
-            obj = self._getLiteral(literal)
-            if obj is None:
-                continue
-            if type(obj) == dict and 'name' in obj:
-                name = obj.get('name')
-                clsType = obj.get('type')
-                cls = createClass(name, clsType)
-                if issubclass(cls, RepositoryBase):
-                    cls = repositoryConstructor(obj)
-                elif issubclass(cls, types.Account):
-                    cls = accountConstructor(obj)
-                else:
-                    continue
-                inject(name, cls)
+            for accountDict in self._mainConf.get('accounts'):
+                setattr(self._rascal, accountDict.get('name'), accountDict)

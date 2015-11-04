@@ -24,7 +24,8 @@ from imapfw import runtime
 
 from imapfw.constants import ARC
 from imapfw.edmp import newEmitterReceiver
-from imapfw.runners import AccountRunner, topRunner
+from imapfw.runners import topRunner
+from imapfw.engines import SyncAccounts
 
 from .driver import DriverArchitect
 from .folder import FoldersArchitect
@@ -156,16 +157,16 @@ class AccountArchitect(AccountArchitectInterface):
         receiver.accept('wait', self._wait)
         self._receiver = receiver
 
-        accountRunner = AccountRunner(
+        engine = SyncAccounts(
+            workerName,
             emitter,
             self._leftArchitect.getEmitter(),
             self._rightArchitect.getEmitter(),
-            engineName,
             )
 
         # Time for the worker.
         self._worker = self.concurrency.createWorker(workerName,
             topRunner,
-            (accountRunner.run, workerName, accountTasks),
+            (workerName, engine.syncAccounts, accountTasks),
             )
         self._worker.start()

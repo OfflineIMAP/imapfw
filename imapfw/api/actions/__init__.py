@@ -12,4 +12,4 @@ __all__ = [
     'SyncAccounts',
 ]
 
-from ...actions.syncaccounts import SyncAccounts
+from imapfw.actions.syncaccounts import SyncAccounts

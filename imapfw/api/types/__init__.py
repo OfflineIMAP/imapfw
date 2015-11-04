@@ -13,11 +13,11 @@ __all__ = [
     'Account',
     'Imap',
     'Maildir',
-    'RepositoryBase',
+    'Repository',
 ]
 
-from ...types import folder
-from ...types.account import Account
-from ...types.imap import Imap
-from ...types.maildir import Maildir
-from ...types.repository import RepositoryBase
+from imapfw.types import folder
+from imapfw.types.account import Account
+from imapfw.types.imap import Imap
+from imapfw.types.maildir import Maildir
+from imapfw.types.repository import Repository

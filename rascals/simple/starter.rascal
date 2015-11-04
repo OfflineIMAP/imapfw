@@ -108,9 +108,13 @@ MainConf = {
         {
             'name': 'AccountExample',
             'type': types.Account,
+
+            # account attributes.
             'left': {
                 'name': 'MaildirExample',
                 'type': types.Maildir,
+
+                # repository attributes.
                 'driver': drivers.Maildir,
                 'conf': {
                     'path': '~/.imapfw/Mail/MaildirA',

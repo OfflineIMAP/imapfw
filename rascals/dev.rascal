@@ -47,35 +47,24 @@ ImapConfA = {
     'max_connections': 3,
 }
 
-class FakeImapDriver(controllers.FakeDriver):
-    conf = controllers.FakeDriver.ImapConf
-
-class FakeMaildirDriver(controllers.FakeDriver):
-    conf = controllers.FakeDriver.MaildirConf
-
 class MaildirA(types.Maildir):
-    conf = MaildirConfA
-    driver = drivers.Maildir # Default: drivers.Maildir.
-    controllers = [FakeMaildirDriver]
+    conf = drivers.FakeDriver.MaildirConf
+    driver = drivers.FakeDriver # Default: drivers.Maildir.
 
 class MaildirB(types.Maildir):
-    conf = MaildirConfB
-    driver = drivers.Maildir
-    controllers = [FakeMaildirDriver]
+    conf = drivers.FakeDriver.MaildirConf
+    driver = drivers.FakeDriver # Default: drivers.Maildir.
 
 class ImapA(types.Imap):
-    conf = ImapConfA
-    driver = drivers.Imap # Default: drivers.Imap.
-    controllers = [FakeImapDriver]
+    conf = drivers.FakeDriver.ImapConf
+    driver = drivers.FakeDriver # Default: drivers.Imap.
 
 
 class Home(types.Account):
-    engine = 'SyncAccount'
     left = MaildirA
     right = ImapA
 
 class Foundation(types.Account):
-    engine = 'SyncAccount'
     left = MaildirB
     right = ImapA
 

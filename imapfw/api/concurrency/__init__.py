@@ -13,4 +13,4 @@ __all__ = [
     'WorkerSafe',
 ]
 
-from ...concurrency.concurrency import SimpleLock, WorkerSafe
+from imapfw.concurrency.concurrency import SimpleLock, WorkerSafe
