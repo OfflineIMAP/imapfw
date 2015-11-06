@@ -210,9 +210,16 @@ There are good demos at the end of the module. ,-)
 """
 
 import time
+from typing import TypeVar
 
 from imapfw import runtime
 from imapfw.constants import EMT, SLEEP
+
+# Annotations.
+from imapfw.concurrency import Queue
+
+
+ExceptionClass = TypeVar('exception class')
 
 
 #TODO: expose
@@ -220,7 +227,7 @@ _SILENT_TIMES = 100
 
 
 # Outlined.
-def _raiseError(cls_Exception, reason):
+def _raiseError(cls_Exception: ExceptionClass, reason: str):
     """Default callback for errors."""
 
     try:
@@ -236,7 +243,7 @@ def _raiseError(cls_Exception, reason):
 class Channel(object):
     """Queue made iterable."""
 
-    def __init__(self, queue):
+    def __init__(self, queue: Queue):
         self._queue = queue
 
     def __iter__(self):
@@ -252,37 +259,37 @@ class Channel(object):
 class Emitter(object):
     """Send events."""
 
-    def __init__(self, name, eventQueue, resultQueue, errorQueue):
+    def __init__(self, name: str, event: Queue, result: Queue, error: Queue):
         self._name = name
-        self._eventQueue = eventQueue
-        self._resultQueue = resultQueue
-        self._errorQueue = errorQueue
-        self.ui = runtime.ui
+        self._eventQueue = event
+        self._resultQueue = result
+        self._errorQueue = error
 
         self._previousTopic = None
         self._previousTopicCount = 0
 
-    def __getattr__(self, topic):
+    def __getattr__(self, topic: str):
         """Dynamically create methods to send events."""
 
         def send_event(*args, **kwargs):
             request = (topic, args, kwargs)
+
             if self._previousTopic != topic:
                 if self._previousTopicCount > 0:
-                    self.ui.debugC(EMT, "emitter [%s] sent %i times %s"%
+                    runtime.ui.debugC(EMT, "emitter [%s] sent %i times %s"%
                         (self._name, _SILENT_TIMES, self._previousTopic))
                 self._previousTopicCount = 0
                 self._previousTopic = topic
-                self.ui.debugC(EMT, "emitter [%s] sends %s"%
+                runtime.ui.debugC(EMT, "emitter [%s] sends %s"%
                     (self._name, request))
             else:
                 self._previousTopicCount += 1
                 if self._previousTopicCount == 2:
-                    self.ui.debugC(EMT, "emitter [%s] sends %s again,"
+                    runtime.ui.debugC(EMT, "emitter [%s] sends %s again,"
                         " further sends for this topic made silent"%
                         (self._name, request))
                 if self._previousTopicCount > (_SILENT_TIMES - 1):
-                    self.ui.debugC(EMT,
+                    runtime.ui.debugC(EMT,
                         "emitter [%s] sends for the %ith time %s"%
                         (self._name, _SILENT_TIMES, self._previousTopic))
                     self._previousTopicCount = 0
@@ -320,21 +327,20 @@ class Emitter(object):
 class Receiver(object):
     """Honor events."""
 
-    def __init__(self, name, eventQueue, resultQueue, errorQueue):
+    def __init__(self, name: str, event: Queue, result: Queue, error: Queue):
         self._name = name
-        self._eventChan = Channel(eventQueue)
-        self._resultQueue = resultQueue
-        self._errorQueue = errorQueue
-        self.ui = runtime.ui
+        self._eventChan = Channel(event)
+        self._resultQueue = result
+        self._errorQueue = error
 
         self._reactMap = {}
         self._previousTopic = None
         self._previousTopicCount = 0
 
-    def _debug(self, msg):
-        self.ui.debugC(EMT, "receiver [%s] %s"% (self._name, msg))
+    def _debug(self, msg: str):
+        runtime.ui.debugC(EMT, "receiver [%s] %s"% (self._name, msg))
 
-    def _react(self, topic, args, kwargs):
+    def _react(self, topic: str, args, kwargs):
         func, rargs = self._reactMap[topic]
         args = rargs + args
 
@@ -361,7 +367,6 @@ class Receiver(object):
         return func(*args, **kwargs)
 
     def accept(self, event: str, func: callable, *args) -> None:
-
         self._reactMap[event] = (func, args)
 
     def react(self) -> bool:
@@ -383,10 +388,10 @@ class Receiver(object):
                     self._react(topic, args, kwargs)
                     return True
                 except Exception as e:
-                    self.ui.critical("%s unhandled error occurred while"
+                    runtime.ui.critical("%s unhandled error occurred while"
                         " reacting to event %s: %s: %s"%
                         (self._name, event, e.__class__.__name__, e))
-                    self.ui.exception(e)
+                    runtime.ui.exception(e)
 
             elif topic.endswith('_sync'):
                 topic = topic[:-5]
@@ -398,13 +403,13 @@ class Receiver(object):
                         self._resultQueue.put(result)
                         return True
                     except Exception as e:
-                        self.ui.critical("%s unhandled error occurred while"
+                        runtime.ui.critical("%s unhandled error occurred while"
                             " reacting to event %s: %s: %s"%
                             (self._name, event, e.__class__.__name__, e))
-                        self.ui.exception(e)
+                        runtime.ui.exception(e)
                         self._errorQueue.put((e.__class__, str(e)))
 
-            self.ui.error("receiver %s unhandled event %s"%
+            runtime.ui.error("receiver %s unhandled event %s"%
                     (self._name, event))
         time.sleep(SLEEP) # Don't eat all CPU if caller is looping here.
         return True
