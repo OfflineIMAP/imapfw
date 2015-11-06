@@ -12,6 +12,7 @@ branches:
   only:
     - master
     - next
+    - travis # Let testing travis configuration.
 
 before_install:
   - pip install --upgrade pip
