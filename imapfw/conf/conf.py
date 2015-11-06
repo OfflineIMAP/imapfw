@@ -46,6 +46,7 @@ class ImapfwConfig(object):
             'devel': [],
             'examine': ['repositories'],
             'noop': [],
+            'shell': ['repository'],
             'syncAccounts': ['accounts', 'engine'],
             'testRascal': [],
             'unitTests': [],

@@ -117,6 +117,16 @@ class CLIOptions(object):
             default="SyncAccount",
             help="the sync engine")
 
+
+        # Action: shell
+        shell = actions.add_parser('shell',
+            help="run in shell mode")
+        shell.add_argument("-r", "--repository", dest="repository",
+            default=None,
+            metavar="REPOSITORY",
+            required=True,
+            help="a repository")
+
         #
         # End Actions.
         #

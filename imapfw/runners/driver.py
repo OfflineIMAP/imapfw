@@ -25,10 +25,13 @@ import inspect
 from imapfw import runtime
 from imapfw.constants import DRV
 from imapfw.types.account import loadAccount
+from imapfw.types.repository import Repository, loadRepository
 
 # Annotations.
+from typing import Union
+
 from imapfw.edmp import Receiver
-from imapfw.types.folder import Folders
+from imapfw.types.folder import Folders, Folder
 
 
 #TODO: catch exceptions?
@@ -69,12 +72,17 @@ class DriverRunner(object):
     def _debug(self, msg):
         self.ui.debugC(DRV, "%s %s"% (self._ownerName, msg))
 
+    def buildDriverFromRepositoryName(self, repositoryName: str) -> None:
+        cls_repository = runtime.rascal.get(repositoryName, [Repository])
+        repository = loadRepository(cls_repository)
+        self._driver = repository.fw_getDriver()
+        runtime.ui.info("driver %s ready!"% self._driver.getClassName())
+
     def buildDriver(self, accountName: str, side: str,
             reuse: bool=False) -> None:
         if reuse is True and self._driver is not None:
             return None
 
-        # self._ownerName = repositoryName
         self._driver = None
 
         # Build the driver.
@@ -121,13 +129,13 @@ class DriverRunner(object):
         self.ui.debugC(DRV, "%s manager running"% self._workerName)
 
         # Bind all public methods to events.
-        for name, method in inspect.getmembers(self):
-            if name.startswith('_'):
+        for name, method in inspect.getmembers(self, inspect.ismethod):
+            if name.startswith('_') or name == 'run':
                 continue
             self._receiver.accept(name, method)
 
         while self._receiver.react():
             pass
 
-    def select(self, mailboxName: str) -> bool:
-        return self._driver.select(mailboxName)
+    def select(self, mailbox: Union[Folder, str]) -> bool:
+        return self._driver.select(str(mailbox))

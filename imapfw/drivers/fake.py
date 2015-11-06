@@ -83,7 +83,7 @@ class FakeDriver(DriverInterface):
         return self.isLocal
 
     def logout(self):
-        pass
+        return True
 
     def select(self, folder):
         return True
