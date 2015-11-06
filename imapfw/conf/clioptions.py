@@ -89,6 +89,10 @@ class CLIOptions(object):
         actions.add_parser('noop',
             help="test if the rascal can be loaded")
 
+        # Action: testRascal
+        actions.add_parser('testRascal',
+            help="test your rascal")
+
         # Action: unitTests
         actions.add_parser('unitTests',
             help="run the integrated unit tests")

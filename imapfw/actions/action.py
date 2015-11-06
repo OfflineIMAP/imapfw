@@ -3,6 +3,7 @@ from .devel import Devel
 from .examine import Examine
 from .noop import Noop
 from .syncaccounts import SyncAccounts
+from .testrascal import TestRascal
 from .unittests import UnitTests
 
 
@@ -11,6 +12,7 @@ Actions = {
     'examine': Examine,
     'noop': Noop,
     'syncAccounts': SyncAccounts,
+    'testRascal': TestRascal,
     'unitTests': UnitTests,
 }
 

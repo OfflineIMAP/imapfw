@@ -23,12 +23,11 @@
 import logging
 
 from imapfw.runtime import set_module
+from imapfw.concurrency import Concurrency
+from imapfw.rascal import Rascal
+from imapfw.ui.tty import TTY
 
 from .clioptions import CLIOptions
-
-from ..concurrency.concurrency import Concurrency
-from ..rascal import Rascal
-from ..ui.tty import TTY
 
 
 class ImapfwConfig(object):
@@ -48,6 +47,7 @@ class ImapfwConfig(object):
             'examine': ['repositories'],
             'noop': [],
             'syncAccounts': ['accounts', 'engine'],
+            'testRascal': [],
             'unitTests': [],
         }
         options = {}
