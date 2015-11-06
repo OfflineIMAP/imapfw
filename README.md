@@ -1,6 +1,11 @@
 
 [![imapfw](logo.png)](https://github.com/OfflineIMAP/imapfw)
 
+**imapfw is a simple and powerfull framework to work with mails. It
+comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
+
+**Read the blog to [get last news][blog] about imapfw.**
+
 <!-- Markdown sucks for tables without headers. -->
 
 <table>
@@ -23,15 +28,9 @@
 </table>
 
 
-
-**imapfw is a simple and powerfull framework to work with IMAP and Maildir. It
-comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
-
 * [![Build Status: "master" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=master)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "master"
 * [![Build Status: "next" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=next)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "next"
 
-
-**Read the [blog][blog] to get last news about imapfw.**
 
 ![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/imapfw.gif)
 
@@ -59,15 +58,15 @@ missing, it's welcome to make requests.
 #### Simple
 
 imapfw provides nice embedded pre-configured actions. It can be used like any
-other software sharing the same goals.
+other software sharing the same goals of an action.
 
 #### Fast
 
-imapfw is designed to be fully concurrent. It even let the choice of the
-concurrency backend (multiprocessing or threading, for now). To take real
-advantage of this, implemetation is made asynchronous everywhere.
+Mainly relying on UIDs greatly helps to be fast.
 
-Mainly relying on UIDs greatly helps to be fast, too.
+Also, imapfw is designed to be fully concurrent. It even let the choice of the
+concurrency backend (multiprocessing or threading, for now). To take real
+advantage of this, implemetation is made asynchronous almost everywhere.
 
 #### Good documentation
 
@@ -87,7 +86,7 @@ The project is developed with a proven release cycle and release candidates.
 #### Code
 
 In order to offer the best, imapfw relies on the last Python 3 technologies. It
-uses the most usefull of what Python 3 provides such as annotations.
+uses the most usefull of what Python 3 provides.
 
 
 # Feedbacks and contributions
@@ -95,8 +94,7 @@ uses the most usefull of what Python 3 provides such as annotations.
 **The user discussions, development, announcements and all the exciting stuff
 take place on the OfflineIMAP's mailing list and github.**
 
-While not mandatory to send emails, you can [subscribe
-here](http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project).
+While not mandatory to send emails, you can [subscribe here][subscribe].
 
 Bugs, issues and contributions can be requested to both the mailing list or the
 [official Github project][imapfw].
@@ -109,7 +107,7 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 # Status
 
 imapfw is still **WORK IN PROGRESS**. Running imapfw should not hurt but all the
-features are not yet implemented since this is still early stage of development.
+features are not yet implemented since this is early stage of development.
 
 Last WIP is in the `next` branch.
 
@@ -118,11 +116,8 @@ Last WIP is in the `next` branch.
 Please, support the efforts! Staring the project is a good start.
 Reviews, feedbacks and pull requests are welcome, too. ,-)
 
-imapfw is a fun and *realistic* challenge but I guess it won't be met if
-developed by only one guy (me) during spare time.
 
-
+[subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
-[website]: http://offlineimap.org
 [blog]: http://offlineimap.org/posts.html
