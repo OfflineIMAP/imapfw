@@ -344,6 +344,7 @@ class Receiver(object):
         func, rargs = self._reactMap[topic]
         args = rargs + args
 
+        # Make debug retention is too many messages.
         if self._previousTopic != topic:
             if self._previousTopicCount > 0:
                 self._debug("reacted %i times to '%s'"%
@@ -408,6 +409,9 @@ class Receiver(object):
                             (self._name, event, e.__class__.__name__, e))
                         runtime.ui.exception(e)
                         self._errorQueue.put((e.__class__, str(e)))
+                else:
+                    reason = "%s got unkown event '%s'"% (self._name, topic)
+                    self._errorQueue.put((AttributeError, reason))
 
             runtime.ui.error("receiver %s unhandled event %s"%
                     (self._name, event))
