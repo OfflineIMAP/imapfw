@@ -20,6 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import TypeVar
+
+
+DriverClass = TypeVar('Driver based class')
+
 
 class DriverInternalInterface(object):
     pass
@@ -52,13 +57,13 @@ class Driver(DriverInterface):
     def getRepositoryName(self) -> str:
         return self.repositoryName
 
-    def init(self):
+    def init(self) -> None:
         """Override this method to make initialization in the rascal."""
 
         pass
 
 
-def loadDriver(cls_driver: object, repositoryName: str, conf: dict) -> Driver:
+def loadDriver(cls_driver: DriverClass, repositoryName: str, conf: dict) -> Driver:
 
     # Build the final end-driver.
     if not issubclass(cls_driver, DriverInterface):

@@ -13,8 +13,11 @@ branches:
     - master
     - next
 
+before_install:
+  - pip install --upgrade pip
+
 # command to install dependencies
-#install: "pip install -r requirements.txt"
+install: "pip install -r requirements.txt"
 
 #before_script:
   #- cp -a ./tests "$TRAVIS_BUILD_DIR"

@@ -20,8 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import TypeVar, Union
+
 from imapfw.controllers.controller import loadController
 from imapfw.drivers.driver import loadDriver
+
+
+RepositoryClass = TypeVar('Repository based class')
 
 
 class RepositoryInterface(object):
@@ -90,7 +95,7 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
         pass
 
 
-def loadRepository(obj: 'Repository class or dict') -> Repository:
+def loadRepository(obj: Union[RepositoryClass, dict]) -> Repository:
 
     try:
         if issubclass(obj, RepositoryInterface):

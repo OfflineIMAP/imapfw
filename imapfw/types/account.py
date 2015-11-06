@@ -20,10 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import TypeVar, Union
+
 from imapfw import runtime
 from imapfw.types.repository import loadRepository
 
 from .folder import Folders
+
+# Annotations.
+from imapfw.types.repository import Repository
+
+
+AccountClass = TypeVar('Account based class')
 
 
 class AccountInternalInterface(object):
@@ -44,23 +52,23 @@ class Account(AccountInterface, AccountInternalInterface):
     left = None
     right = None
 
-    def fw_getSide(self, side: str) -> 'complete repository':
+    def fw_getSide(self, side: str) -> Repository:
         if side == 'left':
             return self.fw_getLeft()
         if side == 'right':
             return self.fw_getRight()
         assert side in ['left', 'right']
 
-    def fw_getLeft(self):
+    def fw_getLeft(self) -> Repository:
         return loadRepository(self.left)
 
-    def fw_getRight(self):
+    def fw_getRight(self) -> Repository:
         return loadRepository(self.right)
 
     def getClassName(self) -> str:
         return self.__class__.__name__
 
-    def init(self):
+    def init(self) -> None:
         """Override this method to make initialization in the rascal."""
 
         pass
@@ -69,7 +77,7 @@ class Account(AccountInterface, AccountInternalInterface):
         return folders
 
 
-def loadAccount(obj: 'account class or str name') -> 'initialized Account':
+def loadAccount(obj: Union[AccountClass, str]) -> Account:
 
     if isinstance(obj, str):
         obj = runtime.rascal.get(obj, [Account, dict])
