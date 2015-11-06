@@ -103,6 +103,7 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 # Requirements
 
 * Python v3.3
+* typing (Python < 3.5)
 
 # Status
 
