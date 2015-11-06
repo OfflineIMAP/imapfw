@@ -24,6 +24,13 @@ import imp #TODO: use library importlib instead of deprecated imp.
 
 from imapfw.api import types
 
+# Annotations.
+from typing import List, TypeVar
+
+
+Function = TypeVar('Function')
+Class = TypeVar('Class')
+
 
 class Rascal(object):
     """The Rascal.
@@ -46,7 +53,7 @@ class Rascal(object):
             raise TypeError("'%s' must be a dictionnary, got '%s'"%
                 (obj.__name__, type(obj)))
 
-    def _getHook(self, name: str) -> callable:
+    def _getHook(self, name: str) -> Function:
         try:
             return self.getFunction(name)
         except:
@@ -55,7 +62,7 @@ class Rascal(object):
     def _getLiteral(self, name: str) -> type:
         return getattr(self._rascal, name)
 
-    def get(self, name, expectedTypes):
+    def get(self, name: str, expectedTypes: List[Class]):
         cls = self._getLiteral(name)
 
         for expectedType in expectedTypes:
@@ -65,21 +72,21 @@ class Rascal(object):
         raise TypeError("class '%s' is not a sub-class of '%s'"%
             (name, expectedTypes))
 
-    def getAll(self, targetTypes: list) -> list:
-        instances = []
+    def getAll(self, targetTypes: List[Class]) -> List[Class]:
+        classes = []
         for literal in dir(self._rascal):
             if literal.startswith('_'):
                 continue
             try:
-                instances.append(self.get(literal, targetTypes))
+                classes.append(self.get(literal, targetTypes))
             except TypeError:
                 pass
-        return instances
+        return classes
 
-    def getExceptionHook(self) -> callable:
+    def getExceptionHook(self) -> Function:
         return self._getHook('exceptionHook')
 
-    def getFunction(self, name: str) -> callable:
+    def getFunction(self, name: str) -> Function:
         func = self._getLiteral(name)
         if not callable(func):
             raise TypeError("function expected for '%s'"% name)
@@ -100,10 +107,10 @@ class Rascal(object):
     def getMaxSyncAccounts(self) -> int:
         return int(self._mainConf.get('max_sync_accounts'))
 
-    def getPostHook(self) -> callable:
+    def getPostHook(self) -> Function:
         return self._getHook('postHook')
 
-    def getPreHook(self) -> callable:
+    def getPreHook(self) -> Function:
         return self._getHook('preHook')
 
     def getSettings(self, name: str) -> dict:

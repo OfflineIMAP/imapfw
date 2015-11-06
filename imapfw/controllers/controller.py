@@ -59,6 +59,12 @@ SCHEMATIC OVERVIEW EXAMPLE (right side)
 from imapfw import runtime
 from imapfw.constants import CTL
 
+# Annotations.
+from typing import Union, TypeVar
+
+
+ControllerClass = TypeVar('Controller class and derivates')
+
 
 class ControllerInternalInterface(object):
     def fw_drive(self):     raise NotImplementedError
@@ -90,7 +96,7 @@ class Controller(ControllerInternalInterface):
         pass
 
 
-def loadController(obj: 'controller class or dict',
+def loadController(obj: Union[ControllerClass, dict],
         repositoryName: str) -> Controller:
 
     if isinstance(obj, dict):
