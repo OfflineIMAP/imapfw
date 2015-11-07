@@ -76,7 +76,7 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
         # Nearest to end-driver is the last in this list.
         controllers.reverse()
         for obj in controllers:
-            controller = loadController(obj, self.getClassName())
+            controller = loadController(obj, self.getClassName(), self.conf)
 
             controller.fw_drive(driver) # Chain here.
             driver = controller # The next controller will drive this.

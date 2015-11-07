@@ -63,14 +63,15 @@ class Driver(DriverInterface):
         pass
 
 
-def loadDriver(cls_driver: DriverClass, repositoryName: str, conf: dict) -> Driver:
+def loadDriver(cls_driver: DriverClass, repositoryName: str,
+        repositoryConf: dict) -> Driver:
 
     # Build the final end-driver.
     if not issubclass(cls_driver, DriverInterface):
         raise TypeError("driver %s of %s does not satisfy"
             " DriverInterface"% (cls_driver.__name__, repositoryName))
 
-    driver = cls_driver(repositoryName, conf)
+    driver = cls_driver(repositoryName, repositoryConf)
     driver.init()
 
     return driver

@@ -26,9 +26,12 @@ Maildir types and derivatives.
 
 """
 
+from imapfw import drivers
+
 from .repository import Repository
 
 
 class Maildir(Repository):
 
     isLocal = True
+    driver = drivers.Maildir

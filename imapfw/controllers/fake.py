@@ -20,36 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .driver import DriverInterface
+from .controller import Controller
 
 from imapfw.types.folder import Folders, Folder
 
 
-class FakeDriver(DriverInterface):
+class FakeDriver(Controller):
 
     conf = None
 
     ImapConf = {
-        'backend':  'imaplib3',
-        'host':      '127.0.0.1',
-        'port':     '10143',
-        'username': 'nicolas',
-        'password': 'sebrecht',
-        'max_connections': 3,
         'folders': [b'INBOX', b'INBOX/spam', b'INBOX/outbox',
             b'INBOX/sp&AOk-cial',
         ]
     }
 
     MaildirConf = {
-        'path': '/tmp/unused/path',
-        'max_connections': 2,
         'folders': [b'INBOX', b'INBOX/maidir_archives']
     }
-
-    def __init__(self, repositoryName, conf):
-        self.repositoryName = repositoryName
-        self.conf = conf
 
     def __getattr__(self, name):
         # Force to redefine all the driver and controller APIs.

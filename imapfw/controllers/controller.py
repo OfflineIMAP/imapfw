@@ -74,9 +74,13 @@ class Controller(ControllerInternalInterface):
 
     conf = {}
 
-    def __init__(self):
-        # Turn the class attribute "conf" into an instance attribute.
-        self.conf = self.conf.copy()
+    def __init__(self, repositoryName: str, repositoryConf: dict):
+        self.repositoryName = repositoryName
+        # Merge the repository configuration with the controller configuration.
+        controllerConf = self.conf.copy()
+        self.conf = repositoryConf.copy()
+        self.conf.update(controllerConf)
+
         self.driver = None
 
     def __getattr__(self, name):
@@ -97,7 +101,7 @@ class Controller(ControllerInternalInterface):
 
 
 def loadController(obj: Union[ControllerClass, dict],
-        repositoryName: str) -> Controller:
+        repositoryName: str, repositoryConf: dict) -> Controller:
 
     if isinstance(obj, dict):
         cls_controller = obj.get('type') # Must be the controller class.
@@ -110,7 +114,7 @@ def loadController(obj: Union[ControllerClass, dict],
             " types.controllers.Controller"%
             (cls_controller.__name__, repositoryName))
 
-    controller = cls_controller()
+    controller = cls_controller(repositoryName, repositoryConf.copy())
     controller.init()
 
     return controller

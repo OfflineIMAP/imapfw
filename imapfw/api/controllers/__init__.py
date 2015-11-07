@@ -12,6 +12,7 @@ __all__ = [
     'Controller',
     'Duplicate',
     'Examine',
+    'FakeDriver',
     'Filter',
     'NameTrans',
     'Transcoder',
@@ -20,6 +21,7 @@ __all__ = [
 from imapfw.controllers.controller import Controller
 from imapfw.controllers.duplicate import Duplicate
 from imapfw.controllers.examine import ExamineController as Examine
+from imapfw.controllers.fake import FakeDriver
 from imapfw.controllers.filter import Filter
 from imapfw.controllers.nametrans import NameTrans
 from imapfw.controllers.transcoder import Transcoder
