@@ -419,6 +419,16 @@ class Receiver(object):
         return True
 
 
+class SyncEmitter(object):
+    """Adaptater emitter to turn an emitter into sync mode only."""
+
+    def __init__(self, emitter):
+        self._emitter = emitter
+
+    def __getattr__(self, name):
+        return getattr(self._emitter, "%s_sync"% name)
+
+
 def newEmitterReceiver(debugName: str) -> (Receiver, Emitter):
     eventQueue = runtime.concurrency.createQueue()
     resultQueue = runtime.concurrency.createQueue()
