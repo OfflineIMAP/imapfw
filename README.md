@@ -4,7 +4,10 @@
 **imapfw is a simple and powerfull framework to work with mails. It
 comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
 
+[![Latest release](https://img.shields.io/badge/latest release-v0.017-blue.svg)](https://github.com/OfflineIMAP/imapfw/releases)
+
 **Read the blog to [get last news][blog] about imapfw.**
+
 
 <!-- Markdown sucks for tables without headers. -->
 
@@ -23,7 +26,7 @@ comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
   </tr>
   <tr>
     <td> Status </td>
-    <td> Work In Progress </td>
+    <td> <i> Work In Progress </i> </td>
   </tr>
 </table>
 
