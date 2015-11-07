@@ -121,11 +121,10 @@ class CLIOptions(object):
         # Action: shell
         shell = actions.add_parser('shell',
             help="run in shell mode")
-        shell.add_argument("-r", "--repository", dest="repository",
+        shell.add_argument(dest="shell_name",
             default=None,
-            metavar="REPOSITORY",
-            required=True,
-            help="a repository")
+            metavar="SHELL_NAME",
+            help="the shell from the rascal to run")
 
         #
         # End Actions.

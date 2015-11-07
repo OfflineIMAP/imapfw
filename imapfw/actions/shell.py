@@ -22,12 +22,12 @@
 
 
 from imapfw import runtime
-from imapfw.architects import DriverArchitect
 
+from imapfw.shells import Shell
 from .interface import ActionInterface
 
 
-class Shell(ActionInterface):
+class ShellAction(ActionInterface):
     """Run in (interactive) shell mode."""
 
     honorHooks = False
@@ -49,7 +49,7 @@ class Shell(ActionInterface):
         return self._exitCode
 
     def init(self, options):
-        self._repositoryName = options.get('repository')
+        self._shellName = options.get('shell_name')
 
     def run(self):
         """Enable the syncing of the accounts in an async fashion.
@@ -57,59 +57,11 @@ class Shell(ActionInterface):
         Code here is about setting up the environment, start the jobs and
         monitor."""
 
-        import code
-        import inspect
 
-        from imapfw.runners.driver import DriverRunner
-
-
-        class SyncEmitter(object):
-            def __init__(self, emitter):
-                self.emitter = emitter
-
-            def __getattr__(self, name):
-                return getattr(self.emitter, "%s_sync"% name)
-
-        driverArchitect = DriverArchitect("%s.Driver"% self._repositoryName)
-        driverArchitect.start()
-        driver = driverArchitect.getEmitter()
-        d = SyncEmitter(driver)
-
-        d.buildDriverFromRepositoryName(self._repositoryName)
-
-        try:
-            from jedi.utils import setup_readline
-            setup_readline()
-        except ImportError:
-            # Fallback to the stdlib readline completer if it is installed.
-            # Taken from http://docs.python.org/2/library/rlcompleter.html
-            runtime.ui.info("jedi is not installed, falling back to readline"
-                " for completion")
-            try:
-                import readline
-                import rlcompleter
-                readline.parse_and_bind("tab: complete")
-            except ImportError:
-                runtime.ui.info("readline is not installed either."
-                    " No tab completion is enabled.")
-
-
-        events = []
-        for name, method in inspect.getmembers(
-            DriverRunner, inspect.isfunction):
-            if name.startswith('_') or name == 'run':
-                continue
-            events.append("\td.%s%s"% (name, inspect.signature(method)))
-
-        banner = """
-Welcome to the shell. The driver is started in a worker. Take control of if with "driver" or "d".
-"d" will send any event in sync mode.  Ctrl+D: quit
-
-Available events:
-%s
-Notice the driver is already built."""% "\n".join(events)
-
-        code.interact(banner=banner, local=locals())
-
-        driverArchitect.stop()
-        self._setExitCode(0)
+        cls_shell = runtime.rascal.get(self._shellName, [Shell])
+        shell = cls_shell()
+        shell.beforeSession()
+        shell.configureCompletion()
+        shell.session()
+        exitCode = shell.afterSession()
+        self._setExitCode(exitCode)

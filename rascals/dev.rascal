@@ -23,7 +23,7 @@ def postHook(hook):
 def exceptionHook(error, hook):
     hook.ended()
 
-from imapfw.api import controllers, types, drivers
+from imapfw.api import controllers, types, drivers, shells
 
 maildirsPath = "~/.imapfw/Mail"
 
@@ -67,6 +67,19 @@ class Home(types.Account):
 class Foundation(types.Account):
     left = MaildirB
     right = ImapA
+
+
+class DriveDriver(shells.DriveDriver):
+    conf = {'repository': 'MaildirA'}
+
+    def session(self):
+        d = self.d
+
+        d.connect()
+        folders = d.fetchFolders()
+        print(folders)
+        self.interactive()
+        d.logout()
 
 
 # vim: syntax=python ts=4 expandtab :
