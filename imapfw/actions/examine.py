@@ -65,8 +65,8 @@ class Examine(ActionInterface):
                 repository.fw_addController(ExamineController)
                 driver = repository.fw_getDriver()
 
-                self.ui.info("# Repository %s (type %s)"%
-                    (repository.getClassName(), driver.getClassName()))
+                self.ui.info("# Repository %s (driver %s)"%
+                    (repository.getClassName(), driver.getDriverClassName()))
                 self.ui.info("")
                 self.ui.info("controllers: %s"% repository.controllers)
                 self.ui.info("")

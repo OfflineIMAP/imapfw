@@ -61,6 +61,9 @@ class FakeDriver(Controller):
     def getClassName(self):
         return self.__class__.__name__
 
+    def getDriverClassName(self):
+        return self.getClassName()
+
     def getRepositoryName(self):
         return self.repositoryName
 

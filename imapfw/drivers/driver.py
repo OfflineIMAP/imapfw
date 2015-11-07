@@ -54,6 +54,9 @@ class Driver(DriverInterface):
     def getClassName(self) -> str:
         return self.__class__.__name__
 
+    def getDriverClassName(self) -> str:
+        return self.getClassName()
+
     def getRepositoryName(self) -> str:
         return self.repositoryName
 
