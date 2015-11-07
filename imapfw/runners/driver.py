@@ -121,9 +121,11 @@ class DriverRunner(object):
         return self._folders
 
     def logout(self) -> None:
-        self._driver.logout()
-        self._debug("logged out")
-        self._driver = None
+        if self._driver is not None:
+            self._driver.logout()
+            self._debug("logged out")
+            self._driver = None
+        return True
 
     def run(self) -> None:
         self.ui.debugC(DRV, "%s manager running"% self._workerName)
