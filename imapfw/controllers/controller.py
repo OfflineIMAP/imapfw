@@ -74,12 +74,11 @@ class Controller(ControllerInternalInterface):
 
     conf = {}
 
-    def __init__(self, repositoryName: str, repositoryConf: dict):
+    def __init__(self, repositoryName: str, repositoryConf: dict, conf: dict):
         self.repositoryName = repositoryName
         # Merge the repository configuration with the controller configuration.
-        controllerConf = self.conf.copy()
         self.conf = repositoryConf.copy()
-        self.conf.update(controllerConf)
+        self.conf.update(conf.copy())
 
         self.driver = None
 
@@ -105,16 +104,17 @@ def loadController(obj: Union[ControllerClass, dict],
 
     if isinstance(obj, dict):
         cls_controller = obj.get('type') # Must be the controller class.
-        setattr(cls_controller, 'conf', obj.get('conf'))
+        controllerConf = obj.get('conf')
     else:
         cls_controller = obj
+        controllerConf = obj.conf
 
     if not issubclass(cls_controller, Controller):
         raise TypeError("controller %s of %s does not derivates from"
             " types.controllers.Controller"%
             (cls_controller.__name__, repositoryName))
 
-    controller = cls_controller(repositoryName, repositoryConf.copy())
+    controller = cls_controller(repositoryName, repositoryConf, controllerConf)
     controller.init()
 
     return controller

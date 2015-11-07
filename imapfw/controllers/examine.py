@@ -20,28 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from imapfw import runtime
-
 from .controller import Controller
 
 #TODO
 class ExamineController(Controller):
     """Controller to examine a repository."""
 
-    def connect(self, *args):
-        runtime.ui.info("## Configuration")
-        runtime.ui.info("")
+    def __init__(self, *args, **kwargs):
+        super(ExamineController, self).__init__(*args, **kwargs)
+        self._report = self.conf.get('report')
+
+    def fw_getReport(self):
+        return self._report
+
+    def connect(self, *args, **kwargs):
+        self._report.title("Configuration", 2)
+        elements = []
         for k, v in self.driver.conf.items():
             if k == 'password' and isinstance(v, (str, bytes)):
                 v = '<hidden>'
-            runtime.ui.info("* %s: %s"% (k, v))
-        return self.driver.connect(*args)
+            elements.append("%s: %s"% (k, v))
+        self._report.list(elements)
+        return self.driver.connect(*args, **kwargs)
 
     def getFolders(self):
         folders = self.driver.getFolders()
-        runtime.ui.info("")
-        runtime.ui.info("## Infos")
-        runtime.ui.info("")
-        runtime.ui.info("Found %i folders: %s"%(len(folders), folders))
-        runtime.ui.info("")
+        self._report.title("Infos", 2)
+        self._report.line("Found %i folders: %s"%(len(folders), folders))
+        self._report.line()
         return folders

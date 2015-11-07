@@ -50,6 +50,41 @@ class Examine(ActionInterface):
         pass
 
     def run(self):
+        class Report(object):
+            def __init__(self):
+                self._number = 0
+                self.content = {}
+
+            def _getNumber(self):
+                self._number += 1
+                return self._number
+
+            def line(self, line: str=''):
+                self.content[self._getNumber()] = ('line', (line,))
+
+            def list(self, elements: list=[]):
+                self.content[self._getNumber()] = ('list', (elements,))
+
+            def title(self, title: str, level: int=1):
+                self.content[self._getNumber()] = ('title', (title, level))
+
+            def markdown(self):
+                for lineDef in self.content.values():
+                    kind, args = lineDef
+
+                    if kind == 'title':
+                        title, level = args
+                        prefix = '#' * level
+                        print("\n%s %s\n"% (prefix, title))
+
+                    if kind == 'list':
+                        for elem in args[0]:
+                            print("* %s"% elem)
+
+                    if kind == 'line':
+                        print(args[0])
+
+
         cls_accounts = runtime.rascal.getAll([Account])
 
         repositories = []
@@ -58,22 +93,25 @@ class Examine(ActionInterface):
             repositories.append(account.fw_getLeft())
             repositories.append(account.fw_getRight())
 
+        report = Report()
         for repository in repositories:
             if isinstance(repository, DriverInterface):
                 continue
             try:
-                repository.fw_addController(ExamineController)
+                repository.fw_insertController(ExamineController,
+                    {'report': report})
                 driver = repository.fw_getDriver()
 
-                self.ui.info("# Repository %s (driver %s)"%
+                report.title("Repository %s (driver %s)"%
                     (repository.getClassName(), driver.getDriverClassName()))
-                self.ui.info("")
-                self.ui.info("controllers: %s"% repository.controllers)
-                self.ui.info("")
+                report.line("controllers: %s"%
+                    [x.__name__ for x in repository.controllers])
 
                 driver.connect()
                 driver.getFolders()
-                self.ui.info("")
+
+                report = driver.fw_getReport()
             except Exception as e:
                 raise
                 self.ui.warn("got %s %s"% (repr(e), str(e)))
+        report.markdown()

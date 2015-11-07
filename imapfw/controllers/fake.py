@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .controller import Controller
-
 from imapfw.types.folder import Folders, Folder
+
+from .controller import Controller
 
 
 class FakeDriver(Controller):
@@ -40,8 +40,11 @@ class FakeDriver(Controller):
     }
 
     def __getattr__(self, name):
-        # Force to redefine all the driver and controller APIs.
-        raise AttributeError("no attribute %s"% name)
+        if name.startswith('fw_'):
+            return getattr(self.driver, name)
+        message = ("FakeDriver %s did not handle call to '%s'"%
+                (self.getClassName(), name))
+        raise AttributeError(message)
 
     def _folders(self):
         folders = Folders()
@@ -62,7 +65,7 @@ class FakeDriver(Controller):
         return self.__class__.__name__
 
     def getDriverClassName(self):
-        return self.getClassName()
+        return self.driver.getClassName()
 
     def getRepositoryName(self):
         return self.repositoryName

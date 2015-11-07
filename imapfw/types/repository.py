@@ -22,8 +22,8 @@
 
 from typing import TypeVar, Union
 
-from imapfw.controllers.controller import loadController
-from imapfw.drivers.driver import loadDriver
+from imapfw.controllers.controller import loadController, ControllerClass
+from imapfw.drivers.driver import loadDriver, Driver
 
 
 RepositoryClass = TypeVar('Repository based class')
@@ -61,10 +61,12 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
         self.driver = self.driver
         self.controllers = self.controllers.copy()
 
-    def fw_addController(self, controller):
-        self.controllers.insert(0, controller)
+    def fw_appendController(self, cls_controller: ControllerClass,
+            conf: dict=None) -> None:
 
-    def fw_getDriver(self):
+        self.fw_insertController(cls_controller, conf, -1)
+
+    def fw_getDriver(self) -> Driver:
         """Chain the controllers on top of the driver.
 
         Controllers are run in the driver worker."""
@@ -72,7 +74,8 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
         driver = loadDriver(self.driver, self.getClassName(), self.conf)
 
         # Chain the controllers.
-        controllers = self.controllers # Keep the original attribute as-is.
+        # Keep the original attribute as-is.
+        controllers = self.controllers.copy()
         # Nearest to end-driver is the last in this list.
         controllers.reverse()
         for obj in controllers:
@@ -83,8 +86,14 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
 
         return driver
 
-    def fw_insertController(self, controller):
-        self.controllers.insert(0, controller)
+    def fw_insertController(self, cls_controller: ControllerClass,
+            conf: dict=None, position: int=0):
+
+        setattr(cls_controller, 'conf', conf)
+        if position < 0:
+            position = len(self.controllers)
+
+        self.controllers.insert(position, cls_controller)
 
     def getClassName(self):
         return self.__class__.__name__
