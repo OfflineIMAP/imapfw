@@ -49,9 +49,6 @@ class AccountArchitect(AccountArchitectInterface):
     "middle"."""
 
     def __init__(self):
-        self.ui = runtime.ui
-        self.concurrency = runtime.concurrency
-
         self._leftArchitect = None
         self._rightArchitect = None
         self._receiver = None
@@ -63,7 +60,7 @@ class AccountArchitect(AccountArchitectInterface):
         self._foldersArchitect = None
 
     def _debug(self, msg):
-        self.ui.debugC(ARC, "%s %s"% (self._name, msg))
+        runtime.ui.debugC(ARC, "%s %s"% (self._name, msg))
 
     def _kill(self):
         self._debug("kill()")
@@ -95,7 +92,7 @@ class AccountArchitect(AccountArchitectInterface):
             folders: Folders):
         """Start syncing of folders in async mode."""
 
-        self.ui.infoL(3, "syncing folders: %s"% folders)
+        runtime.ui.infoL(3, "syncing folders: %s"% folders)
         self._foldersArchitect = FoldersArchitect(
             self._worker.getName(), accountName)
         # Let the foldersArchitect re-use our drivers.
@@ -127,8 +124,8 @@ class AccountArchitect(AccountArchitectInterface):
                     self._setFolderExitCode(exitCode)
                     self._accountRunnerWait = False
         except Exception as e:
-            self.ui.critical("account receiver for %s got unexpected error: %s"%
-                (self._name, e))
+            runtime.ui.critical("account receiver for %s got unexpected error:"
+                " %s"% (self._name, e))
             self._kill()
         if self._exitCode >= 0:
             if self._folderExitCode > self._exitCode:
@@ -165,7 +162,7 @@ class AccountArchitect(AccountArchitectInterface):
             )
 
         # Time for the worker.
-        self._worker = self.concurrency.createWorker(workerName,
+        self._worker = runtime.concurrency.createWorker(workerName,
             topRunner,
             (workerName, engine.syncAccounts, accountTasks),
             )
