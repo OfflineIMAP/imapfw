@@ -31,29 +31,42 @@ class TestConcurrency(unittest.TestCase):
         def noop():
             pass
 
-        self.noop = noop
+        def blocking():
+            while True:
+                pass
 
-    def test_concurrency_interface(self):
+        self.noop = noop
+        self.blocking = blocking
+
+    def test_00_concurrency_interface(self):
         self.assertIsInstance(runtime.concurrency, ConcurrencyInterface)
 
-    def test_queue_interface(self):
+    def test_01_queue_interface(self):
         self.assertIsInstance(runtime.concurrency.createQueue(), QueueInterface)
 
-    def test_lock_interface(self):
+    def test_02_lock_interface(self):
         self.assertIsInstance(runtime.concurrency.createLock(), LockBase)
 
-    def test_worker_interface(self):
+    def test_03_worker_interface(self):
         self.assertIsInstance(
             runtime.concurrency.createWorker('noop', self.noop, ()),
             WorkerInterface)
 
-    def test_worker_start_join(self):
+    def test_04_worker_start_join(self):
         worker = runtime.concurrency.createWorker('noop', self.noop, ())
 
         worker.start()
         self.assertEqual(worker.getName(), 'noop')
 
         worker.join()
+
+    def test_05_worker_start_kill(self):
+        worker = runtime.concurrency.createWorker('blocking', self.blocking, ())
+
+        worker.start()
+        self.assertEqual(worker.getName(), 'blocking')
+
+        worker.kill()
 
 
 if __name__ == '__main__':

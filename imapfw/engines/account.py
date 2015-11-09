@@ -94,10 +94,11 @@ class SyncAccounts(SyncEngine):
 
         if len(ignoredFolders) > 0:
             runtime.ui.warn("rascal, you asked to sync non-existing folders"
-                " for '%s': %s", account.getName(), ignoredFolders)
+                " for '%s': %s", accountName, ignoredFolders)
 
         if len(syncFolders) < 1:
-            runtime.ui.infoL(3, "%s: no folder to sync"% account)
+            runtime.ui.infoL(3, "%s: no folder to sync"% accountName)
+            self.setExitCode(0)
             return # Nothing more to do.
 
         #TODO: make max_connections mandatory in rascal.
@@ -111,12 +112,12 @@ class SyncAccounts(SyncEngine):
         self.referent.syncFolders(accountName, maxFolderWorkers, syncFolders)
 
         # Wait until folders are synced.
-        while self.referent.wait_sync():
+        while self.referent.areFoldersDone_sync():
             pass
 
         self.setExitCode(0)
 
-    def syncAccounts(self, accountQueue: Queue):
+    def run(self, accountQueue: Queue):
         """Sequentially process the accounts."""
 
         #
@@ -124,8 +125,6 @@ class SyncAccounts(SyncEngine):
         #
         for accountName in Channel(accountQueue):
             self.processing(accountName)
-            # Declare we starts to process an account.
-            self.referent.running()
 
             # The syncer will let expode errors it can't recover from.
             try:

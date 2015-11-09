@@ -52,9 +52,9 @@ class SyncFolders(SyncEngine):
     def _syncFolder(self, folder: Folder):
         """Sync one folder."""
 
-        account = loadAccount(self.accountName)
-        leftRepository = account.fw_getLeft()
-        rightRepository = account.fw_getRight()
+        # account = loadAccount(self.accountName)
+        # leftRepository = account.fw_getLeft()
+        # rightRepository = account.fw_getRight()
 
         self.left.buildDriver(self.accountName, 'left')
         self.rght.buildDriver(self.accountName, 'right')
@@ -64,6 +64,8 @@ class SyncFolders(SyncEngine):
 
         self.left.select(folder)
         self.rght.select(folder)
+
+        return 0
 
     def syncFolders(self, folderQueue: Queue):
         """Sequentially process the folders."""
@@ -76,8 +78,8 @@ class SyncFolders(SyncEngine):
 
             # The engine will let explode errors it can't recover from.
             try:
-                self._syncFolder(folder)
-                self.setExitCode(0)
+                exitCode = self._syncFolder(folder)
+                self.setExitCode(exitCode)
 
             except Exception as e:
                 runtime.ui.error("could not sync folder %s"% folder)

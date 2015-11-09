@@ -14,16 +14,15 @@ DEBUG_CATEGORIES = {
     }
 
 # Default categories for the 'all' keyword.
-DEFAULT_DEBUG_CATEGORIES = {
-    'architects': True,
-    'callbacks': True,
-    'controllers': True,
-    'drivers': True,
-    'emitters': True,
-    'imap': True,
-    'managers': True,
-    'workers': True,
-    }
+DEBUG_ALL_CATEGORIES = [
+    'callbacks',
+    'controllers',
+    'drivers',
+    'emitters',
+    'imap',
+    'managers',
+    'workers',
+    ]
 
 ARC = 'architects'
 CLB = 'callbacks'

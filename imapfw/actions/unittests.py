@@ -30,6 +30,9 @@ class UnitTests(ActionInterface):
         from imapfw.testing.maildir import TestMaildirDriver
         from imapfw.testing.edmp import TestEDMP
         from imapfw.testing.types import TestTypeAccount, TestTypeRepository
+        from imapfw.testing.architect import TestArchitect, TestDriverArchitect
+        from imapfw.testing.architect import TestDriversArchitect
+        from imapfw.testing.architect import TestEngineArchitect
 
         self._suite.addTest(unittest.makeSuite(TestConcurrency))
         self._suite.addTest(unittest.makeSuite(TestRascal))
@@ -38,6 +41,10 @@ class UnitTests(ActionInterface):
         self._suite.addTest(unittest.makeSuite(TestEDMP))
         self._suite.addTest(unittest.makeSuite(TestTypeAccount))
         self._suite.addTest(unittest.makeSuite(TestTypeRepository))
+        self._suite.addTest(unittest.makeSuite(TestArchitect))
+        self._suite.addTest(unittest.makeSuite(TestDriverArchitect))
+        self._suite.addTest(unittest.makeSuite(TestDriversArchitect))
+        self._suite.addTest(unittest.makeSuite(TestEngineArchitect))
 
     def run(self):
         import unittest

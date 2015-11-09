@@ -44,6 +44,10 @@ class Imap(Driver):
     def getFolders(self):
         return Folders(Folder(b'on'), Folder(b'imap'), Folder(b'side'))
 
+    def select(self, mailbox):
+        #TODO
+        return True
+
     def logout(self):
         #self.imap.logout()
         pass

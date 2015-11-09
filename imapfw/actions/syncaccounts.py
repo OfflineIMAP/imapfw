@@ -20,59 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-"""
-
-Syncing is basically an end-to-end connection. Both ends can then be updateed
-with a predefind algorithm.
-
-So, the design of this module is to connect both ends with a kind of pipeline
-for each folder, in the limit imposed by the rascal. Pipelines are as
-independents as possible.
-
-Setting up the pipelines is the responsability of the architects. Each end is a
-driver to access the data. In the "middle", it is put an engine implementing the
-syncing.
-
-SCHEMATIC OVERVIEW
-------------------
-
-                +--------------+               +-------------+
-                |              |               |             |
-      +---------|  architect   |<------------->|  architect  |----------------------------+
-      |         |              |--------+      |             |                            |
-      |         +--------------+        |      +-------------+                            |
-      |                |                |                          (handle)               |
-      |                +-------------+  +-----------------------------+                   |
-      |                              |                                |                   |
-      v                              v                                v      ***          |
-  {worker}                        {worker}                         {worker}    *          |
-+----------+                    +----------+                     +----------+  *          |
-|          |      (drives)      |          |      (drives)       |          |  *          |
-|  driver  |<-------------------|  engine  +-------------------->|  driver  |  * pipeline |
-|          |                    |          |                     |          |  *          |
-+----------+                    +----------+                     +----------+  *          |
-                                                                               *          |
-                                                                             ***          |
-                                                                                          |
-                                                                                          |
-                                                                             ***          |
-  {worker}                        {worker}                         {worker}    *          |
-+----------+                    +----------+                     +----------+  *          |
-|          |      (drives)      |          |      (drives)       |          |  *          |
-|  driver  |<-------------------|  engine  +-------------------->|  driver  |  * pipeline |
-|          |                    |          |                     |          |  *          |
-+----------+                    +----------+                     +----------+  *          |
-     ^                                ^                               ^        *          |
-     |                                |                               |      ***          |
-     |                                |   (handle)                    +-------------------+
-     |                                +---------------------------------------------------+
-     +------------------------------------------------------------------------------------+
-
-
-"""
-
 from imapfw import runtime
-from imapfw.architects.account import AccountArchitect
+from imapfw.architects.account import SyncAccountsArchitect
 
 from .interface import ActionInterface
 
@@ -84,32 +33,20 @@ class SyncAccounts(ActionInterface):
     requireRascal = True
 
     def __init__(self):
-        self.ui = runtime.ui
-        self.concurrency = runtime.concurrency
-        self.rascal = runtime.rascal
-
-        self._accountList = None
-        self._engineName = None
-        self._accountsManager = None
-        self._exitCode = -1
-
-    def _concurrentAccountsNumber(self):
-        return min(self.rascal.getMaxSyncAccounts(), len(self._accountList))
-
-    def _setExitCode(self, exitCode):
-        if exitCode > self._exitCode:
-            self._exitCode = exitCode
+        self.accountList = None
+        self.engineName = None
+        self.exitCode = -1
 
     def exception(self, e):
         # This should not happen since all exceptions are handled at lower level.
         raise NotImplementedError
 
     def getExitCode(self):
-        return self._exitCode
+        return self.exitCode
 
     def init(self, options):
-        self._accountList = options.get('accounts')
-        self._engineName = options.get('engine')
+        self.accountList = options.get('accounts')
+        self.engineName = options.get('engine')
 
     def run(self):
         """Enable the syncing of the accounts in an async fashion.
@@ -117,35 +54,11 @@ class SyncAccounts(ActionInterface):
         Code here is about setting up the environment, start the jobs and
         monitor."""
 
-        # The account names are the tasks for the account workers.
-        accountTasks = self.concurrency.createQueue()
-        for name in self._accountList:
-            accountTasks.put(name)
 
-        # Avoid race condition: an empty queue allows the account workers to
-        # quit without running. We have to make sure the queue is not empty
-        # before they start. accountList can't be empty as defined by the
-        # argument parser.
-        while accountTasks.empty():
-            pass
-        # Oops! This is still racy! This assumes that the NEXT task is available
-        # once the previous run is done. This should be reasonable assumption,
-        # though.
+        maxConcurrentAccounts = min(
+            runtime.rascal.getMaxSyncAccounts(),
+            len(self.accountList))
 
-        # Setup the architecture.
-        accountArchitects = []
-        for i in range(self._concurrentAccountsNumber()):
-            workerName = "Account.%i"% i
-
-            accountArchitect = AccountArchitect()
-            accountArchitects.append(accountArchitect)
-            # The real start of the process is async.
-            accountArchitect.start(workerName, accountTasks, self._engineName)
-
-        # Monitor.
-        while len(accountArchitects) > 0:
-            for architect in accountArchitects:
-                exitCode = architect.getExitCode()
-                if exitCode >= 0:
-                    self._setExitCode(exitCode)
-                    accountArchitects.remove(architect)
+        accountsArchitect = SyncAccountsArchitect(self.accountList)
+        accountsArchitect.start(maxConcurrentAccounts)
+        self.exitCode = accountsArchitect.run()

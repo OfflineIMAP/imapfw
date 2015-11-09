@@ -123,5 +123,9 @@ class Maildir(Driver):
         self._recursiveScanMaildir() # Put result into self._folders.
         return self._folders
 
+    def select(self, mailbox):
+        #TODO
+        return True
+
     def logout(self):
         self._debug('logging out')

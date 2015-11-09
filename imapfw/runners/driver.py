@@ -53,29 +53,26 @@ class DriverRunner(object):
     """
 
     def __init__(self, workerName: str, receiver: Receiver):
-        self._workerName = workerName
         self._receiver = receiver
 
-        self.ui = runtime.ui
-
-        self._workerName = None
         self._driver = None # Might change over time.
         self._serve = True
 
         # Cached values.
         self._folders = None
-        self._ownerName = None
+        self._repositoryName = 'UNKOWN_REPOSITORY'
 
     def __getattr__(self, name):
         return getattr(self._driver, name)
 
     def _debug(self, msg):
-        self.ui.debugC(DRV, "%s %s"% (self._ownerName, msg))
+        runtime.ui.debugC(DRV, "%s %s"% (self._repositoryName, msg))
 
     def buildDriverFromRepositoryName(self, repositoryName: str) -> None:
         cls_repository = runtime.rascal.get(repositoryName, [Repository])
         repository = loadRepository(cls_repository)
         self._driver = repository.fw_getDriver()
+        self._repositoryName = repositoryName
         runtime.ui.info("driver %s ready!"% self._driver.getClassName())
 
     def buildDriver(self, accountName: str, side: str,
@@ -89,11 +86,12 @@ class DriverRunner(object):
         account = loadAccount(accountName)
         repository = account.fw_getSide(side)
         driver = repository.fw_getDriver()
+        self._repositoryName = repository.getClassName()
 
         #TODO: move to a debug controller.
-        self.ui.debugC(DRV, "built driver '{}' for '{}'",
+        runtime.ui.debugC(DRV, "built driver '{}' for '{}'",
                 driver.getClassName(), driver.getRepositoryName())
-        self.ui.debugC(DRV, "'{}' has conf {}", repository.getClassName(),
+        runtime.ui.debugC(DRV, "'{}' has conf {}", repository.getClassName(),
                 driver.conf)
 
         self._driver = driver
@@ -128,7 +126,7 @@ class DriverRunner(object):
         return True
 
     def run(self) -> None:
-        self.ui.debugC(DRV, "%s manager running"% self._workerName)
+        runtime.ui.debugC(DRV, "manager running")
 
         # Bind all public methods to events.
         for name, method in inspect.getmembers(self, inspect.ismethod):

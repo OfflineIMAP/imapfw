@@ -27,7 +27,8 @@ from imapfw.edmp import newEmitterReceiver
 from imapfw.runners import topRunner
 from imapfw.engines import SyncFolders
 
-from .driver import DriverArchitect
+from .driver import DriverArchitect, ReuseDriverArchitect
+from .architect import Architect
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -35,143 +36,133 @@ from imapfw.concurrency import Queue
 from imapfw.types.folder import Folders
 
 
-class FolderArchitectInterface(object):
-    def getExitCode(self):  raise NotImplementedError
-    def kill(self):         raise NotImplementedError
-    def start(self):        raise NotImplementedError
-
-
-class FolderArchitect(FolderArchitectInterface):
+class SyncFolderArchitect(object):
     """The agent is run in the worker."""
 
     def __init__(self, workerName, accountName: str):
-        self._workerName = workerName
-        self._accountName = accountName
+        self.workerName = workerName
+        self.accountName = accountName
 
         self._debug("__init__(%s, %s)"% (workerName, accountName))
 
-        self._worker = None
-        self._receiver = None
-        self._leftArchitect = None
-        self._rightArchitect = None
-        self._exitCode = -1
+        self.worker = None
+        self.receiver = None
+        self.architect = None
+        self.leftArch = None
+        self.rightArch = None
+        self.exitCode = -1
 
-    def _debug(self, msg):
-        runtime.ui.debugC(ARC, "%s folderArchitect %s"% (self._workerName, msg))
+    def _debug(self, msg) -> None:
+        runtime.ui.debugC(ARC, "%s folderArchitect %s"% (self.workerName, msg))
 
-    def _setExitCode(self, exitCode: int):
-        self._debug("_setExitCode(%i)"% exitCode)
-        if exitCode > self._exitCode:
-            self._exitCode = exitCode
-
-    def _stop(self, exitCode: int):
+    def _on_stop(self, exitCode: int) -> None:
         self._debug("stop(%i)"% exitCode)
-        for architect in [self._leftArchitect, self._rightArchitect]:
-            if architect is not None:
-                architect.stop()
-        self._worker.join()
+
+        self.leftArch.stop()
+        self.rightArch.stop()
+        self.architect.stop()
         self._setExitCode(exitCode)
 
-    def kill(self):
-        self._debug("kill()")
-        for architect in [self._leftArchitect, self._rightArchitect]:
-            if architect is not None:
-                architect.kill()
-        self._worker.kill()
+    def _setExitCode(self, exitCode: int) -> None:
+        self._debug("_setExitCode(%i)"% exitCode)
+        if exitCode > self.exitCode:
+            self.exitCode = exitCode
 
-    def getExitCode(self):
+    def kill(self) -> None:
+        self._debug("kill()")
+
+        self.leftArch.stop()
+        self.rightArch.stop()
+        self.architect.kill()
+
+    def getExitCode(self) -> int:
         try:
-            self._receiver.react()
+            self.receiver.react()
         except Exception as e:
             runtime.ui.critical("folder receiver [%s] got unexpected error: %s"%
-                (self._worker.getName(), e))
+                (self.workerName, e))
             runtime.ui.exception(e)
             self.kill()
-            self._setExitCode(10)
-        return self._exitCode
+            self._setExitCode(10) # See manual.
+        return self.exitCode
 
-    def start(self, folderTasks: Queue, left: Emitter, right: Emitter):
+    def start(self, folderTasks: Queue,
+            left: Emitter, right: Emitter) -> None:
+
         self._debug("start()")
 
+        self.architect = Architect(self.workerName)
+
         if left is None:
-            self._leftArchitect = DriverArchitect(
-                "%s.Driver.0"% self._workerName)
-            self._leftArchitect.start()
-            left = self._leftArchitect.getEmitter()
+            self.leftArch = DriverArchitect("%s.Driver.0"% self.workerName)
+            self.leftArch.start()
+            self.leftArch.init()
+        else:
+            self.leftArch = ReuseDriverArchitect(left)
         if right is None:
-            self._rightArchitect = DriverArchitect(
-                "%s.Driver.1"% self._workerName)
-            self._rightArchitect.start()
-            right = self._rightArchitect.getEmitter()
+            self.rightArch = DriverArchitect("%s.Driver.1"% self.workerName)
+            self.rightArch.start()
+            self.rightArch.init()
+        else:
+            self.rightArch = ReuseDriverArchitect(right)
 
-        receiver, emitter = newEmitterReceiver(self._workerName)
-        receiver.accept('stop', self._stop)
-        self._receiver = receiver
+        receiver, emitter = newEmitterReceiver(self.workerName)
+        receiver.accept('stop', self._on_stop)
+        self.receiver = receiver
 
-        #TODO: the architect must not know what engine will be used.
-        # 'SyncFolder' from rascal: review Account.engine.
-        engine = SyncFolders(self._workerName, emitter, left, right,
-            self._accountName)
+        engine = SyncFolders(self.workerName, emitter, left, right,
+            self.accountName)
 
-        self._worker = runtime.concurrency.createWorker(
-            self._workerName,
+        self.architect.start(
             topRunner,
-            (self._workerName, engine.syncFolders, folderTasks),
+            (self.workerName, engine.syncFolders, folderTasks),
             )
 
-        self._worker.start()
 
-
-class FoldersArchitectInterface(object):
-    def getExitCode(self):  raise NotImplementedError
-    def kill(self):         raise NotImplementedError
-    def start(self):        raise NotImplementedError
-
-
-class FoldersArchitect(FoldersArchitectInterface):
+class SyncFoldersArchitect(object):
     """Handle a collection of FolderArchitect instances.
 
     Can be used in a per-account basis."""
 
-    def __init__(self, callerName: str, accountName: str):
-        self._accountName = accountName
-        self._callerName = callerName
+    def __init__(self, accountWorkerName: str, accountName: str):
+        self.accountName = accountName
+        self.accountWorkerName = accountWorkerName
 
-        self._folderArchitects = []
-        self._exitCode = -1
+        self.folderArchitects = []
+        self.exitCode = -1
 
 
-    def _debug(self, msg):
+    def _debug(self, msg) -> None:
         runtime.ui.debugC(ARC, "%s foldersArchitect %s %s"%
-            (self._callerName, self._accountName, msg))
+            (self.accountWorkerName, self.accountName, msg))
 
-    def _setExitCode(self, exitCode):
+    def _setExitCode(self, exitCode) -> None:
         self._debug("_setExitCode(%i)"% exitCode)
-        if exitCode > self._exitCode:
-            self._exitCode = exitCode
+        if exitCode > self.exitCode:
+            self.exitCode = exitCode
 
-    def getExitCode(self):
-        for folderArchitect in self._folderArchitects:
+    def getExitCode(self) -> int:
+        for folderArchitect in self.folderArchitects:
             exitCode = folderArchitect.getExitCode()
             if exitCode >= 0:
-                self._folderArchitects.remove(folderArchitect)
+                self.folderArchitects.remove(folderArchitect)
                 self._setExitCode(exitCode)
                 self._debug("%i architect(s) remaining"%
-                    len(self._folderArchitects))
+                    len(self.folderArchitects))
 
-        if len(self._folderArchitects) < 1:
-            return self._exitCode
+        if len(self.folderArchitects) < 1:
+            return self.exitCode
         else:
             return -1 # Let caller know workers are busy.
 
-    def kill(self):
+    def kill(self) -> None:
         self._debug("kill()")
-        for folderArchitect in self._folderArchitects:
+        for folderArchitect in self.folderArchitects:
             folderArchitect.kill()
-            self._folderArchitects.remove(folderArchitect)
+            self.folderArchitects.remove(folderArchitect)
 
     def start(self, maxFolderWorkers: int, folders: Folders,
-            left: Emitter=None, right: Emitter=None):
+            left: Emitter=None, right: Emitter=None) -> None:
 
         self._debug("start(%i, %s, %s, %s)"% (maxFolderWorkers,
             folders, repr(left), repr(right)))
@@ -179,14 +170,14 @@ class FoldersArchitect(FoldersArchitectInterface):
         folderTasks = runtime.concurrency.createQueue()
         for folder in folders:
             folderTasks.put(folder)
-        # Avoid race conditions. See actions.syncaccounts.
+        # Avoid race conditions. See .account.SyncAccountsArchitect.
         while folderTasks.empty():
             pass
 
         for i in range(maxFolderWorkers):
-            workerName = "%s.Folder.%i"% (self._callerName, i)
+            workerName = "%s.Folder.%i"% (self.accountWorkerName, i)
 
-            folderArchitect = FolderArchitect(workerName, self._accountName)
+            folderArchitect = SyncFolderArchitect(workerName, self.accountName)
             folderArchitect.start(folderTasks, left, right)
             left, right = None, None # Don't re-use drivers too much. :-)
-            self._folderArchitects.append(folderArchitect)
+            self.folderArchitects.append(folderArchitect)
