@@ -110,15 +110,21 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 
 # Status
 
-imapfw is still **WORK IN PROGRESS**. Running imapfw should not hurt but all the
-features are not yet implemented since this is early stage of development.
+imapfw is **WORK IN PROGRESS**. Running imapfw should not hurt but all the
+features are not yet implemented. This is still early stage of development.
 
-Last WIP is in the `next` branch.
+Last WIP is in the `next` branch. Also, you might like to check the [TODO
+list](https://gist.github.com/nicolas33/003f1b7184c7dfb26192) online.
+
 
 # Supporting
 
-Please, support the efforts! Staring the project is a good start.
+Please, support the efforts! Staring the project at github is a good start.
 Reviews, feedbacks and pull requests are welcome, too. ,-)
+
+> Side note: I'm convinced that sooner is better when it's about reviews and
+> feedbacks. Once features you'll need will be implemented, it might be harder
+> and take a longer time to get things improved.
 
 
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
