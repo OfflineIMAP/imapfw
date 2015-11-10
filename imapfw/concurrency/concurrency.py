@@ -109,7 +109,6 @@ class ThreadingBackend(ConcurrencyInterface):
             def __init__(self, name, target, args):
                 self._name = name
 
-                self.ui = runtime.ui
                 self._thread = Thread(name=name, target=target, args=args,
                     daemon=True)
 
@@ -123,18 +122,20 @@ class ThreadingBackend(ConcurrencyInterface):
                 worker. In daemon mode: workers get's killed when the main thread
                 gets killed."""
 
-                #TODO: the get_indent() is available from within the thread...
-                # pthread_kill(self._thread.get_indent(), SIGTERM)
-                self.ui.debugC(WRK, "%s killed (fake)"% self._name)
+                try:
+                    pthread_kill(self._thread.ident, SIGTERM)
+                except TypeError:
+                    pass # ident for this thread is None (thread did not start).
+                runtime.ui.debugC(WRK, "%s killed (fake)"% self._name)
 
             def start(self):
                 self._thread.start()
-                self.ui.debugC(WRK, "%s started"% self._name)
+                runtime.ui.debugC(WRK, "%s started"% self._name)
 
             def join(self):
-                self.ui.debugC(WRK, "%s join"% self._name)
+                runtime.ui.debugC(WRK, "%s join"% self._name)
                 self._thread.join() # Block until thread is done.
-                self.ui.debugC(WRK, "%s joined"% self._name)
+                runtime.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
@@ -215,7 +216,6 @@ class MultiProcessingBackend(ConcurrencyInterface):
             def __init__(self, name, target, args):
                 self._name = name
 
-                self.ui = runtime.ui
                 self._process = Process(name=name, target=target, args=args)
 
             def getName(self):
@@ -230,18 +230,18 @@ class MultiProcessingBackend(ConcurrencyInterface):
 
                 self._process.terminate() # Send SIGTERM.
                 self.join(verbose=False)
-                self.ui.debugC(WRK, "%s killed"% self._name)
+                runtime.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._process.start()
-                self.ui.debugC(WRK, "%s started"% self._name)
+                runtime.ui.debugC(WRK, "%s started"% self._name)
 
             def join(self, verbose=True):
                 if verbose is True:
-                    self.ui.debugC(WRK, "%s join"% self._name)
+                    runtime.ui.debugC(WRK, "%s join"% self._name)
                 self._process.join() # Block until process is done.
                 if verbose is True:
-                    self.ui.debugC(WRK, "%s joined"% self._name)
+                    runtime.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
