@@ -40,12 +40,39 @@ Since the import is done at import time, this won't work:
 
 import sys
 
+
+class CacheUI(object):
+    def __init__(self):
+        self.number = 0
+        self.cached = {}
+        self.lastName = None
+
+    def __getattr__(self, name):
+        self.lastName = name
+        return self.cache
+
+    def _getNumber(self):
+        self.number += 1
+        return self.number
+
+    def cache(self, *args, **kwargs):
+        self.cached[self._getNumber()] = (self.lastName, args, kwargs)
+
+    def unCache(self, ui):
+        for cached in self.cached.values():
+            name, args, kwargs = cached
+            getattr(ui, name)(*args, **kwargs)
+
+
 # Put this runtime module into _this variable so we use setattr.
 _this = sys.modules.get(__name__)
 
-ui = None
+ui = CacheUI() # Cache logs until true UI is set.
 concurrency = None
 rascal = None
 
 def set_module(name, mod):
+    if name == 'ui':
+        cacheUI = getattr(_this, 'ui')
+        cacheUI.unCache(mod)
     setattr(_this, name, mod)
