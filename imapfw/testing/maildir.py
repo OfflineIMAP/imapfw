@@ -27,14 +27,11 @@ from imapfw import runtime
 from imapfw.api import drivers
 from imapfw.drivers.driver import loadDriver
 from imapfw.testing import libcore
-from imapfw.testing.nullui import NullUI
 from imapfw.types.folder import Folders, Folder
 
 
 class TestMaildirDriver(unittest.TestCase):
     def setUp(self):
-        runtime.set_module('ui', NullUI)
-
         confBase = { 'sep': '/' }
         confA, confB = confBase.copy(), confBase.copy()
 

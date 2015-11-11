@@ -96,7 +96,7 @@ class TestEDMP(unittest.TestCase):
             pass
 
     def test_event_emitter_receiver_args(self):
-        def onEvent(one, two, three, eight, nine):
+        def onEvent(eight, nine, one, two, three):
             self.assertEqual(one, 1)
             self.assertEqual(two, 2)
             self.assertEqual(three, 3)
