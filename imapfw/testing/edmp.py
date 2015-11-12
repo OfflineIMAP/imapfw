@@ -26,10 +26,14 @@ import time
 from imapfw import runtime
 from imapfw.edmp import *
 
+from .nullui import NullUI
+
 
 class TestEDMP(unittest.TestCase):
     def setUp(self):
         self.c = runtime.concurrency
+        ui = NullUI()
+        runtime.set_module('ui', ui)
 
     def test_channel(self):
         queue = self.c.createQueue()

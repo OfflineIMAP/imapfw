@@ -73,6 +73,9 @@ rascal = None
 
 def set_module(name, mod):
     if name == 'ui':
-        cacheUI = getattr(_this, 'ui')
-        cacheUI.unCache(mod)
+        previousUI = getattr(_this, 'ui')
+        try:
+            previousUI.unCache(mod)
+        except AttributeError:
+            pass
     setattr(_this, name, mod)
