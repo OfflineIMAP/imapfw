@@ -103,7 +103,6 @@ class ThreadingBackend(ConcurrencyInterface):
 
     def createWorker(self, name, target, args):
         from threading import Thread
-        from signal import pthread_kill, SIGTERM
 
         class Worker(WorkerInterface):
             def __init__(self, name, target, args):
@@ -122,11 +121,7 @@ class ThreadingBackend(ConcurrencyInterface):
                 worker. In daemon mode: workers get's killed when the main thread
                 gets killed."""
 
-                try:
-                    pthread_kill(self._thread.ident, SIGTERM)
-                except TypeError:
-                    pass # ident for this thread is None (thread did not start).
-                runtime.ui.debugC(WRK, "%s killed (fake)"% self._name)
+                runtime.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._thread.start()
