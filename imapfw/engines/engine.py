@@ -25,22 +25,44 @@ from imapfw import runtime
 #TODO: engines debug logs.
 from imapfw.constants import WRK
 
+# Interfaces.
+from imapfw.interface import Interface, implements
+
 # Annotations.
 from imapfw.edmp import Emitter
+from imapfw.concurrency import Queue
 
 
-class EngineInterface(object):
-    def run(self):              raise NotImplementedError
+class EngineInterface(Interface):
+
+    scope = Interface.INTERNAL
+
+    def run(self, taskQueue: Queue) -> None:
+        """Run the engine."""
 
 
-class SyncEngineInterface(object):
-    def debug(self):            raise NotImplementedError
-    def processing(self):       raise NotImplementedError
-    def setExitCode(self):      raise NotImplementedError
-    def checkExitCode(self):    raise NotImplementedError
+class SyncEngineInterface(Interface):
+
+    scope = Interface.INTERNAL
+
+    def checkExitCode(self) -> None:
+        """Check exit code."""
+
+    def debug(self, msg: str) -> None:
+        """Debug logging."""
+
+    def getExitCode(self) -> int:
+        """Get exit code."""
+
+    def processing(self, task: str) -> None:
+        """Log what is processed by the engine."""
+
+    def setExitCode(self, exitCode: int) -> None:
+        """Set exit code."""
 
 
-class SyncEngine(EngineInterface):
+@implements(SyncEngineInterface)
+class SyncEngine(object):
     def __init__(self, workerName: str):
         self._exitCode = -1 # Force the run to set a valid exit code.
         self._gotTask = False
@@ -55,13 +77,13 @@ class SyncEngine(EngineInterface):
                     self.workerName)
                 self.setExitCode(99)
 
-    def debug(self, msg: str):
+    def debug(self, msg: str) -> None:
         runtime.ui.debugC(WRK, "%s: %s"% (self.workerName, msg))
 
-    def getExitCode(self):
+    def getExitCode(self) -> int:
         return self._exitCode
 
-    def processing(self, task: str):
+    def processing(self, task: str) -> None:
         runtime.ui.infoL(2, "%s processing: %s"% (self.workerName, task))
         self._gotTask = True
 

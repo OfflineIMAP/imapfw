@@ -25,7 +25,10 @@ from imapfw.edmp import Channel
 from imapfw.types.folder import Folders
 from imapfw.types.account import loadAccount
 
-from .engine import SyncEngine
+from .engine import SyncEngine, EngineInterface
+
+# Interfaces.
+from imapfw.interface import implements
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -33,6 +36,7 @@ from imapfw.concurrency import Queue
 from imapfw.types.account import Account
 
 
+@implements(EngineInterface)
 class SyncAccounts(SyncEngine):
     """The sync account engine."""
 
@@ -117,13 +121,13 @@ class SyncAccounts(SyncEngine):
 
         self.setExitCode(0)
 
-    def run(self, accountQueue: Queue):
+    def run(self, taskQueue: Queue) -> None:
         """Sequentially process the accounts."""
 
         #
         # Loop over the available account names.
         #
-        for accountName in Channel(accountQueue):
+        for accountName in Channel(taskQueue):
             self.processing(accountName)
 
             # The syncer will let expode errors it can't recover from.

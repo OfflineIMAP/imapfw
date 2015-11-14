@@ -115,7 +115,7 @@ class SyncFolderArchitect(object):
 
         self.architect.start(
             topRunner,
-            (self.workerName, engine.syncFolders, folderTasks),
+            (self.workerName, engine.run, folderTasks),
             )
 
 

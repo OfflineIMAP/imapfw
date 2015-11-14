@@ -25,7 +25,10 @@ from imapfw import runtime
 from imapfw.edmp import Channel
 from imapfw.types.account import loadAccount
 
-from .engine import SyncEngine
+from .engine import SyncEngine, EngineInterface, SyncEngineInterface
+
+# Interfaces.
+from imapfw.interface import implements, adapts
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -33,8 +36,11 @@ from imapfw.concurrency import Queue
 from imapfw.types.folder import Folder
 
 
+@implements(EngineInterface)
 class SyncFolders(SyncEngine):
     """The engine to sync a folder in a worker."""
+
+    adapts(SyncEngine)
 
     def __init__(self, workerName: str, referent: Emitter,
             left: Emitter, right: Emitter, accountName: str):
@@ -67,13 +73,13 @@ class SyncFolders(SyncEngine):
 
         return 0
 
-    def syncFolders(self, folderQueue: Queue):
+    def run(self, taskQueue: Queue) -> None:
         """Sequentially process the folders."""
 
         #
         # Loop over the available folder names.
         #
-        for folder in Channel(folderQueue):
+        for folder in Channel(taskQueue):
             self.processing(folder)
 
             # The engine will let explode errors it can't recover from.
