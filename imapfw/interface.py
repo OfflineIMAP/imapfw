@@ -40,7 +40,7 @@ from imapfw.annotation import Iterable, Function
 
 def _iterMehods(cls):
     for name, method in inspect.getmembers(cls, inspect.isfunction):
-        if name.startswith('__'):
+        if name.startswith('_'):
             continue
         yield name, method
 
@@ -60,25 +60,25 @@ def _iterDocImplements(doc: str) -> Iterable[str]:
     for implement in implements:
         yield implement
 
-def _getattrDeclareName(name: str, getattrMethod: Function) -> bool:
-    for declaration in _iterDocImplements(getattrMethod.__doc__):
-        if declaration == name:
-            return True
+def _isDeclaredInGetattr(name: str, cls: type) -> bool:
+    if hasattr(cls, '__getattr__'):
+        for declaration in _iterDocImplements(cls.__getattr__.__doc__):
+            if declaration == name:
+                return True
     return False
-
-
 
 def _checkImplementation(cls):
     """Check that the class implements its declared interfaces."""
 
-    # Check the class implement all the interfaces.
     declaredByInterfaces = {}
-    for interface in cls.__implements__:
 
+    for interface in cls.__implements__:
         for name, method in _iterMehods(interface):
+            # Cache for later use.
             if name not in declaredByInterfaces:
                 declaredByInterfaces[name] = method
 
+            # Attach documentation.
             if hasattr(cls, name):
                 if method.__doc__ is not None:
                     # Attach documentation.
@@ -88,32 +88,39 @@ def _checkImplementation(cls):
                     else:
                         cls_method.__doc__ += method.__doc__
 
-            else:
-                try:
-                    if hasattr(cls, '__getattr__'):
-                        if not _getattrDeclareName(name, cls.__getattr__):
-                            raise TypeError()
-                    else:
-                        raise TypeError()
-                except TypeError:
-                    raise TypeError("class %s declares to implement %s"
-                        " but %s is not implemented"% (cls.__name__,
-                        interface.__name__, name))
+    # Check the method implements all interfaces.
+    cls_methods = {}
+    for name, method in _iterMehods(cls):
+        cls_methods[name] = method
 
+    for name in declaredByInterfaces:
+        if name not in cls_methods:
+            raise TypeError("class %s declares to implement %s"
+                " but %s is not implemented"% (cls.__name__,
+                interface.__name__, name))
+
+    # Check the methods of the class match the declared interface.
     for name, method in _iterMehods(cls):
         if name in declaredByInterfaces:
+            # Check the signatures.
             footprintCls = _signature(method)
             footprintInterface = _signature(declaredByInterfaces[name])
             if footprintCls != footprintInterface:
                 raise TypeError("signature of %s.%s mismatch interface:"
                     " '%s' vs '%s'"%
                     (cls.__name__, name, footprintCls, footprintInterface))
-
         else:
-            raise TypeError("class %s implements %s"
-                " but %s is declared in any interface of %s"%
-                (cls.__name__, name, name, cls.__implements__))
+            # Method is implemented but declared in any interface.
+            if not _isDeclaredInGetattr(name, cls):
+                raise TypeError("class %s implements %s"
+                    " but %s is declared in any interface of %s"%
+                    (cls.__name__, name, name, cls.__implements__))
 
+
+def adapts(*components):
+    """Parent classes the current class adapts."""
+
+    return list(components)
 
 def implements(*interfaces):
     """Class decorator for supporting interfaces."""
@@ -121,24 +128,33 @@ def implements(*interfaces):
     def cls_implements(cls):
         """Actually make class to implement the interfaces."""
 
-        def inherit(tree, implements=[]):
+        def inherit(tree, exclude=[], implements=[]):
             """Lookup the parents to inherit their interfaces."""
 
             try:
                 cls_parent = tree.pop(0)[0]
-                if hasattr(cls_parent, '__implements__'):
-                    implements + cls_parent.__implements__
+                if cls_parent not in exclude:
+                    if hasattr(cls_parent, '__implements__'):
+                        implements + cls_parent.__implements__
             except IndexError:
                 return implements
 
-            return inherit(tree, implements)
+            return inherit(tree, exclude, implements)
+
+        adapts = []
+        if hasattr(cls, 'adapts'):
+            adapts = cls.adapts
 
         newInterfaces = list(interfaces)
-        inherited = inherit(inspect.getclasstree([cls]))
-        newInterfaces += inherited
+        inherited = inherit(inspect.getclasstree([cls]), adapts)
+        for interface in inherited:
+            if interface not in newInterfaces:
+                newInterfaces.append(interface)
 
         if hasattr(cls, '__implements__'):
-            cls.__implements__ + newInterfaces
+            for interface in newInterfaces:
+                if interface not in cls.__implements__:
+                    cls.__implements__.append(interface)
         else:
             setattr(cls, '__implements__', newInterfaces)
 

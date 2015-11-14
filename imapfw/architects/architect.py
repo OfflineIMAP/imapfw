@@ -46,9 +46,6 @@ from imapfw.annotation import Function
 class ArchitectInterface(Interface):
     scope = Interface.INTERNAL
 
-    def _getWorkerName(self) -> str:
-        """Return worker name."""
-
     def kill(self) -> None:
         """Kill worker."""
 
@@ -66,9 +63,6 @@ class Architect(object):
 
         self.name = self.__class__.__name__
         self.worker = None
-
-    def _getWorkerName(self) -> str:
-        return self.workerName
 
     def kill(self) -> None:
         self.worker.kill()
