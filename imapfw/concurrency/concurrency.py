@@ -30,9 +30,10 @@ process (for multiprocessing).
 
 """
 
-from imapfw import runtime
+import pickle
 
-from ..constants import WRK
+from imapfw import runtime
+from imapfw.constants import WRK
 
 
 SimpleLock = None # Defined at runtime.
@@ -175,6 +176,9 @@ class ThreadingBackend(ConcurrencyInterface):
                     return None
 
             def put(self, data):
+                # Fail now if data can't be pickled. Otherwise, error will be
+                # raised at random time.
+                pickle.dumps(data)
                 self._queue.put(data)
 
         return TQueue()
@@ -276,6 +280,9 @@ class MultiProcessingBackend(ConcurrencyInterface):
                     return None
 
             def put(self, data):
+                # Fail now if data can't be pickled. Otherwise, error will be
+                # raised at random time.
+                pickle.dumps(data)
                 self._queue.put(data)
 
         return MQueue()

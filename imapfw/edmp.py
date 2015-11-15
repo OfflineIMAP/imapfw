@@ -216,10 +216,8 @@ from imapfw import runtime
 from imapfw.constants import EMT, SLEEP
 
 # Annotations.
+from imapfw.annotation import ExceptionClass
 from imapfw.concurrency import Queue
-
-
-ExceptionClass = TypeVar('exception class')
 
 
 #TODO: expose
@@ -232,12 +230,10 @@ def _raiseError(cls_Exception: ExceptionClass, reason: str):
 
     try:
         raise cls_Exception(reason)
-    except AttributeError:
-        try:
-            raise cls_Exception(reason)
-        except AttributeError:
-            raise RuntimeError("exception from receiver cannot be raised %s: %s"%
-                (cls_Exception.__name__, reason))
+    except NameError as e:
+        runtime.ui.exception(e)
+        raise RuntimeError("exception from receiver cannot be raised %s: %s"%
+            (cls_Exception.__name__, reason))
 
 
 class Channel(object):
@@ -309,6 +305,8 @@ class Emitter(object):
                         if result is None:
                             time.sleep(SLEEP) # Don't eat all CPU.
                             continue
+                        if len(result) > 1:
+                            return result
                         return result[0]
                     else:
                         # Error occured.
@@ -379,42 +377,41 @@ class Receiver(object):
 
         for event in self._eventChan:
             topic, args, kwargs = event
+            try:
 
-            if topic == 'stopServing':
-                self._debug("marked as stop serving")
-                return False
+                if topic == 'stopServing':
+                    self._debug("marked as stop serving")
+                    return False
 
-            if topic in self._reactMap:
-                try:
+                if topic in self._reactMap:
                     self._react(topic, args, kwargs)
                     return True
-                except Exception as e:
-                    runtime.ui.critical("%s unhandled error occurred while"
-                        " reacting to event %s: %s: %s"%
-                        (self._name, event, e.__class__.__name__, e))
-                    runtime.ui.exception(e)
 
-            elif topic.endswith('_sync'):
-                topic = topic[:-5]
-                if topic in self._reactMap:
-                    try:
-                        result = self._react(topic, args, kwargs)
+                elif topic.endswith('_sync'):
+                    realTopic = topic[:-5]
+                    if realTopic in self._reactMap:
+                        result = self._react(realTopic, args, kwargs)
                         if type(result) != tuple:
                             result = (result,)
                         self._resultQueue.put(result)
                         return True
-                    except Exception as e:
-                        runtime.ui.critical("%s unhandled error occurred while"
-                            " reacting to event %s: %s: %s"%
-                            (self._name, event, e.__class__.__name__, e))
-                        runtime.ui.exception(e)
-                        self._errorQueue.put((e.__class__, str(e)))
-                else:
-                    reason = "%s got unkown event '%s'"% (self._name, topic)
-                    self._errorQueue.put((AttributeError, reason))
+                    else:
+                        reason = "%s got unkown event '%s'"% (self._name, topic)
+                        self._errorQueue.put((AttributeError, reason))
 
-            runtime.ui.error("receiver %s unhandled event %s"%
-                    (self._name, event))
+                runtime.ui.error("receiver %s unhandled event %s"%
+                        (self._name, event))
+
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                runtime.ui.critical("%s unhandled error occurred while"
+                    " reacting to event %s: %s: %s"%
+                    (self._name, event, e.__class__.__name__, e))
+                runtime.ui.exception(e)
+                if topic.endswith('_sync'):
+                    self._errorQueue.put((e.__class__, str(e)))
+
         time.sleep(SLEEP) # Don't eat all CPU if caller is looping here.
         return True
 
