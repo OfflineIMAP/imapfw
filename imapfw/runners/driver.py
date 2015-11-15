@@ -28,8 +28,7 @@ from imapfw.types.account import loadAccount
 from imapfw.types.repository import Repository, loadRepository
 
 # Annotations.
-from typing import Union
-
+from imapfw.annotation import Dict, Union
 from imapfw.edmp import Receiver
 from imapfw.types.folder import Folders, Folder
 
@@ -69,6 +68,10 @@ class DriverRunner(object):
         runtime.ui.debugC(DRV, "%s %s"% (self._repositoryName, msg))
 
     def buildDriverFromRepositoryName(self, repositoryName: str) -> None:
+        """Build the driver object in the worker from this repository name.
+
+        The repository must be globally defined in the rascal."""
+
         cls_repository = runtime.rascal.get(repositoryName, [Repository])
         repository = loadRepository(cls_repository)
         self._driver = repository.fw_getDriver()
@@ -77,6 +80,8 @@ class DriverRunner(object):
 
     def buildDriver(self, accountName: str, side: str,
             reuse: bool=False) -> None:
+        """Build the driver object in the worker from this account side."""
+
         if reuse is True and self._driver is not None:
             return None
 
@@ -110,15 +115,21 @@ class DriverRunner(object):
         return self._driver.connect()
 
     def fetchFolders(self) -> Folders:
+        """Fetch the folders and cache the result."""
+
         self._debug("starts fetching folder names")
         self._folders = self._driver.getFolders()
         return self._folders
 
     def getFolders(self) -> Folders:
+        """Return the cached folders."""
+
         self._debug("got folders: %s"% self._folders)
         return self._folders
 
     def logout(self) -> None:
+        """Logout from server. Can be called more than once."""
+
         if self._driver is not None:
             self._driver.logout()
             self._debug("logged out")
@@ -138,4 +149,6 @@ class DriverRunner(object):
             pass
 
     def select(self, mailbox: Union[Folder, str]) -> bool:
+        """Select this mailbox."""
+
         return self._driver.select(str(mailbox))

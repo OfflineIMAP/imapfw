@@ -22,17 +22,40 @@
 
 
 from imapfw import runtime
+from imapfw.interface import implements, Interface
 
 
-class ShellInterface(object):
-    def afterSession(self):     raise NotImplementedError
-    def beforeSession(self):    raise NotImplementedError
-    def register(self):         raise NotImplementedError
-    def session(self):          raise NotImplementedError
-    def setBanner(self):        raise NotImplementedError
+class ShellInterface(Interface):
+
+    scope = Interface.PUBLIC
+
+    def afterSession(self) -> int:
+        """What to do on exit. Return the exit code."""
+
+    def beforeSession(self) -> None:
+        """Method to set up the environment."""
+
+    def configureCompletion(self) -> None:
+        """Configure the complement for theinteractive session."""
+
+    def interactive(self) -> None:
+        """Start the interactive session when called."""
+
+    def register(self, name: str, alias: str=None) -> None:
+        """Add a variable to the interactive environment.
+
+        Attribute name to pass to the interpreter.  The name MUST be an
+        attribute of this object."""
+
+    def session(self) -> None:
+        """Build driver and start interactive mode."""
+
+    def setBanner(self, banner: str) -> None:
+        """Erase the default banner."""
 
 
-class Shell(ShellInterface):
+@implements(ShellInterface)
+class Shell(object):
 
     conf = None
 
@@ -61,41 +84,40 @@ class Shell(ShellInterface):
                     " No tab completion is enabled.")
 
     def beforeSession(self) -> None:
-        """Method to set up the environment.
-
-        Set variables required in `run()` as attributes."""
         pass
 
     def interactive(self) -> None:
-        """Run in interactive mode when called."""
-
         import code
-        code.interact(banner=self.banner, local=self._env)
+        try:
+            code.interact(banner=self.banner, local=self._env)
+        except:
+            pass
 
     def register(self, name: str, alias: str=None) -> None:
-        """Attribute name to pass to the interpreter.
-
-        The name must be an attribute."""
-
         if alias is None:
             alias = name
         self._env[alias] = getattr(self, name)
 
     def session(self) -> None:
-        """Run the interactive session by default."""
-
         self.interactive()
 
     def setBanner(self, banner: str) -> None:
-        """Erase the banner."""
-
         self.banner = banner
 
 
+class DriveDriverInterface(Interface):
+    def buildDriver(self) -> None:
+        """Build the driver for the repository in conf."""
+
+@implements(ShellInterface, DriveDriverInterface)
 class DriveDriver(Shell):
     """Shell to play with a repository. Actually drive the driver yourself.
 
     The conf must define the repository to use (str). Start it to learn more.
+
+    ```
+    conf = { 'repository': RepositoryClass }
+    ```
     """
 
     conf = {'repository': None}
@@ -104,23 +126,33 @@ class DriveDriver(Shell):
         super(DriveDriver, self).__init__()
 
         self.driverArchitect = None
+        self.repository = None
+        self.dict_events = None
         self.driver = None
         self.d = None
 
-    def afterSession(self):
+    def _events(self) -> None:
+        print("\n".join(self.dict_events))
+
+    def afterSession(self) -> int:
         self.driverArchitect.stop()
         return 0
 
-    def beforeSession(self):
+    def buildDriver(self) -> None:
+        self.d.buildDriverFromRepositoryName(self.repository.getClassName())
+
+    def beforeSession(self) -> None:
         import inspect
 
         from imapfw.runners.driver import DriverRunner
+        from imapfw.types.repository import loadRepository
         from imapfw.architects import DriverArchitect
         from imapfw.edmp import SyncEmitter
 
-        repositoryName = self.conf.get('repository')
-
+        self.repository = loadRepository(self.conf.get('repository'))
+        repositoryName = self.repository.getClassName()
         self.driverArchitect = DriverArchitect("%s.Driver"% repositoryName)
+        self.driverArchitect.init()
         self.driverArchitect.start()
 
         self.driver = self.driverArchitect.getEmitter()
@@ -128,21 +160,25 @@ class DriveDriver(Shell):
         self.register('driver')
         self.register('d')
 
-        self.d.buildDriverFromRepositoryName(repositoryName)
-
         # Setup banner.
         events = []
         for name, method in inspect.getmembers(DriverRunner,
                 inspect.isfunction):
             if name.startswith('_') or name == 'run':
                 continue
-            events.append("\td.%s%s"% (name, inspect.signature(method)))
+            events.append("- d.%s%s\n%s\n"%
+                (name, inspect.signature(method), method.__doc__))
+        self.dict_events = events
+        self.events = self._events
+        self.register('events')
 
         banner = """
 Welcome to the shell. The driver is started in a worker. Take control of if with "driver" or "d".
 "d" will send any event in sync mode.  Ctrl+D: quit
 
-Available events:
-%s
-Notice the driver is already built with this repository."""% "\n".join(events)
+Available commands:
+- events(): print available events for the driver.
+
+Notice the driver is already built with the default beforeSession() method."""
+
         self.setBanner(banner)

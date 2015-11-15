@@ -20,12 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from typing import Any, Dict, Iterable, List, Tuple, TypeVar
+from typing import Any, Dict, Iterable, List, Tuple, TypeVar, Union
 
 # Global.
 Function = TypeVar('Function')
 
-# interface.
+# edmp,
+ExceptionClass = TypeVar('Exception class')
+
+# interface,
 Requirement = Any
 InterfaceClass = TypeVar('Interface class')
 InterfaceDefinitions = Dict[InterfaceClass, Tuple['arguments']]

@@ -1,0 +1,60 @@
+#
+# Used by me to development purposes.
+#
+
+MainConf = {
+    # The number of concurrent workers for the accounts. Default is the number
+    # of accounts to sync.
+    'max_sync_accounts': 7,
+}
+
+UI = None
+
+def configure(ui):
+    global UI
+    UI = ui
+
+def preHook(actionName, actionOptions, hook):
+    hook.ended()
+
+def postHook(hook):
+    hook.ended()
+
+def exceptionHook(error, hook):
+    hook.ended()
+
+from imapfw.api import controllers, types, drivers, shells
+
+ImapConfA = {
+    'backend':  'imaplib3',
+    'host':      '127.0.0.1',
+    'port':     '10143',
+    'username': 'nicolas',
+    'password': 'sebrecht',
+    'max_connections': 3,
+}
+
+
+class ImapA(types.Imap):
+    conf = ImapConfA
+    driver = drivers.Imap # Default: drivers.Imap.
+    #controllers = [FakeImapA]
+
+
+
+class ImapShell(shells.DriveDriver):
+    conf = {'repository': ImapA}
+
+    def session(self):
+        self.buildDriver()
+
+        d = self.d
+
+        d.connect()
+        folders = d.fetchFolders()
+        print(folders)
+        self.interactive()
+        d.logout()
+
+
+# vim: syntax=python ts=4 expandtab :
