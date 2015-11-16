@@ -23,18 +23,16 @@
 from collections import UserList
 from functools import total_ordering
 
+from imapfw.interface import implements, Interface
 
-class FolderInternalInterface(object):
-    pass #TODO
-
-
-class FolderInterface(FolderInternalInterface):
-    def getName(self):  raise NotImplementedError
-    def setName(self):  raise NotImplementedError
+# Annotations.
+from imapfw.annotation import Union
 
 
-@total_ordering
-class Folder(FolderInterface):
+ENCODING = 'UTF-8'
+
+
+class FolderInterface(Interface):
     """Internal model representative of a folder.
 
     Used by any driver, controller or engine. Might be passed to the user via the
@@ -46,9 +44,36 @@ class Folder(FolderInterface):
     can be compared to a folder from another driver.
     """
 
+    scope = Interface.PUBLIC
+
+    def hasChildren(self) -> bool:
+        """Return True of False whether this folder has children."""
+
+    def getName(self, encoding: str=ENCODING) -> str:
+        """Return folder base name."""
+
+    def getRoot(self, encoding: str=ENCODING) -> str:
+        """Return the path to the folder."""
+
+    def setName(self, name: Union[str, bytes], encoding: str=None) -> None:
+        """Set the folder base name."""
+
+    def setHasChildren(self, hasChildren: bool) -> None:
+        """Set if folder has children."""
+
+    def setRoot(self, root: str, encoding: str=ENCODING) -> None:
+        """Set the path to the folder."""
+
+
+@total_ordering
+@implements(FolderInterface)
+class Folder(object):
     def __init__(self, name, encoding=None):
         self._name = None # Must be bytes.
         self.setName(name, encoding)
+
+        self._hasChildren = None
+        self._root = None
 
     def __bytes__(self):
         return self._name
@@ -60,15 +85,21 @@ class Folder(FolderInterface):
         return self.getName() < other.getName()
 
     def __repr__(self):
-        return repr(self._name.decode('UTF-8'))
+        return repr(self._name.decode(ENCODING))
 
     def __str__(self):
         return self.getName()
 
-    def getName(self, encoding='UTF-8'):
+    def getName(self, encoding: str=ENCODING) -> str:
         return self._name.decode(encoding)
 
-    def setName(self, name, encoding=None):
+    def getRoot(self, encoding: str=ENCODING) -> str:
+        return self._root.decode(encoding)
+
+    def hasChildren(self) -> bool:
+        return self._hasChildren
+
+    def setName(self, name: Union[str, bytes], encoding: str=None) -> None:
         """Set the name of the folder.
 
         :name: folder name with hierarchy seperated by '/' (e.g.
@@ -80,6 +111,15 @@ class Folder(FolderInterface):
             self._name = name
         else:
             self._name = name.encode(encoding)
+
+    def setHasChildren(self, hasChildren: bool) -> None:
+        self._hasChildren = hasChildren
+
+    def setRoot(self, root: str, encoding: str=ENCODING) -> None:
+        if type(root) == bytes:
+            self._root = root
+        else:
+            self._root = root.encode(encoding)
 
 
 class Folders(UserList):

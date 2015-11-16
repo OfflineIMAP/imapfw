@@ -136,7 +136,7 @@ def loadRepository(obj: Union[RepositoryClass, dict]) -> Repository:
                     setattr(cls_repository, name, mandatory)
 
         except TypeError:
-            raise TypeError("'%s' for a repository is not supported"% type(obj))
+            raise TypeError("'%s' for a repository is not supported"% repr(obj))
 
     repository = cls_repository()
     repository.init()

@@ -28,7 +28,7 @@ from imapfw.api import controllers, types, drivers, shells
 ImapConfA = {
     'backend':  'imaplib3',
     'host':      '127.0.0.1',
-    'port':     '10143',
+    'port':     10143,
     'username': 'nicolas',
     'password': 'sebrecht',
     'max_connections': 3,
@@ -51,9 +51,12 @@ class ImapShell(shells.DriveDriver):
         d = self.d
 
         d.connect()
+        d.fetchCapability()
+        d.login()
         folders = d.fetchFolders()
-        print(folders)
-        self.interactive()
+        print(str(folders))
+
+        #self.interactive()
         d.logout()
 
 

@@ -49,31 +49,33 @@ MaildirConfA = {
     'max_connections': 9,
 }
 
-MaildirConfB = {
-    'path': maildirsPath + '/MaildirB',
-    'max_connections': 9,
+class MaildirA(types.Maildir):
+    conf = MaildirConfA
+    driver = drivers.Maildir # Default: drivers.Maildir.
+
+
+FakeImapConfA = {
+    'folders': [b'INBOX', b'INBOX/spam', b'INBOX/outbox',
+        b'INBOX/sp&AOk-cial',
+    ]
 }
+
+class FakeImapA(controllers.FakeDriver):
+    conf = FakeImapConfA
 
 ImapConfA = {
     'backend':  'imaplib3',
     'host':      '127.0.0.1',
-    'port':     '10143',
+    'port':     10143,
     'username': 'nicolas',
     'password': 'sebrecht',
     'max_connections': 11,
 }
 
-class MaildirA(types.Maildir):
-    conf = MaildirConfA
-    driver = drivers.Maildir # Default: drivers.Maildir.
-
-class MaildirB(types.Maildir):
-    conf = MaildirConfB
-    driver = drivers.Maildir # Default: drivers.Maildir.
-
 class ImapA(types.Imap):
     conf = ImapConfA
-    driver = drivers.Imap # Default: drivers.Imap.
+    driver = drivers.Imap
+    controllers = [FakeImapA]
 
 class AccountA(types.Account):
     engine = "SyncAccount" # Default: engine.SyncAccount. (TODO)

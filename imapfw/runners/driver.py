@@ -52,20 +52,20 @@ class DriverRunner(object):
     """
 
     def __init__(self, workerName: str, receiver: Receiver):
-        self._receiver = receiver
+        self.receiver = receiver
 
-        self._driver = None # Might change over time.
-        self._serve = True
+        self.repositoryName = 'UNKOWN_REPOSITORY'
+        self.driver = None # Might change over time.
 
         # Cached values.
-        self._folders = None
-        self._repositoryName = 'UNKOWN_REPOSITORY'
+        self.folders = None
+        self.capability = None
 
     def __getattr__(self, name):
-        return getattr(self._driver, name)
+        return getattr(self.driver, name)
 
     def _debug(self, msg):
-        runtime.ui.debugC(DRV, "%s %s"% (self._repositoryName, msg))
+        runtime.ui.debugC(DRV, "%s %s"% (self.repositoryName, msg))
 
     def buildDriverFromRepositoryName(self, repositoryName: str) -> None:
         """Build the driver object in the worker from this repository name.
@@ -74,24 +74,24 @@ class DriverRunner(object):
 
         cls_repository = runtime.rascal.get(repositoryName, [Repository])
         repository = loadRepository(cls_repository)
-        self._driver = repository.fw_getDriver()
-        self._repositoryName = repositoryName
-        runtime.ui.info("driver %s ready!"% self._driver.getClassName())
+        self.driver = repository.fw_getDriver()
+        self.repositoryName = repositoryName
+        runtime.ui.info("driver %s ready!"% self.driver.getClassName())
 
     def buildDriver(self, accountName: str, side: str,
             reuse: bool=False) -> None:
         """Build the driver object in the worker from this account side."""
 
-        if reuse is True and self._driver is not None:
+        if reuse is True and self.driver is not None:
             return None
 
-        self._driver = None
+        self.driver = None
 
         # Build the driver.
         account = loadAccount(accountName)
         repository = account.fw_getSide(side)
         driver = repository.fw_getDriver()
-        self._repositoryName = repository.getClassName()
+        self.repositoryName = repository.getClassName()
 
         #TODO: move to a debug controller.
         runtime.ui.debugC(DRV, "built driver '{}' for '{}'",
@@ -99,41 +99,56 @@ class DriverRunner(object):
         runtime.ui.debugC(DRV, "'{}' has conf {}", repository.getClassName(),
                 driver.conf)
 
-        self._driver = driver
+        self.driver = driver
         return driver
 
     def connect(self) -> bool:
         """Connect the driver for this repository (name)."""
 
         #TODO: move those debug logs into a controller.
-        if self._driver.isLocal:
-            self._debug("working in %s"% self._driver.conf.get('path'))
+        if self.driver.isLocal:
+            self._debug("working in %s"% self.driver.conf.get('path'))
         else:
             self._debug("connecting to %s:%s"% (
-                self._driver.conf.get('host'), self._driver.conf.get('port')))
+                self.driver.conf.get('host'), self.driver.conf.get('port')))
 
-        return self._driver.connect()
+        return self.driver.connect()
+
+    def fetchCapability(self):
+        self.capability = self.driver.capability()
+        return self.capability
 
     def fetchFolders(self) -> Folders:
         """Fetch the folders and cache the result."""
 
         self._debug("starts fetching folder names")
-        self._folders = self._driver.getFolders()
-        return self._folders
+        self.folders = self.driver.getFolders()
+        return self.folders
+
+    def getCapability(self):
+        return self.capability
 
     def getFolders(self) -> Folders:
         """Return the cached folders."""
 
-        self._debug("got folders: %s"% self._folders)
-        return self._folders
+        self._debug("got folders: %s"% self.folders)
+        return self.folders
+
+    def login(self) -> None:
+        return self.driver.login()
 
     def logout(self) -> None:
-        """Logout from server. Can be called more than once."""
+        """Logout from server.
 
-        if self._driver is not None:
-            self._driver.logout()
+        WARNING: this should NEVER be called in async mode since this can be
+        racy.
+
+        Can be called more than once."""
+
+        if self.driver is not None:
+            self.driver.logout()
             self._debug("logged out")
-            self._driver = None
+            self.driver = None
         return True
 
     def run(self) -> None:
@@ -143,12 +158,12 @@ class DriverRunner(object):
         for name, method in inspect.getmembers(self, inspect.ismethod):
             if name.startswith('_') or name == 'run':
                 continue
-            self._receiver.accept(name, method)
+            self.receiver.accept(name, method)
 
-        while self._receiver.react():
+        while self.receiver.react():
             pass
 
     def select(self, mailbox: Union[Folder, str]) -> bool:
         """Select this mailbox."""
 
-        return self._driver.select(str(mailbox))
+        return self.driver.select(str(mailbox))

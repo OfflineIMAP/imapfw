@@ -23,7 +23,6 @@
 from .driver import Driver
 
 from imapfw.imap.imap import Imap as ImapBackend
-from imapfw.types.folder import Folder, Folders
 
 
 class Imap(Driver):
@@ -34,23 +33,29 @@ class Imap(Driver):
     def __init__(self, *args):
         super(Imap, self).__init__(*args)
         self.imap = ImapBackend(self.conf.get('backend'))
-        self.imap.configure()
+
+    def capability(self):
+        return self.imap.capability()
 
     def connect(self):
-        #TODO: if already connected, pass.
-        return True
-        #return self.imap.connect(host, port)
+        host = self.conf.get('host')
+        port = int(self.conf.get('port'))
+        return self.imap.connect(host, port)
 
     def getFolders(self):
-        return Folders(Folder(b'on'), Folder(b'imap'), Folder(b'side'))
+        return self.imap.getFolders()
 
     def select(self, mailbox):
         #TODO
         return True
 
-    def logout(self):
-        #self.imap.logout()
-        pass
+    def login(self) -> None:
+        user = self.conf.get('username')
+        password = self.conf.get('password')
+        return self.imap.login(user, password)
+
+    def logout(self) -> None:
+        self.imap.logout()
 
     #def append(self, server,  mail):
         #response = server.append(mail)
