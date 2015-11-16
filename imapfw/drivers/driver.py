@@ -20,33 +20,44 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from typing import TypeVar
+from imapfw.interface import Interface, implements, checkInterfaces
+
+# Annotations.
+from imapfw.annotation import DriverClass
 
 
-DriverClass = TypeVar('Driver based class')
+class DriverInterface(Interface):
+    """The Driver base class.
 
+    This is the middleware for the drivers:
+    - this is the base class to all drivers (e.g. Maildir, Driver, etc).
+    - does not enable controllers machinery at this point.
 
-class DriverInternalInterface(object):
-    pass
+    This interface is the API to anyone working with a driver (engines, shells,
+    etc).
+    """
 
-
-class DriverInterface(object):
+    scope = Interface.INTERNAL
 
     conf = {} # The configuration of the type has to be there.
     isLocal = None
 
-    def connect(self):              raise NotImplementedError
-    def getClassName(self):         raise NotImplementedError
-    def getFolders(self):           raise NotImplementedError
-    def getRepositoryName(self):    raise NotImplementedError
-    def logout(self):               raise NotImplementedError
+    def getClassName(self) -> str:
+        """Return the class name, as defined by the rascal."""
 
+    #TODO: why?
+    def getDriverClassName(self) -> str:
+        """Return the class name, as defined by the rascal."""
 
-class Driver(DriverInterface):
-    """The Driver base class.
+    def getRepositoryName(self) -> str:
+        """Return the repository name of this driver."""
 
-    The `fw_` namespace is reserved to the framework internals."""
+    def init(self) -> None:
+        """Override this method to make initialization in the rascal."""
 
+@checkInterfaces()
+@implements(DriverInterface)
+class Driver(object):
     def __init__(self, repositoryName: str, conf: dict):
         self.repositoryName = repositoryName
         self.conf = conf
@@ -61,8 +72,6 @@ class Driver(DriverInterface):
         return self.repositoryName
 
     def init(self) -> None:
-        """Override this method to make initialization in the rascal."""
-
         pass
 
 
@@ -70,7 +79,7 @@ def loadDriver(cls_driver: DriverClass, repositoryName: str,
         repositoryConf: dict) -> Driver:
 
     # Build the final end-driver.
-    if not issubclass(cls_driver, DriverInterface):
+    if not issubclass(cls_driver, Driver):
         raise TypeError("driver %s of %s does not satisfy"
             " DriverInterface"% (cls_driver.__name__, repositoryName))
 

@@ -67,98 +67,142 @@ def _isDeclaredInGetattr(name: str, cls: type) -> bool:
                 return True
     return False
 
-def _checkImplementation(cls):
-    """Check that the class implements its declared interfaces."""
+def _inherit(cls, attributeName, tree, interfaces):
+    """Lookup the parents to inherit their interfaces."""
 
-    declaredByInterfaces = {}
+    try:
+        cls_parent = tree.pop(0)[0]
 
-    for interface in cls.__implements__:
-        for name, method in _iterMehods(interface):
-            # Cache for later use.
-            if name not in declaredByInterfaces:
-                declaredByInterfaces[name] = method
+        if hasattr(cls_parent, attributeName):
+            for interface in getattr(cls_parent, attributeName):
+                if interface not in interfaces:
+                    interfaces.append(interface)
 
-            # Attach documentation.
-            if hasattr(cls, name):
-                if method.__doc__ is not None:
+    except IndexError:
+        return interfaces
+
+    return _inherit(cls, attributeName, tree, interfaces)
+
+
+def checkInterfaces(reverse: bool=True, signatures: bool=True,
+        declare: bool=True) -> None:
+    """Make checks about interfaces.
+
+    - declare: check that the class implements its declared interfaces.
+    - reverse: check that the interfaces implements all class methods.
+    - signatures: check that the signatures match between the class and the
+      interfaces.
+    """
+
+    def checkClass(cls):
+
+        if not True in [reverse, signatures, declare]:
+            return cls
+
+        try:
+            cls.__implements__
+        except AttributeError as e:
+            raise AttributeError("%s, did you wrote @checkInterfaces after"
+                " @implements?"% e)
+
+        # Get all declared interfaces and update __doc__ of methods.
+        declaredByInterfaces = {} # Dict[name, method]
+        if hasattr(cls, '__implements__'):
+            for interface in cls.__implements__:
+
+                for name, method in _iterMehods(interface):
                     # Attach documentation.
-                    cls_method = getattr(cls, name)
-                    if cls_method.__doc__ is None:
-                        cls_method.__doc__ = method.__doc__
-                    else:
-                        cls_method.__doc__ += method.__doc__
+                    if hasattr(cls, name):
+                        if method.__doc__ is not None:
+                            cls_method = getattr(cls, name)
+                            if cls_method.__doc__ is None:
+                                cls_method.__doc__ = method.__doc__
+                            else:
+                                cls_method.__doc__ += method.__doc__
 
-    # Check the method implements all interfaces.
-    cls_methods = {}
-    for name, method in _iterMehods(cls):
-        cls_methods[name] = method
+                    if name not in declaredByInterfaces:
+                        # Ignore adapts.
+                        if hasattr(cls, '__adapts__'):
+                            if interface not in cls.__adapts__:
+                                declaredByInterfaces[name] = method
+                        else:
+                            declaredByInterfaces[name] = method
 
-    for name in declaredByInterfaces:
-        if name not in cls_methods:
-            raise TypeError("class %s declares to implement %s"
-                " but %s is not implemented"% (cls.__name__,
-                interface.__name__, name))
+        # Get all methods of the class.
+        methods = {}
+        for name, method in _iterMehods(cls):
+            methods[name] = method
 
-    # Check the methods of the class match the declared interface.
-    for name, method in _iterMehods(cls):
-        if name in declaredByInterfaces:
-            # Check the signatures.
-            footprintCls = _signature(method)
-            footprintInterface = _signature(declaredByInterfaces[name])
-            if footprintCls != footprintInterface:
-                raise TypeError("signature of %s.%s mismatch interface:"
-                    " '%s' vs '%s'"%
-                    (cls.__name__, name, footprintCls, footprintInterface))
-        else:
-            # Method is implemented but declared in any interface.
-            if not _isDeclaredInGetattr(name, cls):
-                raise TypeError("class %s implements %s"
-                    " but %s is declared in any interface of %s"%
-                    (cls.__name__, name, name, cls.__implements__))
+        # Check the class has all declared interfaces from Interfaces.
+        if declare is True:
+            for name in declaredByInterfaces:
+                if name not in methods:
+                    raise TypeError("class %s declares to implement %s"
+                        " but %s is not implemented"% (cls.__name__,
+                        interface.__name__, name))
+
+        # Check if method is implemented but declared in any interface.
+        if reverse is True:
+            for name, method in _iterMehods(cls):
+                if name not in declaredByInterfaces:
+                    if not _isDeclaredInGetattr(name, cls):
+                        raise TypeError("class %s implements %s"
+                            " but %s is declared in any interface of %s"%
+                            (cls.__name__, name, name, cls.__implements__))
+
+        # Check the methods of the class match the declared interface.
+        if signatures is True:
+            for name, method in _iterMehods(cls):
+                if name in declaredByInterfaces:
+                    # Check the signatures.
+                    footprintCls = _signature(method)
+                    footprintInterface = _signature(declaredByInterfaces[name])
+                    if footprintCls != footprintInterface:
+                        raise TypeError("signature of %s.%s mismatch interface:"
+                            " '%s' vs '%s'"%
+                            (cls.__name__, name, footprintCls, footprintInterface))
+
+        return cls
+    return checkClass
 
 
-def adapts(*components):
-    """Parent classes the current class adapts."""
+def adapts(*args):
+    """Class decorator for supporting adapts of interfaces."""
 
-    return list(components)
+    def cls_adapts(cls):
+        """Actually make class to implement the interfaces."""
 
-def implements(*interfaces):
+        def inheritAdapts(cls, adapts):
+            """Lookup the parents to inherit of adapts interfaces."""
+
+            tree = inspect.getclasstree([cls])
+            return _inherit(cls, '__adapts__', tree, adapts)
+
+
+        adapts = inheritAdapts(cls, list(args))
+        setattr(cls, '__adapts__', adapts)
+
+        return cls
+
+    return cls_adapts
+
+
+def implements(*args):
     """Class decorator for supporting interfaces."""
 
     def cls_implements(cls):
         """Actually make class to implement the interfaces."""
 
-        def inherit(tree, exclude=[], implements=[]):
+        def inheritImplements(tree, implements):
             """Lookup the parents to inherit their interfaces."""
 
-            try:
-                cls_parent = tree.pop(0)[0]
-                if cls_parent not in exclude:
-                    if hasattr(cls_parent, '__implements__'):
-                        implements + cls_parent.__implements__
-            except IndexError:
-                return implements
+            tree = inspect.getclasstree([cls])
+            return _inherit(cls, '__implements__', tree, implements)
 
-            return inherit(tree, exclude, implements)
 
-        adapts = []
-        if hasattr(cls, 'adapts'):
-            adapts = cls.adapts
+        interfaces = inheritImplements(cls, list(args))
+        setattr(cls, '__implements__', interfaces)
 
-        newInterfaces = list(interfaces)
-        inherited = inherit(inspect.getclasstree([cls]), adapts)
-        for interface in inherited:
-            if interface not in newInterfaces:
-                newInterfaces.append(interface)
-
-        if hasattr(cls, '__implements__'):
-            for interface in newInterfaces:
-                if interface not in cls.__implements__:
-                    cls.__implements__.append(interface)
-        else:
-            setattr(cls, '__implements__', newInterfaces)
-
-        _checkImplementation(cls)
         return cls
 
     return cls_implements

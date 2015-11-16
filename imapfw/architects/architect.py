@@ -35,7 +35,7 @@ from .driver import DriversArchitect
 from .debug import debugArchitect
 
 # Interfaces.
-from imapfw.interface import Interface, implements
+from imapfw.interface import Interface, implements, checkInterfaces
 
 # Annotations.
 from imapfw.concurrency import Queue
@@ -102,6 +102,7 @@ class EngineArchitectInterface(Interface):
         """Stop workers."""
 
 @debugArchitect
+@checkInterfaces()
 @implements(EngineArchitectInterface)
 class EngineArchitect(object):
     def __init__(self, workerName: str):

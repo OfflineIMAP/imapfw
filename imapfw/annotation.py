@@ -33,3 +33,5 @@ Requirement = Any
 InterfaceClass = TypeVar('Interface class')
 InterfaceDefinitions = Dict[InterfaceClass, Tuple['arguments']]
 
+# drivers.driver,
+DriverClass = TypeVar('Driver based class')

@@ -28,7 +28,7 @@ from imapfw.runners import DriverRunner, topRunner
 from .debug import debugArchitect
 
 # Interfaces.
-from imapfw.interface import implements, Interface
+from imapfw.interface import implements, Interface, checkInterfaces
 # Annotations.
 from imapfw.edmp import Emitter
 
@@ -53,6 +53,7 @@ class DriverArchitectInterface(object):
         """Stop the driver."""
 
 @debugArchitect
+@checkInterfaces()
 @implements(DriverArchitectInterface)
 class DriverArchitect(object):
     """Architect to manage a driver worker."""
@@ -98,6 +99,7 @@ class DriverArchitect(object):
         self.worker.join()
 
 
+@checkInterfaces()
 @implements(DriverArchitectInterface)
 class ReuseDriverArchitect(DriverArchitect):
     def __init__(self, emitter: Emitter):
@@ -142,6 +144,7 @@ class DriversArchitectInterface(Interface):
     def stop(self) -> None:
         """Stop the workers."""
 
+@checkInterfaces()
 @implements(DriversArchitectInterface)
 class DriversArchitect(object):
     def __init__(self, workerName: str, number: int):

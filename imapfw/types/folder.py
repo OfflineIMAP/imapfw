@@ -23,7 +23,7 @@
 from collections import UserList
 from functools import total_ordering
 
-from imapfw.interface import implements, Interface
+from imapfw.interface import implements, Interface, checkInterfaces
 
 # Annotations.
 from imapfw.annotation import Union
@@ -66,6 +66,7 @@ class FolderInterface(Interface):
 
 
 @total_ordering
+@checkInterfaces()
 @implements(FolderInterface)
 class Folder(object):
     def __init__(self, name, encoding=None):

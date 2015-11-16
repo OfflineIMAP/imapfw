@@ -28,7 +28,7 @@ from imapfw.types.account import loadAccount
 from .engine import SyncEngine, EngineInterface
 
 # Interfaces.
-from imapfw.interface import implements
+from imapfw.interface import implements, checkInterfaces
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -36,6 +36,7 @@ from imapfw.concurrency import Queue
 from imapfw.types.account import Account
 
 
+@checkInterfaces()
 @implements(EngineInterface)
 class SyncAccounts(SyncEngine):
     """The sync account engine."""

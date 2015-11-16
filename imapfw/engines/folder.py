@@ -28,7 +28,7 @@ from imapfw.types.account import loadAccount
 from .engine import SyncEngine, EngineInterface, SyncEngineInterface
 
 # Interfaces.
-from imapfw.interface import implements, adapts
+from imapfw.interface import implements, adapts, checkInterfaces
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -36,11 +36,11 @@ from imapfw.concurrency import Queue
 from imapfw.types.folder import Folder
 
 
+@checkInterfaces()
+@adapts(SyncEngine)
 @implements(EngineInterface)
 class SyncFolders(SyncEngine):
     """The engine to sync a folder in a worker."""
-
-    adapts(SyncEngine)
 
     def __init__(self, workerName: str, referent: Emitter,
             left: Emitter, right: Emitter, accountName: str):

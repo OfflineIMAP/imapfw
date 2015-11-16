@@ -26,7 +26,7 @@ from imapfw import runtime
 from imapfw.constants import WRK
 
 # Interfaces.
-from imapfw.interface import Interface, implements
+from imapfw.interface import Interface, implements, checkInterfaces
 
 # Annotations.
 from imapfw.edmp import Emitter
@@ -61,6 +61,7 @@ class SyncEngineInterface(Interface):
         """Set exit code."""
 
 
+@checkInterfaces()
 @implements(SyncEngineInterface)
 class SyncEngine(object):
     def __init__(self, workerName: str):

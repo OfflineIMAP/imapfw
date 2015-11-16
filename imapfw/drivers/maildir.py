@@ -27,10 +27,16 @@ from imapfw.toolkit import expandPath
 from imapfw.error import DriverFatalError
 from imapfw.constants import DRV
 from imapfw.types.folder import Folders, Folder
+from imapfw.interface import adapts, checkInterfaces
 
-from .driver import Driver
+from .driver import Driver, DriverInterface
 
 
+
+#TODO: remove this later: the DriverInterface must define the interfaces of
+# this object.
+@checkInterfaces(reverse=False)
+@adapts(DriverInterface)
 class Maildir(Driver):
     """Exposed Maildir driver, possibly redefined by the rascal."""
 

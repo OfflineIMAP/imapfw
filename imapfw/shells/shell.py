@@ -22,7 +22,7 @@
 
 
 from imapfw import runtime
-from imapfw.interface import implements, Interface
+from imapfw.interface import implements, Interface, checkInterfaces
 
 
 class ShellInterface(Interface):
@@ -54,6 +54,7 @@ class ShellInterface(Interface):
         """Erase the default banner."""
 
 
+@checkInterfaces()
 @implements(ShellInterface)
 class Shell(object):
 
@@ -109,6 +110,7 @@ class DriveDriverInterface(Interface):
     def buildDriver(self) -> None:
         """Build the driver for the repository in conf."""
 
+@checkInterfaces()
 @implements(ShellInterface, DriveDriverInterface)
 class DriveDriver(Shell):
     """Shell to play with a repository. Actually drive the driver yourself.

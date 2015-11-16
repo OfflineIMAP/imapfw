@@ -20,11 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .driver import Driver
-
 from imapfw.imap.imap import Imap as ImapBackend
+from imapfw.interface import adapts, checkInterfaces
+
+from .driver import Driver, DriverInterface
+
+# Annotations.
+from imapfw.types.folder import Folders, Folder
 
 
+#TODO: remove this later: the DriverInterface must define the interfaces of
+# this object.
+@checkInterfaces(reverse=False)
+@adapts(DriverInterface)
 class Imap(Driver):
     """Imap driver possibly redefined by the rascal."""
 
@@ -42,10 +50,10 @@ class Imap(Driver):
         port = int(self.conf.get('port'))
         return self.imap.connect(host, port)
 
-    def getFolders(self):
+    def getFolders(self) -> Folders:
         return self.imap.getFolders()
 
-    def select(self, mailbox):
+    def select(self, folder: Folder) -> None:
         #TODO
         return True
 

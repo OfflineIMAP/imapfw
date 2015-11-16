@@ -100,7 +100,7 @@ def loadAccount(obj: Union[AccountClass, str]) -> Account:
                 for name in ['left', 'right', 'conf']:
                     setattr(cls_account, name, obj.get(name))
         except TypeError:
-            raise TypeError("'%s' for a account is not supported"% type(obj))
+            raise TypeError("'%s' for a account is not supported"% repr(obj))
 
     account = cls_account()
     account.init()
