@@ -1,12 +1,18 @@
 
 [![imapfw](logo.png)](https://github.com/OfflineIMAP/imapfw)
 
-**imapfw is a simple and powerfull framework to work with mails. It
-comes as a replacement to the [OfflineIMAP syncer][offlineimap].**
+**imapfw is a simple and powerfull framework to work with mails.**
 
-[![Latest release](https://img.shields.io/badge/latest release-v0.019-blue.svg)](https://github.com/OfflineIMAP/imapfw/releases)
-
+Also, it comes as a replacement to the [OfflineIMAP syncer][offlineimap].
 **Read the blog to [get last news][blog] about imapfw.**
+
+<!--
+
+I'm tired to update this. Will reborn once a script for releases will be written.
+
+[![Latest release](https://img.shields.io/badge/latest release-v0.020-blue.svg)](https://github.com/OfflineIMAP/imapfw/releases)
+
+-->
 
 
 <!-- Markdown sucks for tables without headers. -->

@@ -22,7 +22,7 @@
 
 
 __productname__ = 'Imapfw'
-__version__     = "0.019"
+__version__     = "0.020"
 __copyright__   = "Copyright 2015 Nicolas Sebrecht & contributors"
 __author__      = "Nicolas Sebrecht"
 __author_email__= "nicolas.s-dev@laposte.net"
