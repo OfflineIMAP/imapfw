@@ -40,7 +40,7 @@ from .driver import Driver, DriverInterface
 class Maildir(Driver):
     """Exposed Maildir driver, possibly redefined by the rascal."""
 
-    isLocal = True
+    local = True
 
     def __init__(self, *args):
         super(Maildir, self).__init__(*args)

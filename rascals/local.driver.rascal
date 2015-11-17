@@ -51,10 +51,13 @@ class ImapShell(shells.DriveDriver):
         d = self.d
 
         d.connect()
-        d.fetchCapability()
+        d.getCapability()
         d.login()
-        folders = d.fetchFolders()
+        folders = d.getFolders()
         print(str(folders))
+
+        d.select(folders[-1])
+        d.search()
 
         #self.interactive()
         d.logout()

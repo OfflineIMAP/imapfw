@@ -1,24 +1,5 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 """
 
@@ -33,6 +14,7 @@ from importlib import import_module
 
 from imapfw import runtime
 from imapfw.constants import IMAP
+from imapfw.drivers.driver import SearchConditions
 from imapfw.types.folder import Folders, Folder
 
 # Annotations.
@@ -78,7 +60,12 @@ class IMAPlib2_skater(object):
         runtime.ui.debugC(IMAP, "[%s] response: %s"%
             (command, response))
 
-    def capability(self) -> List[str]:
+    def connect(self, host: str, port: str) -> None:
+        from .imaplib3 import imaplib2
+
+        self.imap = imaplib2.IMAP4(host, port, debug=3, timeout=2)
+
+    def getCapability(self) -> List[str]:
         capability = []
 
         # (typ, [data])
@@ -93,11 +80,6 @@ class IMAPlib2_skater(object):
 
         self._debug("capability", capability)
         return capability
-
-    def connect(self, host: str, port: str) -> None:
-        from .imaplib3 import imaplib2
-
-        self.imap = imaplib2.IMAP4(host, port, debug=3, timeout=2)
 
     def getFolders(self) -> List[Dict[str, Union[str, bool]]]:
         folders = Folders()
@@ -130,6 +112,9 @@ class IMAPlib2_skater(object):
 
         raise ImapCommandError(str(data))
 
+    def getNamespace(self):
+        return self.imap.namespace()
+
     def login(self, user: str, password: str) -> None:
         self._debug("login", "%s, <password>"% user)
 
@@ -138,16 +123,50 @@ class IMAPlib2_skater(object):
         response = self.imap.login(user, password)
         self._debugResponse("capability", response)
 
-        status, msg = response
+        status, data = response
         if status == 'OK':
             return None
 
-        msg = msg.decode(ENCODING)
-        raise ImapCommandError(msg)
+        data = data.decode(ENCODING)
+        raise ImapCommandError(data)
 
     def logout(self) -> None:
         self.imap.logout()
 
+    def search(self, searchConditions: Union[SearchConditions, None]):
+        if searchConditions is None:
+            searchConditions = SearchConditions()
+
+        conditions = searchConditions.formatConditions()
+        self._debug("search", "%s"% conditions)
+
+        # (typ, [data])
+        # e.g. ('OK', [b'2']
+        response = self.imap.search(None, conditions)
+        self._debugResponse("search", response)
+        status, data = response
+        if status == 'OK':
+            return data
+
+        data = data.decode(ENCODING)
+        raise ImapCommandError(data)
+
+    def select(self, folder: Folder) -> int:
+        """Return number of existing messages."""
+
+        self._debug("select", str(folder))
+        # (typ, [data])
+        # e.g. ('OK', [b'1 2'])
+        response = self.imap.select(folder.getName())
+        self._debugResponse("select", response)
+
+        status, data = response
+        if status == 'OK':
+            #TODO: make a collection of UIDs.
+            return int(data[0])
+
+        data = data.decode(ENCODING)
+        raise ImapCommandError(data)
 
 
 def Imap(backendNameVersion):

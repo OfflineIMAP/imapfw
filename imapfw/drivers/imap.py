@@ -26,6 +26,8 @@ from imapfw.interface import adapts, checkInterfaces
 from .driver import Driver, DriverInterface
 
 # Annotations.
+from .driver import SearchConditions
+from imapfw.annotation import Union
 from imapfw.types.folder import Folders, Folder
 
 
@@ -34,28 +36,27 @@ from imapfw.types.folder import Folders, Folder
 @checkInterfaces(reverse=False)
 @adapts(DriverInterface)
 class Imap(Driver):
-    """Imap driver possibly redefined by the rascal."""
+    """The Imap driver, possibly redefined by the rascal."""
 
-    isLocal = False
+    local = False
 
     def __init__(self, *args):
         super(Imap, self).__init__(*args)
         self.imap = ImapBackend(self.conf.get('backend'))
-
-    def capability(self):
-        return self.imap.capability()
 
     def connect(self):
         host = self.conf.get('host')
         port = int(self.conf.get('port'))
         return self.imap.connect(host, port)
 
+    def getCapability(self):
+        return self.imap.getCapability()
+
     def getFolders(self) -> Folders:
         return self.imap.getFolders()
 
-    def select(self, folder: Folder) -> None:
-        #TODO
-        return True
+    def getNamespace(self):
+        return self.imap.getNamespace()
 
     def login(self) -> None:
         user = self.conf.get('username')
@@ -64,6 +65,12 @@ class Imap(Driver):
 
     def logout(self) -> None:
         self.imap.logout()
+
+    def search(self, conditions: Union[SearchConditions, None]=None):
+        return self.imap.search(conditions)
+
+    def select(self, folder: Folder) -> None:
+        return self.imap.select(folder)
 
     #def append(self, server,  mail):
         #response = server.append(mail)

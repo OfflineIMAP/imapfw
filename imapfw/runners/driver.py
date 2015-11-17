@@ -1,24 +1,5 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 import inspect
 
@@ -28,9 +9,7 @@ from imapfw.types.account import loadAccount
 from imapfw.types.repository import Repository, loadRepository
 
 # Annotations.
-from imapfw.annotation import Dict, Union
 from imapfw.edmp import Receiver
-from imapfw.types.folder import Folders, Folder
 
 
 #TODO: catch exceptions?
@@ -40,43 +19,42 @@ class DriverRunner(object):
     Runs a complete low-level driver in a worker.
 
     The low-level drivers and controllers use the same low-level interface which
-    is not directly exposed to the engine.
+    is directly exposed to the engine.
 
-    Also, this allows to re-use any running worker with different repositories
-    during its lifetime. This feature is a requirement of the SyncAccount
-    runner.
-
-    Some tasks require a referent for the following events:
-        - exception(msg: str)
-        - folders(lst_folders: Folders)
+    Also, this runner allows to re-use any running worker with different
+    repositories during its lifetime. This feature is a required by design.
     """
 
+    #FIXME: unused workerName
     def __init__(self, workerName: str, receiver: Receiver):
         self.receiver = receiver
 
-        self.repositoryName = 'UNKOWN_REPOSITORY'
+        self.repositoryName = None
         self.driver = None # Might change over time.
+        self._clear()
 
-        # Cached values.
-        self.folders = None
-        self.capability = None
+    def _clear(self) -> None:
+        self.repositoryName = 'UNKOWN_REPOSITORY'
+        self.driver = None
 
-    def __getattr__(self, name):
-        return getattr(self.driver, name)
-
-    def _debug(self, msg):
+    def _debug(self, msg: str) -> None:
         runtime.ui.debugC(DRV, "%s %s"% (self.repositoryName, msg))
 
-    def buildDriverFromRepositoryName(self, repositoryName: str) -> None:
-        """Build the driver object in the worker from this repository name.
+    def _debugBuild(self):
+        runtime.ui.debugC(DRV, "built driver '{}' for '{}'",
+            self.driver.getClassName(), self.driver.getRepositoryName())
+        runtime.ui.debugC(DRV, "'{}' has conf {}",
+            self.repositoryName, self.driver.conf)
 
-        The repository must be globally defined in the rascal."""
+    def _driverAccept(self) -> None:
+        for name, method in inspect.getmembers(self.driver, inspect.ismethod):
+            if name.startswith('_') or name.startswith('fw_'):
+                continue
 
-        cls_repository = runtime.rascal.get(repositoryName, [Repository])
-        repository = loadRepository(cls_repository)
-        self.driver = repository.fw_getDriver()
-        self.repositoryName = repositoryName
-        runtime.ui.info("driver %s ready!"% self.driver.getClassName())
+            self.receiver.accept(name, method)
+
+    def _info(self, msg: str) -> None:
+        runtime.ui.info("%s %s"% (self.repositoryName, msg))
 
     def buildDriver(self, accountName: str, side: str,
             reuse: bool=False) -> None:
@@ -85,68 +63,42 @@ class DriverRunner(object):
         if reuse is True and self.driver is not None:
             return None
 
-        self.driver = None
+        self._clear()
 
         # Build the driver.
         account = loadAccount(accountName)
         repository = account.fw_getSide(side)
-        driver = repository.fw_getDriver()
         self.repositoryName = repository.getClassName()
+        self.driver = repository.fw_getDriver()
+        self._driverAccept()
+        self._debugBuild()
+        self._info("driver ready!")
 
-        #TODO: move to a debug controller.
-        runtime.ui.debugC(DRV, "built driver '{}' for '{}'",
-                driver.getClassName(), driver.getRepositoryName())
-        runtime.ui.debugC(DRV, "'{}' has conf {}", repository.getClassName(),
-                driver.conf)
+    def buildDriverFromRepositoryName(self, repositoryName: str,
+            reuse: bool=False) -> None:
+        """Build the driver object in the worker from this repository name.
 
-        self.driver = driver
-        return driver
+        The repository must be globally defined in the rascal."""
 
-    def connect(self) -> bool:
-        """Connect the driver for this repository (name)."""
+        if reuse is True and self.driver is not None:
+            return None
 
-        #TODO: move those debug logs into a controller.
-        if self.driver.isLocal:
-            self._debug("working in %s"% self.driver.conf.get('path'))
-        else:
-            self._debug("connecting to %s:%s"% (
-                self.driver.conf.get('host'), self.driver.conf.get('port')))
+        self._clear()
 
-        return self.driver.connect()
-
-    def fetchCapability(self):
-        self.capability = self.driver.capability()
-        return self.capability
-
-    def fetchFolders(self) -> Folders:
-        """Fetch the folders and cache the result."""
-
-        self._debug("starts fetching folder names")
-        self.folders = self.driver.getFolders()
-        return self.folders
-
-    def getCapability(self):
-        return self.capability
-
-    def getFolders(self) -> Folders:
-        """Return the cached folders."""
-
-        self._debug("got folders: %s"% self.folders)
-        return self.folders
-
-    def login(self) -> None:
-        return self.driver.login()
+        self.repositoryName = repositoryName
+        # Build the driver.
+        cls_repository = runtime.rascal.get(repositoryName, [Repository])
+        repository = loadRepository(cls_repository)
+        self.driver = repository.fw_getDriver()
+        self._driverAccept()
+        self._debugBuild()
+        self._info("driver ready!")
 
     def logout(self) -> None:
-        """Logout from server.
-
-        WARNING: this should NEVER be called in async mode since this can be
-        racy.
-
-        Can be called more than once."""
+        """Logout from server. Allows to be called more than once."""
 
         if self.driver is not None:
-            self.driver.logout()
+            self.driver.logout_sync()
             self._debug("logged out")
             self.driver = None
         return True
@@ -155,15 +107,8 @@ class DriverRunner(object):
         runtime.ui.debugC(DRV, "manager running")
 
         # Bind all public methods to events.
-        for name, method in inspect.getmembers(self, inspect.ismethod):
-            if name.startswith('_') or name == 'run':
-                continue
-            self.receiver.accept(name, method)
+        for name in ['buildDriver', 'buildDriverFromRepositoryName', 'logout']:
+            self.receiver.accept(name, getattr(self, name))
 
         while self.receiver.react():
             pass
-
-    def select(self, mailbox: Union[Folder, str]) -> bool:
-        """Select this mailbox."""
-
-        return self.driver.select(str(mailbox))

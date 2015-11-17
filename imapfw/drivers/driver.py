@@ -1,29 +1,41 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 from imapfw.interface import Interface, implements, checkInterfaces
 
 # Annotations.
 from imapfw.annotation import DriverClass
+
+
+#TODO: interface
+class SearchConditions(object):
+    def __init__(self):
+        self.maxSize = None # in bytes (2097152 for 2MB)
+        self.minDate = None # time_struct
+        self.minUID = None
+
+    def setMaxSize(self, maxSize: int) -> None:
+        self.maxSize = maxSize
+
+    def setMinUID(self, minUID: int) -> None:
+        self.minUID = minUID
+
+    def formatConditions(self) -> str:
+        searchConditions = []
+
+        if self.minUID is not None:
+            searchConditions.append("UID %i:*"% self.minUID)
+
+        # if self.minDate is not None:
+            # searchConditions.append("SINCE %02i-%s-%i"%
+                # (time_struct[2], imaplib2.MonthNames[time_struct[1]], time_struct[0]))
+
+        if self.maxSize is not None:
+            searchConditions.append("SMALLER %i"% self.maxSize)
+
+        if len(searchConditions) > 0:
+            return ' '.join(searchConditions)
+        return '1:*'
 
 
 class DriverInterface(Interface):
@@ -37,10 +49,13 @@ class DriverInterface(Interface):
     etc).
     """
 
-    scope = Interface.INTERNAL
+    # While updating this interface think about updating the fake controller,
+    # too.
+
+    scope = Interface.PUBLIC
 
     conf = {} # The configuration of the type has to be there.
-    isLocal = None
+    local = None
 
     def getClassName(self) -> str:
         """Return the class name, as defined by the rascal."""
@@ -54,6 +69,10 @@ class DriverInterface(Interface):
 
     def init(self) -> None:
         """Override this method to make initialization in the rascal."""
+
+    def isLocal(self) -> bool:
+        """Return True of False whether drived data is local."""
+
 
 @checkInterfaces()
 @implements(DriverInterface)
@@ -73,6 +92,9 @@ class Driver(object):
 
     def init(self) -> None:
         pass
+
+    def isLocal(self) -> bool:
+        return self.local
 
 
 def loadDriver(cls_driver: DriverClass, repositoryName: str,

@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 from imapfw.types.folder import Folders, Folder
+from imapfw.types.message import Messages, Message
 
 from .controller import Controller
 
@@ -55,17 +56,20 @@ class FakeDriver(Controller):
     def connect(self):
         return True
 
-    def fetchFolders(self):
-        return self._folders()
-
-    def getFolders(self):
-        return self._folders()
+    def getCapability(self):
+        return ["TODO=CAPABILITY"] #TODO
 
     def getClassName(self):
         return self.__class__.__name__
 
     def getDriverClassName(self):
         return self.driver.getClassName()
+
+    def getFolders(self):
+        return self._folders()
+
+    def getNamespace(self):
+        return "TODO" #TODO
 
     def getRepositoryName(self):
         return self.repositoryName
@@ -74,10 +78,16 @@ class FakeDriver(Controller):
         pass
 
     def isLocal(self):
-        return self.isLocal
+        return self.driver.isLocal()
+
+    def login(self):
+        return True
 
     def logout(self):
         return True
 
+    def search(self, conditions):
+        return Messages() #TODO
+
     def select(self, folder):
-        return True
+        return True #TODO

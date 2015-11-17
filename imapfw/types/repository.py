@@ -107,10 +107,10 @@ class Repository(RepositoryInterface, RepositoryIntenalInterface):
 def loadRepository(obj: Union[RepositoryClass, dict]) -> Repository:
 
     try:
-        if issubclass(obj, RepositoryInterface):
+        if issubclass(obj, Repository):
             cls_repository = obj
         else:
-            raise TypeError()
+            raise TypeError("got unsupported %s"% repr(obj))
 
     except TypeError:
         try:

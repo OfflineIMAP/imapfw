@@ -85,16 +85,21 @@ class Foundation(types.Account):
 
 # To work on IMAP driver.
 class DriveDriver(shells.DriveDriver):
-    conf = {'repository': 'MaildirA'}
-
     def session(self):
+        self.buildDriver()
         d = self.d
 
         d.connect()
-        folders = d.fetchFolders()
-        print(folders)
+        d.login()
         self.interactive()
         d.logout()
+
+class DriveMaildirA(DriveDriver):
+    conf = {'repository': MaildirA}
+
+class DriveImapA(DriveDriver):
+    conf = {'repository': ImapA}
+
 
 # To work on messages.
 class MShell(shells.Shell):
