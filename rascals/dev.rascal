@@ -83,6 +83,7 @@ class Foundation(types.Account):
     right = ImapA
 
 
+# To work on IMAP driver.
 class DriveDriver(shells.DriveDriver):
     conf = {'repository': 'MaildirA'}
 
@@ -94,6 +95,30 @@ class DriveDriver(shells.DriveDriver):
         print(folders)
         self.interactive()
         d.logout()
+
+# To work on messages.
+class MShell(shells.Shell):
+    def beforeSession(self):
+        self.m = types.message.Message(2)
+        self.n = types.message.Message(3)
+        self.o = types.message.Message(4)
+        self.a = types.message.Messages(self.m, self.n)
+
+        self.register('m')
+        self.register('n')
+        self.register('o')
+        self.register('a')
+
+    def session(self):
+        m = self.m
+        n = self.n
+        o = self.o
+        a = self.a
+
+        print(m in a)
+        print(o in a)
+        self.interactive()
+
 
 
 # vim: syntax=python ts=4 expandtab :

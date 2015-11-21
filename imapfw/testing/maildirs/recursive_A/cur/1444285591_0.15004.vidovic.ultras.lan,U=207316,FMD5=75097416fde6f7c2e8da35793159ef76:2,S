@@ -1,0 +1,72 @@
+Return-Path: nicolas.s-dev-return@laposte.net
+Received: from 10.128.63.20 (LHLO lpn-prd-vrin019) (10.128.63.20) by
+ lpn-prd-mstr083 with LMTP; Thu, 8 Oct 2015 08:01:50 +0200 (CEST)
+Received: from lpn-prd-vrin019 (localhost [127.0.0.1])
+	by lpn-prd-vrin019 (Postfix) with ESMTP id 21E781029B78
+	for <nicolas.s-dev@laposte.net>; Thu,  8 Oct 2015 08:01:50 +0200 (CEST)
+Received: from mail-wi0-f180.google.com (mail-wi0-f180.google.com [209.85.212.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by lpn-prd-vrin019 (Postfix) with ESMTPS id 097041029271
+	for <nicolas.s-dev@laposte.net>; Thu,  8 Oct 2015 08:01:50 +0200 (CEST)
+Received: by mail-wi0-f180.google.com with SMTP id gb1so9672299wic.1
+        for <nicolas.s-dev@laposte.net>; Wed, 07 Oct 2015 23:01:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=sender:date:from:to:cc:subject:message-id:mime-version:content-type
+         :content-disposition:user-agent;
+        bh=ragiKPcYGhn92IBlYkq3542CcZ8IrlYJ8QWZx96ph9I=;
+        b=YWBcYTH7kXVhp3Rz+uKICqs7634KikSFP3MlJfMnNFXQPDN//npTLanKZ91/b0gMm9
+         +JtSdwYkU50L+rJOwfAfDA3iBedTmjfUshiAsTKcn5BFDdiFLqnqttxLhbDDI1S+Raqi
+         J4vUcKeGM1y0cV3IGTMQoHiurZspPVyG0g4KCKvNG+RDKv/of2lvuPr6Npuh9GNrJ0if
+         N+CE7XciEoBgxOhA8dbkwYJpUTtDBspqXoFDP/vn97hSB9Xd2Rcmfxoej2s6DIcGcvOt
+         mdUl5exN0V59bWOYIYvwp2XgOYDx4KCnSYFsIRtbCX/N+vT+JxLqJaohKePop1bm130X
+         MlGQ==
+X-Received: by 10.194.242.65 with SMTP id wo1mr6226967wjc.15.1444284109902;
+        Wed, 07 Oct 2015 23:01:49 -0700 (PDT)
+Received: from vidovic.ultras.lan (212-198-74-192.rev.numericable.fr. [212.198.74.192])
+        by smtp.gmail.com with ESMTPSA id an4sm5380633wjc.36.2015.10.07.23.01.48
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 07 Oct 2015 23:01:48 -0700 (PDT)
+Sender: Nicolas Sebrecht <ni.s.nis33@gmail.com>
+Date: Thu, 8 Oct 2015 08:01:46 +0200
+From: Nicolas Sebrecht <nicolas.s-dev@laposte.net>
+To: offlineimap-project@lists.alioth.debian.org
+Cc: nicolas.s-dev-cc@laposte.net
+Bcc: nicolas.s-dev-bcc@laposte.net
+Subject: [ANNOUNCE] the new IMAP software "imapfw" is made public
+Message-ID: <20151008060146.GA2542@vidovic.ultras.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.5.23 (2014-03-12)
+X-VR-SrcIP: 209.85.212.180
+X-VR-FullState: 0
+X-VR-Score: 0
+X-VR-Cause-1: gggruggvucftvghtrhhoucdtuddrfeekgedrjeeggddutdelucetufdoteggodetrfcurfhrohhfihhl
+X-VR-Cause-2: vgemucfntefrqffuvffgnecuuegrihhlohhuthemucehtddtnecunecujfgurhepshffhffvuffkgggt
+X-VR-Cause-3: uggfsehttdertddtredvnecuhfhrohhmpefpihgtohhlrghsucfuvggsrhgvtghhthcuoehnihgtohhl
+X-VR-Cause-4: rghsrdhsqdguvghvsehlrghpohhsthgvrdhnvghtqeenucffohhmrghinhepohhffhhlihhnvghimhgr
+X-VR-Cause-5: phdrohhrghenucfrrghrrghmpehhvghlohepmhgrihhlqdifihdtqdhfudektddrghhoohhglhgvrdgt
+X-VR-Cause-6: ohhmpdhinhgvthepvddtledrkeehrddvuddvrddukedtpdhmrghilhhfrhhomhepnhhirdhsrdhnihhs
+X-VR-Cause-7: feefsehgmhgrihhlrdgtohhmpdhrtghpthhtohepnhhitgholhgrshdrshdquggvvheslhgrphhoshht
+X-VR-Cause-8: vgdrnhgvth
+X-VR-AvState: No
+X-VR-State: 0
+Content-Length: 381
+
+I'm happy to announce I'm publishing imapfw today. I aim imapfw to
+replace OfflineIMAP in the long run and I think it's the good time to
+share it.
+
+This is Python like OfflineIMAP but it comes under the MIT license.
+
+I wrote a blog post about this new tool on the website:
+  http://offlineimap.org/posts.html
+
+Feel free to share your opinions.
+
+Have fun! ,-)
+
+-- 
+Nicolas Sebrecht

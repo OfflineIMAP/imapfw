@@ -27,6 +27,7 @@ class UnitTests(ActionInterface):
         from imapfw.testing.concurrency import TestConcurrency
         from imapfw.testing.rascal import TestRascal
         from imapfw.testing.folder import TestFolder
+        from imapfw.testing.message import TestMessage, TestMessages
         from imapfw.testing.maildir import TestMaildirDriver
         from imapfw.testing.edmp import TestEDMP
         from imapfw.testing.types import TestTypeAccount, TestTypeRepository
@@ -37,6 +38,8 @@ class UnitTests(ActionInterface):
         self._suite.addTest(unittest.makeSuite(TestConcurrency))
         self._suite.addTest(unittest.makeSuite(TestRascal))
         self._suite.addTest(unittest.makeSuite(TestFolder))
+        self._suite.addTest(unittest.makeSuite(TestMessage))
+        self._suite.addTest(unittest.makeSuite(TestMessages))
         self._suite.addTest(unittest.makeSuite(TestMaildirDriver))
         self._suite.addTest(unittest.makeSuite(TestEDMP))
         self._suite.addTest(unittest.makeSuite(TestTypeAccount))

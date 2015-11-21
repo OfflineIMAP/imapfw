@@ -10,6 +10,7 @@ and how to structure the underlying code.
 
 __all__ = [
     'folder',
+    'message',
     'Account',
     'Imap',
     'Maildir',
@@ -17,6 +18,7 @@ __all__ = [
 ]
 
 from imapfw.types import folder
+from imapfw.types import message
 from imapfw.types.account import Account
 from imapfw.types.imap import Imap
 from imapfw.types.maildir import Maildir
