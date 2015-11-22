@@ -1,6 +1,5 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 """
 
@@ -87,7 +86,7 @@ sequential. So, it's fine to use a receiver like that:
 >>>             self._result = False
 >>>         self._result = True
 >>> 
->>>     def _withResult_longRequest(self):
+>>>     def _withResultOfLongRequest_do(self):
 >>>         if self._result is True: # Real value set by longRequest().
 >>>             doSomething()
 >>> 
@@ -111,6 +110,14 @@ Sending asynchronous events
 The easiest way to send events is to not worry about what is done. This is
 achieved with a call to a method of the emitter. The name of the method is the
 name of the event.
+
+The result of this event is cached at the receiver side. To later process the
+last result of an event, result can be retrieved with the "cached_" prefix and
+without arguments.
+
+:Example:
+
+>>> result = emitter.cached_doSomething()
 
 
 Sending synchronous events
@@ -206,6 +213,9 @@ from imapfw.concurrency import Queue
 _SILENT_TIMES = 100
 
 
+class TopicError(Exception): pass
+
+
 # Outlined.
 def _raiseError(cls_Exception: ExceptionClass, reason: str):
     """Default callback for errors."""
@@ -297,7 +307,7 @@ class Emitter(object):
 
             return sync_event
 
-        if topic.endswith('_sync'):
+        if topic.startswith("cached_") or topic.endswith('_sync'):
             setattr(self, topic, sync(topic))
         else:
             setattr(self, topic, async(topic))
@@ -314,6 +324,7 @@ class Receiver(object):
         self._errorQueue = error
 
         self._reactMap = {}
+        self._cache = {} # Cached values.
         self._previousTopic = None
         self._previousTopicCount = 0
 
@@ -365,24 +376,47 @@ class Receiver(object):
                     self._debug("marked as stop serving")
                     return False
 
+                # Async mode.
                 if topic in self._reactMap:
-                    self._react(topic, args, kwargs)
+                    self._cache[topic] = self._react(topic, args, kwargs)
                     return True
 
-                elif topic.endswith('_sync'):
-                    realTopic = topic[:-5]
-                    if realTopic in self._reactMap:
-                        result = self._react(realTopic, args, kwargs)
+                # Sync modes.
+                elif topic.startswith("cached_") or topic.endswith('_sync'):
+                    try:
+                        if topic.startswith("cached_"):
+                            #TODO: warn if arguments.
+                            realTopic = topic[7:]
+                            if realTopic.endswith("_sync"):
+                                realTopic = realTopic[:-5]
+
+                            if realTopic in self._cache:
+                                result = self._cache[realTopic]
+                            else:
+                                raise TopicError("%s: '%s' is called while"
+                                    " no cached value."% (self._name, topic))
+
+                        else:
+                            realTopic = topic[:-5] # "_sync"
+
+                            if realTopic in self._reactMap:
+                                result = self._react(realTopic, args, kwargs)
+                            else:
+                                raise TopicError("%s got unkown event '%s'"%
+                                    (self._name, topic))
+
+                        # Send result back to emitter.
                         if type(result) != tuple:
                             result = (result,)
                         self._resultQueue.put(result)
                         return True
-                    else:
-                        reason = "%s got unkown event '%s'"% (self._name, topic)
-                        self._errorQueue.put((AttributeError, reason))
+
+                    except TopicError as e:
+                        runtime.ui.error(str(e))
+                        self._errorQueue.put((AttributeError, str(e)))
 
                 runtime.ui.error("receiver %s unhandled event %s"%
-                        (self._name, event))
+                    (self._name, event))
 
             except KeyboardInterrupt:
                 raise
@@ -420,7 +454,7 @@ def newEmitterReceiver(debugName: str) -> (Receiver, Emitter):
 
 if __name__ == '__main__':
     # Run this demo like this (from the root directory):
-    # python3 -m imapfw.governor
+    # python3 -m imapfw.edmp
     #
     # We catch exception since it's run as a test in travis.
 
@@ -487,10 +521,6 @@ if __name__ == '__main__':
                 react = driverReceiver.react()
             print('driver stopped reacting')
 
-        def onConnect(result):
-            print("result: %s"% result)
-            assert result == __CONNECTED__
-
         driverReceiver, driverEmitter = newEmitterReceiver('driver')
 
 
@@ -500,8 +530,14 @@ if __name__ == '__main__':
 
         try:
             driverEmitter.connect(__REMOTE__, 80)
+            cached = driverEmitter.cached_connect()
+            print("got from cached_connect: %s"% cached)
+            assert cached == __CONNECTED__
+
             value = driverEmitter.connect_sync(__REMOTE__, 80)
-            onConnect(value)
+            print("got from connect_sync: %s"% value)
+            assert value == __CONNECTED__
+
             driverEmitter.stopServing()
         except:
             worker.kill()
