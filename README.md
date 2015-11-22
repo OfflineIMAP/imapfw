@@ -130,7 +130,7 @@ Reviews, feedbacks and pull requests are welcome, too. ,-)
 
 > Side note: I'm convinced that sooner is better when it's about reviews and
 > feedbacks. Once features you need will be implemented, it might be harder
-> to get things improved and take a longer time.
+> to get things improved or take more time to have imapfw fits your needs.
 
 
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
