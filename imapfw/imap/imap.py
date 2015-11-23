@@ -16,6 +16,7 @@ from imapfw import runtime
 from imapfw.constants import IMAP
 from imapfw.drivers.driver import SearchConditions
 from imapfw.types.folder import Folders, Folder
+from imapfw.types.message import Messages, Message
 
 # Annotations.
 from imapfw.annotation import List, Dict, Union
@@ -146,7 +147,10 @@ class IMAPlib2_skater(object):
         self._debugResponse("search", response)
         status, data = response
         if status == 'OK':
-            return data
+            messages = Messages()
+            for uid in data[0].decode(ENCODING).split(' '):
+                messages.add(Message(int(uid)))
+            return messages
 
         data = data.decode(ENCODING)
         raise ImapCommandError(data)

@@ -57,7 +57,8 @@ class ImapShell(shells.DriveDriver):
         print(str(folders))
 
         d.select(folders[-1])
-        d.search()
+        messages = d.search()
+        print(messages)
 
         #self.interactive()
         d.logout()
