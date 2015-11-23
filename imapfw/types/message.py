@@ -51,3 +51,9 @@ class Messages(OrderedDict):
         for message in args:
             messages[message.getUID()] = message
         super(Messages, self).__init__(messages)
+
+    def add(self, message: Message) -> None:
+        self.update({message.getUID(): message})
+
+    def remove(self, message: Message) -> None:
+        self.pop(message.getUID())
