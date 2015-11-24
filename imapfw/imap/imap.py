@@ -14,7 +14,6 @@ from importlib import import_module
 
 from imapfw import runtime
 from imapfw.constants import IMAP
-from imapfw.drivers.driver import SearchConditions
 from imapfw.types.folder import Folders, Folder
 from imapfw.types.message import Messages, Message
 
@@ -42,6 +41,65 @@ class ImapAbortError(ImapInternalError):
     """Error raised when connexion is unexpectly closed."""
 
 
+class FetchAttributes(object):
+    def __init__(self):
+        self.attributes = []
+
+    def _enable(self, name: str) -> None:
+        if not name in self.attributes:
+            self.attributes.append(name)
+
+    def enableFLAGS(self):
+        self._enable('FLAGS')
+
+    def enableUID(self):
+        self._enable('UID')
+
+    def enableINTERNALDATE(self):
+        self._enable('INTERNALDATE')
+
+    def setDefaults(self):
+        self.enableUID()
+        self.enableFLAGS()
+        self.enableINTERNALDATE()
+
+    def __str__(self):
+        if len(self.attributes) < 1:
+            raise ImapInternalError("attributes is empty")
+        return "(%s)"% ' '.join(self.attributes)
+
+
+#TODO: interface
+class SearchConditions(object):
+    def __init__(self):
+        self.maxSize = None # in bytes (2097152 for 2MB)
+        self.minDate = None # time_struct
+        self.minUID = None
+
+    def setMaxSize(self, maxSize: int) -> None:
+        self.maxSize = maxSize
+
+    def setMinUID(self, minUID: int) -> None:
+        self.minUID = minUID
+
+    def formatConditions(self) -> str:
+        searchConditions = []
+
+        if self.minUID is not None:
+            searchConditions.append("UID %i:*"% self.minUID)
+
+        # if self.minDate is not None:
+            # searchConditions.append("SINCE %02i-%s-%i"%
+                # (time_struct[2], imaplib2.MonthNames[time_struct[1]], time_struct[0]))
+
+        if self.maxSize is not None:
+            searchConditions.append("SMALLER %i"% self.maxSize)
+
+        if len(searchConditions) > 0:
+            return ' '.join(searchConditions)
+        return 'UID 1:*'
+
+
 #TODO: move to imapc/interface.py
 class IMAPcInterface(object):
     pass #TODO
@@ -67,19 +125,18 @@ class IMAPlib2_skater(object):
         self.imap = imaplib2.IMAP4(host, port, debug=3, timeout=2)
 
     def getCapability(self) -> List[str]:
-        capability = []
-
         # (typ, [data])
         # e.g. ('OK', [b'IMAP4rev1 LITERAL+'])
         response = self.imap.capability()
-        self._debugResponse("capability", response)
+        self._debugResponse("getCapability", response)
         status, lst_capability = response
 
         str_capability = lst_capability[0].decode(ENCODING)
+        capability = []
         for cap in str_capability.split(' '):
             capability.append(cap)
 
-        self._debug("capability", capability)
+        self._debug("getCapability", capability)
         return capability
 
     def getFolders(self) -> List[Dict[str, Union[str, bool]]]:
@@ -113,6 +170,28 @@ class IMAPlib2_skater(object):
 
         raise ImapCommandError(str(data))
 
+    def getMessages(self, messages: Messages,
+            attributes: FetchAttributes) -> Messages:
+        self._debug("getMessages", repr(messages))
+
+        # (typ, [data, ...])
+        # e.g. ('OK', [b'1 (UID 1 FLAGS (\\Seen) INTERNALDATE "15-Nov-2015
+        # 00:00:46 +0100")', b'2 (UID 2 FLAGS () INTERNALDATE "15-Nov-2015
+        # 00:00:46 +0100")'])
+        response = self.imap.uid('FETCH', messages.coalesceUIDs(),
+            str(attributes))
+        self._debugResponse("getMessages", response)
+
+        status, data = response
+        if status == 'OK':
+            for item in data:
+                item = item.decode(ENCODING)
+                uid = int(item[0])
+                #TODO: item must be of type MessageAttributes.
+                messages.setAttributes(uid, item)
+            return messages
+        raise ImapCommandError(data)
+
     def getNamespace(self):
         return self.imap.namespace()
 
@@ -134,17 +213,14 @@ class IMAPlib2_skater(object):
     def logout(self) -> None:
         self.imap.logout()
 
-    def search(self, searchConditions: Union[SearchConditions, None]):
-        if searchConditions is None:
-            searchConditions = SearchConditions()
-
+    def searchUID(self, searchConditions: SearchConditions=SearchConditions()):
         conditions = searchConditions.formatConditions()
-        self._debug("search", "%s"% conditions)
+        self._debug("searchUID", "%s"% conditions)
 
         # (typ, [data])
         # e.g. ('OK', [b'2']
-        response = self.imap.search(None, conditions)
-        self._debugResponse("search", response)
+        response = self.imap.uid('SEARCH', conditions)
+        self._debugResponse("searchUID", response)
         status, data = response
         if status == 'OK':
             messages = Messages()

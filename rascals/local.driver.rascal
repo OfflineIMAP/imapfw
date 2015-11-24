@@ -41,6 +41,23 @@ class ImapA(types.Imap):
     #controllers = [FakeImapA]
 
 
+class MShell(shells.Shell):
+    def session(self):
+        from imapfw.types.message import Messages, Message as M
+
+        self.M = M
+        self.register('M')
+
+        self.Messages = Messages
+        self.register('Messages')
+
+        self.m = Messages()
+        self.m.add(M(1))
+        self.m.add(M(2))
+        self.register('m')
+
+        self.interactive()
+
 
 class ImapShell(shells.DriveDriver):
     conf = {'repository': ImapA}
@@ -53,14 +70,22 @@ class ImapShell(shells.DriveDriver):
         d.connect()
         d.getCapability()
         d.login()
+
+        namespace = d.getNamespace()
+        print(namespace)
+
         folders = d.getFolders()
         print(str(folders))
 
         d.select(folders[-1])
-        messages = d.search()
+        messages = d.searchUID()
         print(messages)
 
-        #self.interactive()
+        attributes = drivers.FetchAttributes()
+        attributes.setDefaults()
+        messages = d.getMessages(messages, attributes)
+        for m in messages.values():
+            print(m.attributes)
         d.logout()
 
 

@@ -7,37 +7,6 @@ from imapfw.interface import Interface, implements, checkInterfaces
 from imapfw.annotation import DriverClass
 
 
-#TODO: interface
-class SearchConditions(object):
-    def __init__(self):
-        self.maxSize = None # in bytes (2097152 for 2MB)
-        self.minDate = None # time_struct
-        self.minUID = None
-
-    def setMaxSize(self, maxSize: int) -> None:
-        self.maxSize = maxSize
-
-    def setMinUID(self, minUID: int) -> None:
-        self.minUID = minUID
-
-    def formatConditions(self) -> str:
-        searchConditions = []
-
-        if self.minUID is not None:
-            searchConditions.append("UID %i:*"% self.minUID)
-
-        # if self.minDate is not None:
-            # searchConditions.append("SINCE %02i-%s-%i"%
-                # (time_struct[2], imaplib2.MonthNames[time_struct[1]], time_struct[0]))
-
-        if self.maxSize is not None:
-            searchConditions.append("SMALLER %i"% self.maxSize)
-
-        if len(searchConditions) > 0:
-            return ' '.join(searchConditions)
-        return '1:*'
-
-
 class DriverInterface(Interface):
     """The Driver base class.
 
