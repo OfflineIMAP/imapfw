@@ -35,3 +35,6 @@ InterfaceDefinitions = Dict[InterfaceClass, Tuple['arguments']]
 
 # drivers.driver,
 DriverClass = TypeVar('Driver based class')
+
+# actions.interface,
+ExceptionClass = TypeVar('Exception class')

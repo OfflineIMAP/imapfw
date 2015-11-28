@@ -1,8 +1,16 @@
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
+
+from imapfw.interface import implements
 
 from .interface import ActionInterface
 
+# Annotations.
+from imapfw.annotation import ExceptionClass, Dict
 
-class UnitTests(ActionInterface):
+
+@implements(ActionInterface)
+class UnitTests(object):
     """Run all the unit tests."""
 
     honorHooks = False
@@ -12,13 +20,13 @@ class UnitTests(ActionInterface):
         self._suite = None
         self._exitCode = 1
 
-    def exception(self, e):
+    def exception(self, e: ExceptionClass) -> None:
         raise
 
-    def getExitCode(self):
+    def getExitCode(self) -> int:
         return self._exitCode
 
-    def init(self, actionOptions):
+    def init(self, options: Dict) -> None:
         import unittest
 
         self._suite = unittest.TestSuite()
@@ -49,7 +57,7 @@ class UnitTests(ActionInterface):
         self._suite.addTest(unittest.makeSuite(TestDriversArchitect))
         self._suite.addTest(unittest.makeSuite(TestEngineArchitect))
 
-    def run(self):
+    def run(self) -> None:
         import unittest
 
         runner = unittest.TextTestRunner(verbosity=2)

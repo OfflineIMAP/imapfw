@@ -1,3 +1,5 @@
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 from .devel import Devel
 from .examine import Examine
@@ -19,7 +21,7 @@ Actions = {
 }
 
 
-def Action(actionName):
+def Action(actionName :str):
     try:
         return Actions[actionName]()
     except KeyError:
