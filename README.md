@@ -50,12 +50,14 @@ I'm tired to update this. Will reborn once a script for releases will be written
 
 As a framework, imapfw allows you to take control on what gets done.
 
-It comes with pre-configured actions requiring to write few to no Python code at
-all. For more control, a dedicated API allows to redefine the key parts of the
-frame in one file (called the *rascal*). Also, more experienced users might
-rather directly import one or more modules and use them to write a full software
-(using the framework as a "master-library"): imapfw is written with **separation
-of concerns** in mind.
+It comes with embedded actions requiring to write few to no Python code at all.
+
+For more control, a dedicated API allows to redefine the key parts of the
+frame in one file (called the *rascal*).
+
+Finally, most experienced users might rather directly import one or more modules
+and use them to write full softwares (using the framework as a
+"master-library"): imapfw is written with **separation of concerns** in mind.
 
 The choice of the level of control is left to the user.
 
@@ -66,8 +68,8 @@ missing, it's welcome to make requests.
 
 #### Simple
 
-imapfw provides nice embedded pre-configured actions. It can be used like any
-other software sharing the same goals of an action.
+imapfw provides nice embedded actions. It can be used like any other software
+sharing the same purpose.
 
 #### Fast
 
@@ -75,7 +77,7 @@ Mainly relying on UIDs greatly helps to be fast.
 
 Also, imapfw is designed to be fully concurrent. It even let the choice of the
 concurrency backend (multiprocessing or threading, for now). To take real
-advantage of this, implemetation is made asynchronous almost everywhere.
+advantage of this, implementation is made asynchronous almost everywhere.
 
 #### Good documentation
 
@@ -88,7 +90,7 @@ where it's the most relevant:
 - low-level code and modules have unit tests;
 - features like *actions* have black box tests.
 
-Continous intergration is done with [Travis CI](https://travis-ci.org/OfflineIMAP/imapfw).
+Continous intergration is done with [Travis CI][travis].
 
 The project is developed with a proven release cycle and release candidates.
 
@@ -119,21 +121,25 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 imapfw is **WORK IN PROGRESS**. Running imapfw should not hurt but all the
 features are not yet implemented. This is still early stage of development.
 
-Last WIP is in the `next` branch. Also, you might like to check the [TODO
-list](https://gist.github.com/nicolas33/003f1b7184c7dfb26192) online.
+Last WIP is in the [`next`
+branch][https://github.com/OfflineIMAP/imapfw/tree/next]. Also, you might like
+to check the [TODO list](https://gist.github.com/nicolas33/003f1b7184c7dfb26192)
+online.
 
 
 # Supporting
 
 Please, support the efforts! Staring the project at github is a good start.
+By watching the project, you'll get notifications including about releases.
 Reviews, feedbacks and pull requests are welcome, too. ,-)
 
 > Side note: I'm convinced that sooner is better when it's about reviews and
 > feedbacks. Once features you need will be implemented, it might be harder
-> to get things improved or take more time to have imapfw fits your needs.
+> to get things improved or take more time to get imapfw to fit your needs.
 
 
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
 [blog]: http://offlineimap.org/posts.html
+[travis]: https://travis-ci.org/OfflineIMAP/imapfw
