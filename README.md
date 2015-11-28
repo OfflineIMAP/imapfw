@@ -48,16 +48,14 @@ I'm tired to update this. Will reborn once a script for releases will be written
 
 #### Scalable
 
-As a framework, imapfw allows you to take control on what gets done.
+As a framework, imapfw allows you to take control on what gets done:
 
-It comes with embedded actions requiring to write few to no Python code at all.
-
-For more control, a dedicated API allows to redefine the key parts of the
-frame in one file (called the *rascal*).
-
-Finally, most experienced users might rather directly import one or more modules
-and use them to write full softwares (using the framework as a
-"master-library"): imapfw is written with **separation of concerns** in mind.
+* Embedded actions (softwares) requiring to write few to no Python code at all.
+* For more control, a dedicated API allows to redefine the key parts of the
+  frame in one file (called the *rascal*).
+* Finally, most experienced users might rather directly import one or more
+  modules and use them to write full softwares (using the framework as a
+  "master-library"): imapfw is written with **separation of concerns** in mind.
 
 The choice of the level of control is left to the user.
 
@@ -103,12 +101,11 @@ uses the most usefull of what Python 3 provides.
 # Feedbacks and contributions
 
 **The user discussions, development, announcements and all the exciting stuff
-take place on the OfflineIMAP's mailing list and github.**
-
-While not mandatory to send emails, you can [subscribe here][subscribe].
+take place in the OfflineIMAP's mailing list and github.**
 
 Bugs, issues and contributions can be requested to both the mailing list or the
-[official Github project][imapfw].
+[official Github project][imapfw].  While not mandatory to send emails, you can
+[subscribe here][subscribe].
 
 
 # Requirements
@@ -122,7 +119,7 @@ imapfw is **WORK IN PROGRESS**. Running imapfw should not hurt but all the
 features are not yet implemented. This is still early stage of development.
 
 Last WIP is in the [`next`
-branch][https://github.com/OfflineIMAP/imapfw/tree/next]. Also, you might like
+branch](https://github.com/OfflineIMAP/imapfw/tree/next).  Also, you might like
 to check the [TODO list](https://gist.github.com/nicolas33/003f1b7184c7dfb26192)
 online.
 
