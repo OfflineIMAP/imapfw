@@ -3,14 +3,16 @@
 
 from imapfw import runtime
 from imapfw.shells import Shell
-from imapfw.interface import implements
+from imapfw.interface import implements, checkInterfaces
+from imapfw.conf import Parser
 
 from .interface import ActionInterface
 
 # Annotations.
-from imapfw.annotation import ExceptionClass, Dict
+from imapfw.annotation import ExceptionClass
 
 
+@checkInterfaces()
 @implements(ActionInterface)
 class ShellAction(object):
     """Run in (interactive) shell mode."""
@@ -34,8 +36,8 @@ class ShellAction(object):
     def getExitCode(self) -> int:
         return self._exitCode
 
-    def init(self, options: Dict) -> None:
-        self._shellName = options.get('shell_name')
+    def init(self, parser: Parser) -> None:
+        self._shellName = parser.get('shell_name')
 
     def run(self) -> None:
         cls_shell = runtime.rascal.get(self._shellName, [Shell])
@@ -45,3 +47,10 @@ class ShellAction(object):
         shell.session()
         exitCode = shell.afterSession()
         self._setExitCode(exitCode)
+
+actionParser = Parser.addAction('shell', ShellAction, help="run in shell mode")
+
+actionParser.add_argument(dest="shell_name",
+    default=None,
+    metavar="SHELL_NAME",
+    help="the shell from the rascal to run")

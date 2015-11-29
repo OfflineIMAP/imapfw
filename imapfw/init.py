@@ -1,32 +1,11 @@
-#!/usr/bin/python3
-#
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 import sys
 import traceback
 
-from imapfw.conf.conf import ImapfwConfig
-from imapfw.actions.action import Action, Actions
+from imapfw import runtime
+from imapfw.conf import ImapfwConfig, Parser
 from imapfw.toolkit import runHook
 
 
@@ -37,61 +16,55 @@ class Imapfw(object):
             config.parseCLI() # Parse CLI options.
             config.setupConcurrency() # Exports concurrency to runtime module.
             config.setupUI() # Exports ui to the runtime module.
-            ui = config.getUI()
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             sys.exit(1)
 
-        if config.listActions():
-            ui.info("Available actions:")
-            for action in sorted(list(Actions.keys())):
-                ui.info("- %s: %s"% (action, Action(action).__doc__))
-            sys.exit(0)
-
         try:
             config.loadRascal() # Exports the rascal to the runtime module.
         except FileNotFoundError as e:
-            ui.critical(e)
+            runtime.ui.critical(e)
         except Exception:
-            raise
+            raise #FIXME
             sys.exit(2)
 
-
-        rascal = config.getRascal()
-
+        rascal = runtime.rascal
         # The rascal must use the thread-safe ui, too!
         if rascal is not None:
             rascalConfigure = rascal.getFunction('configure')
-            rascalConfigure(ui)
+            rascalConfigure(runtime.ui)
 
         # "Action", you said? Do you really want action?
         # Fine...
-        actionName = config.getAction()
-        actionOptions = config.getActionOptions()
-
-        action = Action(actionName)
+        try:
+            actionName, cls_action = config.getAction()
+        except KeyError as e:
+            runtime.ui.critical("unkown action: %s"% e)
+            sys.exit(1)
+        action = cls_action()
 
         if action.requireRascal is True and rascal is None:
-            ui.critical("a rascal is required but is not defined, use '-r'.")
+            runtime.ui.critical(
+                "a rascal is required but is not defined, use '-r'.")
             sys.exit(2)
 
         try:
             if action.honorHooks is True:
-                timedout = runHook(rascal.getPreHook(), actionName, actionOptions)
+                timedout = runHook(rascal.getPreHook(), actionName, Parser)
                 if timedout:
                     sys.exit(4)
 
-            action.init(actionOptions)
+            action.init(Parser)
             action.run()
             if action.honorHooks is True:
                 timedout = runHook(rascal.getPostHook())
                 if timedout:
-                    ui.error('postHook reached timed out')
+                    runtime.ui.error('postHook reached timed out')
         except Exception as e:
             def outputException(error, message):
-                ui.critical(message)
+                runtime.ui.critical(message)
                 import traceback, sys
-                ui.exception(error)
+                runtime.ui.exception(error)
                 traceback.print_exc(file=sys.stdout)
 
             # Rascal's exceptionHook.
@@ -99,7 +72,7 @@ class Imapfw(object):
                 if action.honorHooks is True:
                     timedout = runHook(rascal.getExceptionHook(), e)
                     if timedout:
-                        ui.error('postHook reached timed out')
+                        runtime.ui.error('postHook reached timed out')
             except Exception as hookError:
                 outputException(hookError, "exception occured while running"
                     " exceptionHook: %s"% str(hookError))
@@ -111,6 +84,5 @@ class Imapfw(object):
                 outputException(actionError, "exception occured while running"
                     " internal 'action.exception()': %s"% str(actionError))
             raise #TODO: raise only unkown errors.
-
 
         sys.exit(action.getExitCode())

@@ -5,7 +5,8 @@ from imapfw import runtime
 from imapfw.types.account import Account, loadAccount
 from imapfw.controllers.examine import ExamineController
 from imapfw.drivers.driver import DriverInterface
-from imapfw.interface import implements
+from imapfw.interface import implements, checkInterfaces
+from imapfw.conf import Parser
 
 from .interface import ActionInterface
 
@@ -13,6 +14,7 @@ from .interface import ActionInterface
 from imapfw.annotation import ExceptionClass, Dict
 
 
+@checkInterfaces()
 @implements(ActionInterface)
 class Examine(object):
     """Examine repositories (all run sequentially)."""
@@ -32,7 +34,7 @@ class Examine(object):
     def getExitCode(self) -> int:
         return self._exitCode
 
-    def init(self, options: Dict) -> None:
+    def init(self, parser: Parser) -> None:
         pass
 
     def run(self) -> None:
@@ -101,3 +103,6 @@ class Examine(object):
                 raise
                 self.ui.warn("got %s %s"% (repr(e), str(e)))
         report.markdown()
+
+
+Parser.addAction('examine', Examine, help="examine repositories")

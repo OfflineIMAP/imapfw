@@ -2,9 +2,10 @@
 # Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 from imapfw.interface import Interface
+from imapfw.conf import Parser
 
 # Annotations.
-from imapfw.annotation import ExceptionClass, Dict
+from imapfw.annotation import ExceptionClass
 
 
 class ActionInterface(Interface):
@@ -20,7 +21,7 @@ class ActionInterface(Interface):
     def getExitCode(self) -> int:
         """Return exit code."""
 
-    def init(self, options: Dict) -> None:
+    def init(self, parser: Parser) -> None:
         """Initialize action."""
 
     def run(self) -> None:

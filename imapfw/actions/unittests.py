@@ -1,14 +1,16 @@
 # The MIT License (MIT).
 # Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
-from imapfw.interface import implements
+from imapfw.interface import implements, checkInterfaces
+from imapfw.conf import Parser
 
 from .interface import ActionInterface
 
 # Annotations.
-from imapfw.annotation import ExceptionClass, Dict
+from imapfw.annotation import ExceptionClass
 
 
+@checkInterfaces()
 @implements(ActionInterface)
 class UnitTests(object):
     """Run all the unit tests."""
@@ -26,7 +28,7 @@ class UnitTests(object):
     def getExitCode(self) -> int:
         return self._exitCode
 
-    def init(self, options: Dict) -> None:
+    def init(self, parser: Parser) -> None:
         import unittest
 
         self._suite = unittest.TestSuite()
@@ -64,3 +66,6 @@ class UnitTests(object):
         testResult = runner.run(self._suite)
         if testResult.wasSuccessful():
             self._exitCode = len(testResult.failures)
+
+
+Parser.addAction('unitTests', UnitTests, help="run the integrated unit tests")

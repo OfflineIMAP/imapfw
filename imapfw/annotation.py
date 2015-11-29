@@ -25,6 +25,9 @@ from typing import Any, Dict, Iterable, List, Tuple, TypeVar, Union
 # Global.
 Function = TypeVar('Function')
 
+# actions.clioptions,
+ActionClass = TypeVar('ActionClass')
+
 # edmp,
 ExceptionClass = TypeVar('Exception class')
 
