@@ -52,6 +52,7 @@ class Imapfw(object):
             if action.honorHooks is True:
                 timedout = runHook(rascal.getPreHook(), actionName, Parser)
                 if timedout:
+                    runtime.ui.critical("preHook reached timeout")
                     sys.exit(4)
 
             action.init(Parser)
@@ -72,7 +73,7 @@ class Imapfw(object):
                 if action.honorHooks is True:
                     timedout = runHook(rascal.getExceptionHook(), e)
                     if timedout:
-                        runtime.ui.error('postHook reached timed out')
+                        runtime.ui.error('exceptionHook reached timeout')
             except Exception as hookError:
                 outputException(hookError, "exception occured while running"
                     " exceptionHook: %s"% str(hookError))
