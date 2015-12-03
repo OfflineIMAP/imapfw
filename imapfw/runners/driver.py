@@ -94,6 +94,9 @@ class DriverRunner(object):
         self._debugBuild()
         self._info("driver ready!")
 
+    def isDriverBuilt(self) -> bool:
+        return self.driver is not None
+
     def logout(self) -> None:
         """Logout from server. Allows to be called more than once."""
 
@@ -107,7 +110,8 @@ class DriverRunner(object):
         runtime.ui.debugC(DRV, "manager running")
 
         # Bind all public methods to events.
-        for name in ['buildDriver', 'buildDriverFromRepositoryName', 'logout']:
+        for name in ['buildDriver', 'buildDriverFromRepositoryName',
+                'isDriverBuilt', 'logout']:
             self.receiver.accept(name, getattr(self, name))
 
         while self.receiver.react():

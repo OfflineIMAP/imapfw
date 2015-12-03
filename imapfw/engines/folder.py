@@ -35,21 +35,23 @@ class SyncFolders(SyncEngine):
         runtime.ui.infoL(level, "%s %s"% (self.workerName, msg))
 
     # Outlined.
-    def _syncFolder(self, folder: Folder):
+    def _syncFolder(self, folder: Folder) -> int:
         """Sync one folder."""
 
         # account = loadAccount(self.accountName)
         # leftRepository = account.fw_getLeft()
         # rightRepository = account.fw_getRight()
 
-        self.left.buildDriver(self.accountName, 'left')
-        self.rght.buildDriver(self.accountName, 'right')
+        if self.left.isDriverBuilt_sync() is False:
+            self.left.buildDriver(self.accountName, 'left')
+        if self.rght.isDriverBuilt_sync() is False:
+            self.rght.buildDriver(self.accountName, 'right')
 
         self.left.connect()
         self.rght.connect()
 
-        self.left.select(folder)
-        self.rght.select(folder)
+        self.left.select_sync(folder)
+        self.rght.select_sync(folder)
 
         return 0
 
