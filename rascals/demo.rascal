@@ -1,0 +1,82 @@
+#
+# Used by me to development purposes.
+#
+
+MainConf = {
+    # The number of concurrent workers for the accounts. Default is the number
+    # of accounts to sync.
+    'max_sync_accounts': 7,
+}
+
+
+def configure(ui):
+    pass
+
+
+from imapfw.api import controllers, types, drivers, shells
+
+#
+# Global variables.
+#
+maildirsPath = "~/.imapfw/Mail"
+
+#
+# Controllers.
+#
+class FakeMaildir(controllers.FakeDriver):
+    conf = controllers.FakeDriver.MaildirConf
+
+import time, random
+class FakeImap(controllers.FakeDriver):
+    conf = controllers.FakeDriver.ImapConf
+
+    def select(self, *args, **kwargs):
+        time.sleep(random.randint(1, 30) / 5)
+        return super(FakeImap, self).select(*args, **kwargs)
+
+#
+# Repositories.
+#
+MaildirConfA = {
+    'path': maildirsPath + '/MaildirA',
+    'max_connections': 9,
+}
+class MaildirA(types.Maildir):
+    conf = MaildirConfA
+    driver = drivers.Maildir # Default: drivers.Maildir.
+    controllers = [FakeMaildir]
+
+MaildirConfB = {
+    'path': maildirsPath + '/MaildirB',
+    'max_connections': 2,
+}
+class MaildirB(types.Maildir):
+    conf = MaildirConfB
+    driver = drivers.Maildir # Default: drivers.Maildir.
+    controllers = [FakeMaildir]
+
+ImapConfA = {
+    'backend':  'imaplib3',
+    'host':      '127.0.0.1',
+    'port':     '10143',
+    'username': 'nicolas',
+    'password': 'sebrecht',
+    'max_connections': 3,
+}
+class ImapA(types.Imap):
+    conf = ImapConfA
+    driver = drivers.Imap # Default: drivers.Imap.
+    controllers = [FakeImap]
+
+#
+# Accounts.
+#
+class Home(types.Account):
+    left = MaildirA
+    right = ImapA
+
+class Foundation(types.Account):
+    left = MaildirB
+    right = ImapA
+
+# vim: syntax=python ts=4 expandtab :
