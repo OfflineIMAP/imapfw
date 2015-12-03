@@ -58,8 +58,9 @@ def configure(ui):
 # Hooks #
 #########
 
+# Hooks are optional.
 
-def preHook(actionName, actionOptions, hook):
+def preHook(hook, actionName, actionOptions):
     UI.info("Running preHook: starting action %s with actionOptions %s"%
         (actionName, actionOptions))
     hook.ended() # timeout not reached (10 seconds).
@@ -68,7 +69,7 @@ def postHook(hook):
     UI.info('Runing postHook')
     hook.ended() # timeout not reached (10 seconds).
 
-def exceptionHook(error, hook):
+def exceptionHook(hook, error):
     UI.critical("Running exceptionHook: an exception was catched!")
     #import traceback, sys
     #UI.exception(error)

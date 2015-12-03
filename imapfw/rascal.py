@@ -38,7 +38,7 @@ class Rascal(object):
         try:
             return self.getFunction(name)
         except:
-            return lambda *args: None
+            return lambda hook, *args: hook.ended()
 
     def _getLiteral(self, name: str) -> type:
         return getattr(self._rascal, name)

@@ -8,20 +8,10 @@ MainConf = {
     'max_sync_accounts': 7,
 }
 
-UI = None
 
 def configure(ui):
-    global UI
-    UI = ui
+    pass
 
-def preHook(actionName, actionOptions, hook):
-    hook.ended()
-
-def postHook(hook):
-    hook.ended()
-
-def exceptionHook(error, hook):
-    hook.ended()
 
 from imapfw.api import engines, controllers, types, drivers
 

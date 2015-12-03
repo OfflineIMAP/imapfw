@@ -27,13 +27,13 @@ def configure(ui):
     global UI
     UI = ui
 
-def preHook(actionName, actionOptions, hook):
+def preHook(hook, actionName, actionOptions):
     hook.ended()
 
 def postHook(hook):
     hook.ended()
 
-def exceptionHook(error, hook):
+def exceptionHook(hook, error):
     hook.ended()
 
 from imapfw.api import controllers, types, drivers
