@@ -36,7 +36,7 @@ class SyncAccounts(SyncEngine):
 
         accountName = account.getClassName()
 
-        runtime.ui.infoL(3, "merging folders of %s"% accountName)
+        runtime.ui.infoL(3, "merging folders for %s"% accountName)
 
         # Get the repository instances from the rascal.
         leftRepository = account.fw_getLeft()

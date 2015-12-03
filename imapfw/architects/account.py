@@ -79,7 +79,6 @@ class SyncArchitect(object):
             folders: Folders) -> None:
         """Start syncing of folders in async mode."""
 
-        runtime.ui.infoL(3, "%s syncing folders: %s"% (accountName, folders))
         self.foldersArch = SyncFoldersArchitect(self.workerName, accountName)
         # Let the foldersArchitect re-use our drivers.
         self.foldersArch.start(
