@@ -135,6 +135,14 @@ Reviews, feedbacks and pull requests are welcome, too. ,-)
 > to get things improved or take more time to get imapfw to fit your needs.
 
 
+# Screencasts
+
+[Channel of all the screencasts](http://www.dailymotion.com/offlineimap-project).
+
+* [introduce imapfw syncAccounts](http://www.dailymotion.com/video/x3gpqqs_introduce-imapfw-syncaccounts_tech)
+
+[![Introduce imapfw syncAccounts](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/dev-introduce-syncAccounts.png)](http://www.dailymotion.com/video/x3gpqqs_introduce-imapfw-syncaccounts_tech)
+
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
