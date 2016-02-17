@@ -1,6 +1,20 @@
 # The MIT License (MIT).
 # Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
+"""
+
+Engines follows the components design pattern because factoring engine code is
+not easy.
+
+IOW, engines here are meant to be parent objects. Each is a pure data container
+and provide some default processing code for the behaviour. It is the component.
+
+Good components modeling seperate each related data into one simple and
+dedicated component which is easy to re-use. Combine compenents into object
+(called entities) to use them in the application.
+
+"""
+
 from imapfw import runtime
 
 #TODO: engines debug logs.
