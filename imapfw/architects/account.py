@@ -4,7 +4,7 @@
 """
 
 Working with accounts implies end-to-end connections.  Each end is a driver to
-work with the data. The engine holds the algorithm, it is put "in the middle".
+work with the data. The engine holds the algorithm, it is "put in the middle".
 
 SCHEMATIC OVERVIEW
 ------------------
@@ -177,9 +177,9 @@ class SyncAccountsArchitect(object):
         for name in self.accountList:
             accountTasks.put(name)
 
-        # Avoid race condition: an empty would let account workers to quit
+        # Avoid race condition: an empty queue would let account workers to quit
         # without processing the content. We have to make sure the queue is not
-        # empty before they start. accountList can't be empty as defined by the
+        # empty before using them. accountList can't be empty as defined by the
         # argument parser.
         while accountTasks.empty():
             pass

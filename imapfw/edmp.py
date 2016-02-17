@@ -9,7 +9,11 @@ Overview
 This module allows event-driven communication between workers. "edmp" stands for
 "Event-Driven Message Passing".
 
-This follows the "passing by message" design with improved events.
+This follows the "passing by message" design with improved events. The emitter
+sends a message. The message is passed to the attached receiver in another
+worker.  The receiver handles the message by calling the code assigned to this
+event. The returned values are sent back to the emitter as a message when
+appropriate.
 
 In order to interact with other workers, the `newEmitterReceiver` function
 returns:
@@ -53,8 +57,8 @@ In this extract, the emitter is sending the event 'printInfo'. The receiver
 reacts by calling the function 'on_printInfo'.
 
 The receiver has only two public methods:
-    - accept: to define what to do on events.
-    - react: to react on events.
+    - accept: to define the available events.
+    - react: to process the received events.
 
 The `Receiver.react` method will process all the received events. This returns
 True or False whether it should continue reacting or not.
@@ -112,8 +116,8 @@ achieved with a call to a method of the emitter. The name of the method is the
 name of the event.
 
 The result of this event is cached at the receiver side. To later process the
-last result of an event, result can be retrieved with the "cached_" prefix and
-without arguments.
+last result of an event, result can be retrieved by adding the "cached_" prefix
+to the event name and calling it without argument.
 
 :Example:
 
@@ -123,8 +127,8 @@ without arguments.
 Sending synchronous events
 --------------------------
 
-If you need a result to the event, it's possible to get this by appending
-'_sync' to the method of the emitter.
+If you need the result of the event, it's possible to get this by appending
+'_sync' to the event name.
 
 :Example:
 
@@ -133,8 +137,8 @@ If you need a result to the event, it's possible to get this by appending
 Stopping the receiver
 ---------------------
 
-The receiver has one pre-defined event: 'stopServing' which allows to make the
-react method to return False instead of True.
+The receiver has one pre-defined event: 'stopServing'. This makes the react
+method to return False instead of True.
 
 
 Error handling
@@ -179,8 +183,10 @@ However, if you really need to pass objects, consider implementing the
 Effectively using the receiver and emitters
 -------------------------------------------
 
-Because communication internally relies on queues and that queues must be
-**passed** to the workers, they must be created and pass to the worker.
+Because communication internally relies on queues and that queues must be used
+in the workers, they must be created and passed to the worker when the latter is
+created. This means that all workers have a pre-defined number of receivers.
+Don't try to build and use emitters/receivers for a worker once running.
 
 
 Receiver and emitter in the same worker
