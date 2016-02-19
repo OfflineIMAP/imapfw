@@ -4,7 +4,7 @@
 **imapfw is a simple and powerfull framework to work with mails.**
 
 Also, it comes as a replacement to the [OfflineIMAP syncer][offlineimap].
-**Subscribe to [the blog][feed] *(RSS)* to [get last news][website] (RSS) about imapfw.**
+**Check out the [official website][website] to get last news *([RSS][feed])* about imapfw.**
 
 <!--
 
@@ -146,6 +146,6 @@ Reviews, feedbacks and pull requests are welcome, too. ,-)
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
 [imapfw]: https://github.com/OfflineIMAP/imapfw
+[website]: http://imapfw.offlineimap.org
 [feed]: http://imapfw.offlineimap.org/feed.xml
-[blog]: http://imapfw.offlineimap.org
 [travis]: https://travis-ci.org/OfflineIMAP/imapfw
