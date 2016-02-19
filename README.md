@@ -41,7 +41,7 @@ I'm tired to update this. Will reborn once a script for releases will be written
 * [![Build Status: "next" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=next)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "next"
 
 
-![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/imapfw.gif)
+![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/gh-pages/images/imapfw.gif)
 
 
 # Features
@@ -141,7 +141,7 @@ Reviews, feedbacks and pull requests are welcome, too. ,-)
 
 * [introduce imapfw syncAccounts](http://www.dailymotion.com/video/x3gpqqs_introduce-imapfw-syncaccounts_tech)
 
-[![Introduce imapfw syncAccounts](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/master/images/dev-introduce-syncAccounts.png)](http://www.dailymotion.com/video/x3gpqqs_introduce-imapfw-syncaccounts_tech)
+[![Introduce imapfw syncAccounts](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/gh-pages/images/dev-introduce-syncAccounts.png =72x45)](http://www.dailymotion.com/video/x3gpqqs_introduce-imapfw-syncaccounts_tech)
 
 [subscribe]: http://lists.alioth.debian.org/mailman/listinfo/offlineimap-project
 [offlineimap]: https://github.com/OfflineIMAP/offlineimap
