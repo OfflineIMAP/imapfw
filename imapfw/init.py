@@ -49,14 +49,18 @@ class Imapfw(object):
             sys.exit(2)
 
         try:
+            # PreHook.
             if action.honorHooks is True:
                 timedout = runHook(rascal.getPreHook(), actionName, Parser)
                 if timedout:
                     runtime.ui.critical("preHook reached timeout")
                     sys.exit(4)
 
+            # Doing the job.
             action.init(Parser)
             action.run()
+
+            # PostHook.
             if action.honorHooks is True:
                 timedout = runHook(rascal.getPostHook())
                 if timedout:
@@ -68,7 +72,7 @@ class Imapfw(object):
                 runtime.ui.exception(error)
                 traceback.print_exc(file=sys.stdout)
 
-            # Rascal's exceptionHook.
+            # ExceptionHook.
             try:
                 if action.honorHooks is True:
                     timedout = runHook(rascal.getExceptionHook(), e)
@@ -80,6 +84,7 @@ class Imapfw(object):
 
             # Let the Action instance know the exception.
             try:
+                # This way, exceptions can be handled in a per-action basis.
                 action.exception(e)
             except Exception as actionError:
                 outputException(actionError, "exception occured while running"
