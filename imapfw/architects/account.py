@@ -162,16 +162,20 @@ class SyncArchitect(object):
 
 
 class SyncAccountsArchitect(object):
-    """Architect to sync accounts."""
+    """Architect to sync multiple accounts."""
 
     def __init__(self, accountList: Iterable[str]):
         self.accountList = accountList
 
-        self.syncArchs = [] # Collection of SyncAccountsArchitect.
+        self.syncArchs = [] # List of SyncArchitect.
         self.exitCode = -1
         self.accountTasks = None
 
     def start(self, maxConcurrentAccounts: int) -> None:
+        """Starts the concurrents architects (workers).
+
+        They are all created now."""
+
         # The account names are the tasks for the account workers.
         accountTasks = runtime.concurrency.createQueue()
         for name in self.accountList:
@@ -192,7 +196,7 @@ class SyncAccountsArchitect(object):
             workerName = "Account.%i"% i
 
             syncArch = SyncArchitect(workerName, accountTasks,
-                    'SyncAccountEngine', 'SyncFolderEngine')
+                'SyncAccountEngine', 'SyncFolderEngine')
             syncArch.init()
             syncArch.start() # Async.
             self.syncArchs.append(syncArch)

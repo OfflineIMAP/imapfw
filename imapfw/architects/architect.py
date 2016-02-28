@@ -60,7 +60,7 @@ class Architect(object):
 class EngineArchitectInterface(Interface):
     """Architect for running an engine with both side drivers.
 
-    Aggragate the engine architect and the drivers."""
+    Aggregate the engine architect and the drivers."""
 
     scope = Interface.INTERNAL
 
