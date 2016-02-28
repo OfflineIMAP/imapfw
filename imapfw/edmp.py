@@ -134,11 +134,13 @@ If you need the result of the event, it's possible to get this by appending
 
 >>> result = emitter.doSomething_sync(whatever, parameter=optional, to=send)
 
-Stopping the receiver
----------------------
+Predefined events of emitters
+-----------------------------
 
-The receiver has one pre-defined event: 'stopServing'. This makes the react
-method to return False instead of True.
+- 'stopServing': when used the react method of the receiver returns False
+  instead of True allowing reacting loop to stop.
+- 'help': print the docstrings of the accepted events. Usefull in shell sessions
+  or for debugging.
 
 
 Error handling
@@ -319,6 +321,14 @@ class Emitter(object):
             setattr(self, topic, async(topic))
         return getattr(self, topic)
 
+    def help(self) -> None:
+        print("Available events:")
+        docstrings = self.str_help_sync()
+        for name, docstring in sorted(docstrings.items()):
+            print("- %s: %s"% (name, docstring))
+
+    help_sync = help
+
 
 class Receiver(object):
     """Honor events."""
@@ -337,11 +347,18 @@ class Receiver(object):
     def _debug(self, msg: str):
         runtime.ui.debugC(EMT, "receiver [%s] %s"% (self._name, msg))
 
+    def _help(self, topic: str, args, kwargs):
+        docstrings = {}
+        for name, rargs in self._reactMap.items():
+            func, rargs = self._reactMap[name]
+            docstrings[func.__name__] = func.__doc__
+        return docstrings
+
     def _react(self, topic: str, args, kwargs):
         func, rargs = self._reactMap[topic]
         args = rargs + args
 
-        # Make debug retention is too many messages.
+        # Enable debug retention if too many messages.
         if self._previousTopic != topic:
             if self._previousTopicCount > 0:
                 self._debug("reacted %i times to '%s'"%
@@ -407,6 +424,8 @@ class Receiver(object):
 
                             if realTopic in self._reactMap:
                                 result = self._react(realTopic, args, kwargs)
+                            elif realTopic == 'str_help':
+                                result = self._help(realTopic, args, kwargs)
                             else:
                                 raise TopicError("%s got unkown event '%s'"%
                                     (self._name, topic))
@@ -509,11 +528,12 @@ if __name__ == '__main__':
     def run_sync():
         ui.info("******** running run_sync()")
 
-        __REMOTE__ = 'http://imapfw.github.io'
+        __REMOTE__ = 'http://imapfw.offlineimap.org'
         __CONNECTED__ = 'would be connected'
 
         def runner(receiver):
             def connect(remote, port):
+                """docstring of connect"""
                 print("would connect to %s:%s"% (remote, port))
                 assert remote == __REMOTE__
                 assert port == 80
@@ -543,6 +563,11 @@ if __name__ == '__main__':
             value = driverEmitter.connect_sync(__REMOTE__, 80)
             print("got from connect_sync: %s"% value)
             assert value == __CONNECTED__
+
+            docstrings = driverEmitter.str_help_sync()
+            print("displaying docstrings:")
+            for name, doc in docstrings.items():
+                print("- %s: %s"% (name, doc))
 
             driverEmitter.stopServing()
         except:

@@ -1,24 +1,5 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2015, Nicolas Sebrecht & contributors
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# The MIT License (MIT).
+# Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
 
 from imapfw import runtime
@@ -175,12 +156,16 @@ class DriveDriver(Shell):
         self.register('events')
 
         banner = """
-Welcome to the shell. The driver is started in a worker. Take control of if with "driver" or "d".
-"d" will send any event in sync mode.  Ctrl+D: quit
+Welcome to the shell! The driver is running in a worker. Take control of it with
+the pre-configured emitter. It is available from both the "driver" and
+"d" variables.  "d" will send any event in sync mode.  Ctrl+D: quit
 
 Available commands:
 - events(): print available events for the driver.
 
-Notice the driver is already built with the default beforeSession() method."""
+Example:
+>>> d.help()
 
+The driver was already built in the default beforeSession() method of this shell.
+"""
         self.setBanner(banner)
