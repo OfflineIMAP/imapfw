@@ -286,7 +286,8 @@ def Concurrency(backendName):
     global SimpleLock
     try:
         concurrency = ConcurrencyBackends[backendName]()
-        SimpleLock = concurrency.createLock
+        if SimpleLock is None:
+            SimpleLock = concurrency.createLock
         return concurrency
     except KeyError:
         raise Exception("unkown backend: %s"% backendName)
