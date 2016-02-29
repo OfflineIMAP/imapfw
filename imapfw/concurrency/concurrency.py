@@ -3,11 +3,21 @@
 
 """
 
-The concurrency module defines a common interfaces to whatever backend is used
-(multiprocessing, Python threading, etc).
+Introduction
+============
 
-"worker" is the generic term used to define a thread (for Python threading) or a
-process (for multiprocessing).
+The concurrency module defines a common interfaces to whatever backend is used
+(multiprocessing, Python threading, etc).  "worker" is the generic term used to
+define a thread (for Python threading) or a process (for multiprocessing).
+
+Using the concurrency module
+============================
+
+The main entry point is the :func:`Concurrency` factory. The returned
+backend satisfy the interface :class:`ConcurrencyInterface`.
+
+The :func:`WorkerSafe` decorator allows to easily make any existing callable
+concurrency-safe.
 
 """
 
@@ -17,20 +27,13 @@ from imapfw import runtime
 from imapfw.constants import WRK
 
 
-SimpleLock = None # Defined at runtime.
+SimpleLock = None
+"""
 
+SimpleLock is a function defined at runtime and exposed in the rascal to create
+locks. The real function is set according to the command-line option.
 
-def WorkerSafe(lock):
-    """Decorator for locking any callable."""
-
-    def decorate(func):
-        def safeFunc(*args, **kwargs):
-            with lock:
-                values = func(*args, **kwargs)
-            return values
-        return safeFunc
-
-    return decorate
+"""
 
 
 class WorkerInterface(object):
@@ -57,6 +60,24 @@ class ConcurrencyInterface(object):
     def createQueue(self):                  raise NotImplementedError
     def createWorker(self):                 raise NotImplementedError
     def getCurrentWorkerNameFunction(self): raise NotImplementedError
+
+
+def WorkerSafe(lock) -> LockInterface:
+    """Decorator for locking any callable.
+
+    It is usefull to forbid concurrent access to non
+    concurrency-safe data or libraries. The decorated callable has to end before the
+    next concurrent call can start. It is required for the decorated callable to end
+    or your program might deadlock."""
+
+    def decorate(func):
+        def safeFunc(*args, **kwargs):
+            with lock:
+                values = func(*args, **kwargs)
+            return values
+        return safeFunc
+
+    return decorate
 
 
 class LockBase(LockInterface):
@@ -282,7 +303,11 @@ ConcurrencyBackends = {
     'threading': ThreadingBackend,
 }
 
-def Concurrency(backendName):
+def Concurrency(backendName: str) -> ConcurrencyInterface:
+    """Get the concurrency backend for the requested backend name.
+
+    backendName: currently 'multiprocessing' or 'threading'."""
+
     global SimpleLock
     try:
         concurrency = ConcurrencyBackends[backendName]()
