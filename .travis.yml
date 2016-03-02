@@ -23,6 +23,14 @@ install: "pip install -r requirements.txt"
 #before_script:
   #- cp -a ./tests "$TRAVIS_BUILD_DIR"
 
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/0d4fe7da7dd072da59ea
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never
+
 # command to run tests
 script:
   - python3 -m imapfw.edmp
