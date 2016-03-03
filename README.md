@@ -5,6 +5,9 @@
 
 Also, it comes as a replacement to the [OfflineIMAP syncer][offlineimap].
 **Check out the [official website][website] to get last news *([RSS][feed])* about imapfw.**
+You may join us to
+[![Gitter](https://badges.gitter.im/OfflineIMAP/imapfw.svg)](https://gitter.im/OfflineIMAP/imapfw?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+for more instant chatting.
 
 <!--
 
