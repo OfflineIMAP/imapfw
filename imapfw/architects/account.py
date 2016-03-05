@@ -4,10 +4,10 @@
 """
 
 Working with accounts implies end-to-end connections.  Each end is a driver to
-work with the data. The engine holds the algorithm, it is "put in the middle".
+work with the data. The engine holds the business logic and is "put in the
+middle".
 
-SCHEMATIC OVERVIEW
-------------------
+# SCHEMATIC OVERVIEW
 
 ```
 
@@ -38,6 +38,8 @@ from imapfw.types.folder import Folders
 
 @debugArchitect
 class SyncArchitect(object):
+    """Architect designed to sync one account."""
+
     def __init__(self, workerName: str, accountTasks: Queue,
             accountEngineName: str, folderEngineName: str):
         self.workerName = workerName
@@ -162,7 +164,9 @@ class SyncArchitect(object):
 
 
 class SyncAccountsArchitect(object):
-    """Architect to sync multiple accounts."""
+    """Architect to sync multiple accounts.
+
+    Handles a collection of SyncArchitect."""
 
     def __init__(self, accountList: Iterable[str]):
         self.accountList = accountList

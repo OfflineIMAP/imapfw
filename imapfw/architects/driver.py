@@ -83,6 +83,8 @@ class DriverArchitect(object):
 @checkInterfaces()
 @implements(DriverArchitectInterface)
 class ReuseDriverArchitect(DriverArchitect):
+    """Architect to manage a driver worker with en emitter already defined."""
+
     def __init__(self, emitter: Emitter):
         self.emitter = emitter
 
@@ -128,6 +130,8 @@ class DriversArchitectInterface(Interface):
 @checkInterfaces()
 @implements(DriversArchitectInterface)
 class DriversArchitect(object):
+    """Handles a collection of DriverArchitect."""
+
     def __init__(self, workerName: str, number: int):
         self.workerName = workerName
         self.number = number

@@ -3,6 +3,13 @@
 
 """
 
+Engines are users of the the drivers. The logic to apply to the data is put in
+the engines, e.g. a 3-way merge engine. They are likely put in their own worker
+and should mostly send events to work "with the outside" (the other workers).
+
+Engines might be rather complex. Hence, they aren't meant at being exposed in
+the rascal and best practices must be applied to the code.
+
 Engines follows the components design pattern because factoring engine code is
 not easy.
 

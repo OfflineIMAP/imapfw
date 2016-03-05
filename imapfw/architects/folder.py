@@ -18,7 +18,7 @@ from imapfw.types.folder import Folders
 
 
 class SyncFolderArchitect(object):
-    """The agent is run in the worker."""
+    """Architect to manage a folder worker."""
 
     def __init__(self, workerName, accountName: str):
         self.workerName = workerName
@@ -105,7 +105,7 @@ class SyncFolderArchitect(object):
 class SyncFoldersArchitect(object):
     """Handle a collection of FolderArchitect instances.
 
-    Can be used in a per-account basis."""
+    Must be used in a per-account basis."""
 
     def __init__(self, accountWorkerName: str, accountName: str):
         self.accountName = accountName

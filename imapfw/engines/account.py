@@ -1,6 +1,12 @@
 # The MIT License (MIT).
 # Copyright (c) 2015, Nicolas Sebrecht & contributors.
 
+"""
+
+Engines to work with accounts.
+
+"""
+
 from imapfw import runtime
 from imapfw.edmp import Channel
 from imapfw.types.folder import Folders

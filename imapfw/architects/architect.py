@@ -6,7 +6,11 @@
 The achitects are high level objects to support actions with dynamic process
 handling.
 
-They are helpers to handle workers, for example.
+They are helpers for the actions/softwares. They handles workers and whatever
+required to enable other components.
+
+This is the wrong place for anything about business logic. Architects are not
+problem solving for the purpose of the actions/softwares.
 
 """
 
@@ -25,6 +29,7 @@ from imapfw.annotation import Function
 
 
 class ArchitectInterface(Interface):
+
     scope = Interface.INTERNAL
 
     def kill(self) -> None:

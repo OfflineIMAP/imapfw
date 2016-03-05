@@ -3,6 +3,8 @@ from imapfw import runtime
 from imapfw.constants import ARC
 
 def debugArchitect(cls):
+    """Decorate methods of an Architect for better debugging experience."""
+
     import inspect
     import functools
 
