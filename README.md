@@ -97,7 +97,7 @@ The project is developed with a proven release cycle and release candidates.
 
 #### Code
 
-In order to offer the best, imapfw relies on the last Python 3 technologies. It
+In order to offer the best, imapfw relies on the latest Python 3 technologies. It
 uses the most usefull of what Python 3 provides.
 
 
