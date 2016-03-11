@@ -1,10 +1,8 @@
 > This v0.1 template stands in `.github/`.
 
-### Peer reviews
+### Peers review
 
-Trick to [fetch the pull
-request](https://help.github.com/articles/checking-out-pull-requests-locally):
-there is a (read-only) `refs/pull/` namespace.
+Trick to [fetch the pull request](https://help.github.com/articles/checking-out-pull-requests-locally): there is a (read-only) `refs/pull/` namespace.
 
 ``` bash
 git fetch origin pull/PULL_ID/head:LOCAL_BRANCH_NAME
