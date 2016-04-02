@@ -30,6 +30,10 @@ I'm tired to update this. Will reborn once a script for releases will be written
     <td> http://github.com/OfflineIMAP/imapfw </td>
   </tr>
   <tr>
+    <td> Website </td>
+    <td> http://imapfw.offlineimap.org </td>
+  </tr>
+  <tr>
     <td> License </td>
     <td> The MIT License (MIT) </td>
   </tr>
@@ -57,8 +61,8 @@ As a framework, imapfw allows you to take control on what gets done:
 * For more control, a dedicated API allows to redefine the key parts of the
   frame in one file (called the *rascal*).
 * Finally, most experienced users might rather directly import one or more
-  modules and use them to write full softwares (using the framework as a
-  "master-library"): imapfw is written with **separation of concerns** in mind.
+  modules and use them to write full softwares, using the framework as a
+  "master-library": imapfw is written with **separation of concerns** in mind.
 
 The choice of the level of control is left to the user.
 
@@ -69,7 +73,7 @@ missing, it's welcome to make requests.
 
 #### Simple
 
-imapfw provides nice embedded actions. It can be used like any other software
+imapfw provides nice embedded actions. They can be used like any other software
 sharing the same purpose.
 
 #### Fast
@@ -86,19 +90,19 @@ Providing good documentation is a concern.
 
 #### Quality
 
-Testing the framework is done with both static and dynamic testing. Each is used
-where it's the most relevant:
-- low-level code and modules have unit tests;
-- features like *actions* have black box tests.
+* Testing the framework is done with both static and dynamic testing. Each is
+  used where it's the most relevant:
+  - low-level code and modules have unit tests;
+  - features like *actions* have black box tests.
 
-Continous intergration is done with [Travis CI][travis].
+* Continous intergration is done with [Travis CI][travis].
 
-The project is developed with a proven release cycle and release candidates.
+* The project is developed with a proven release cycle and release candidates.
 
 #### Code
 
-In order to offer the best, imapfw relies on the latest Python 3 technologies. It
-uses the most usefull of what Python 3 provides.
+In order to offer the best, imapfw relies on the latest Python 3 technologies.
+It uses the most usefull of what Python 3 provides.
 
 
 # Feedbacks and contributions
@@ -113,8 +117,8 @@ Bugs, issues and contributions can be requested to both the mailing list or the
 
 # Requirements
 
-* Python v3.3
-* typing (Python < 3.5)
+* Python 3 (starting from v3.3)
+* typing (for Python < 3.5)
 
 # Status
 
@@ -130,7 +134,6 @@ online.
 # Supporting
 
 Please, support the efforts! Staring the project at github is a good start.
-By watching the project, you'll get notifications including about releases.
 Reviews, feedbacks and pull requests are welcome, too. ,-)
 
 > Side note: I'm convinced that sooner is better when it's about reviews and
