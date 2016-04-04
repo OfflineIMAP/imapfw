@@ -90,7 +90,6 @@ class SyncAccounts(SyncEngine):
 
         if len(syncFolders) < 1:
             runtime.ui.infoL(3, "%s: no folder to sync"% accountName)
-            self.setExitCode(0)
             return # Nothing more to do.
 
         #TODO: make max_connections mandatory in rascal.
@@ -100,14 +99,11 @@ class SyncAccounts(SyncEngine):
             leftRepository.conf.get('max_connections'))
 
         runtime.ui.infoL(3, "%s syncing folders %s"% (accountName, syncFolders))
-        # Syncing folders is not the job of this engine.
-        self.referent.syncFolders(accountName, maxFolderWorkers, syncFolders)
 
-        # Wait until folders are synced.
-        while self.referent.areFoldersDone_sync():
-            pass
-
-        self.setExitCode(0)
+        # Syncing folders is not the job of this engine. Use sync mode to ensure
+        # the referent starts syncing of folders before this engine stops.
+        self.referent.syncFolders_sync(
+            accountName, maxFolderWorkers, syncFolders)
 
     def run(self, taskQueue: Queue) -> None:
         """Sequentially process the accounts."""
@@ -123,6 +119,7 @@ class SyncAccounts(SyncEngine):
                 # Get the account instance from the rascal.
                 account = loadAccount(accountName)
                 self._syncAccount(account)
+                self.setExitCode(0)
 
             except Exception as e:
                 runtime.ui.error("could not sync account %s"% accountName)
@@ -130,5 +127,5 @@ class SyncAccounts(SyncEngine):
                 #TODO: honor hook!
                 self.setExitCode(10) # See manual.
 
-        self.checkExitCode()
-        self.referent.stop(self.getExitCode())
+        self.checkExitCode() # Sanity check.
+        self.referent.accountEngineDone(self.getExitCode())

@@ -62,7 +62,9 @@ class SyncFolders(SyncEngine):
         return 0
 
     def run(self, taskQueue: Queue) -> None:
-        """Sequentially process the folders."""
+        """Runner for the sync folder engine.
+
+        Sequentially process the folders."""
 
         #
         # Loop over the available folder names.

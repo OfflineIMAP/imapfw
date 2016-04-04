@@ -52,30 +52,15 @@ class SyncArchitect(object):
         self.receiver = None
         self.engine = None
         self.exitCode = -1 # Let caller know we are busy.
-        self.foldersExitCode = -1
-        # Let the account engine know when folders are done.
-        self.runnerShouldWait = True
+        self.accountEngineExitCode = None
 
-    # def _on_running(self) -> None:
-        # """The runner let us know when processing an new task.
-
-        # We don't wait for syncFolders event to be triggered to avoid race
-        # conditions."""
-
-        # self.runnerShouldWait = True
-
-    def _on_stop(self, exitCode: int) -> None:
-        """React to `done` event.
+    def _on_accountEngineDone(self, exitCode: int) -> None:
+        """React to `done` event for the account engine.
 
         This event is triggered when the sync engine has no more task to
         process. Stop worker and set exit code."""
 
-        self.runnerShouldWait = False
-        if self.foldersArch is not None:
-            self._setExitCode(self.foldersArch.getExitCode())
-        self.engineArch.stop()
-        self._setExitCode(exitCode)
-        self._setExitCode(self.foldersExitCode)
+        self.accountEngineExitCode = exitCode
 
     def _on_syncFolders(self, accountName: str, maxFolderWorkers: int,
             folders: Folders) -> None:
@@ -90,16 +75,6 @@ class SyncArchitect(object):
             self.engineArch.getRightEmitter(),
             )
 
-    def _on_areFoldersDone(self) -> bool:
-        """The runner will request us to know if folder workers are all done.
-
-        The account is fully processed once the folders are synced. The engine
-        must not monitor for this flag if there's no folder workers to run (no
-        syncFolders event).
-        """
-
-        return self.runnerShouldWait
-
     def _setExitCode(self, exitCode: int) -> None:
         if exitCode > self.exitCode:
             self.exitCode = exitCode
@@ -112,10 +87,8 @@ class SyncArchitect(object):
         self.receiver, emitter = newEmitterReceiver(self.workerName)
 
         # Setup events handling.
-        # self.receiver.accept('running', self._on_running)
-        self.receiver.accept('stop', self._on_stop)
+        self.receiver.accept('accountEngineDone', self._on_accountEngineDone)
         self.receiver.accept('syncFolders', self._on_syncFolders)
-        self.receiver.accept('areFoldersDone', self._on_areFoldersDone)
 
         self.engine = SyncAccounts(
             self.workerName,
@@ -129,7 +102,7 @@ class SyncArchitect(object):
 
         - negative: busy.
         - zero: finished without error.
-        - positive: got unrecoverable error."""
+        - positive: got error(s)."""
 
         try:
             self.receiver.react()
@@ -137,14 +110,15 @@ class SyncArchitect(object):
                 exitCode = self.foldersArch.getExitCode()
                 if exitCode >= 0:
                     # Folders are all done.
-                    self.runnerShouldWait = False
-                    self.foldersExitCode = exitCode
                     self.foldersArch = None
+                    self._setExitCode(self.accountEngineExitCode)
+                    self._setExitCode(exitCode)
+                    self.engineArch.stop()
 
         except Exception as e:
             #TODO: honor rascal.
             runtime.ui.critical("%s got unexpected error '%s'"%
-                    (self.workerName, e))
+                (self.workerName, e))
             runtime.ui.exception(e)
             # Stop here.
             self.engineArch.kill()
