@@ -1,5 +1,5 @@
 # The MIT License (MIT).
-# Copyright (c) 2015, Nicolas Sebrecht & contributors.
+# Copyright (c) 2015-2016, Nicolas Sebrecht & contributors.
 
 """
 

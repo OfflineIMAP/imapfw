@@ -1,5 +1,5 @@
 # The MIT License (MIT).
-# Copyright (c) 2015, Nicolas Sebrecht & contributors.
+# Copyright (c) 2015-2016, Nicolas Sebrecht & contributors.
 
 """
 
@@ -26,7 +26,7 @@ from imapfw.engines import SyncAccounts
 from imapfw.runners import topRunner
 from imapfw.edmp import newEmitterReceiver
 
-from .architect import EngineArchitect
+from .engine import EngineArchitect
 from .folder import SyncFoldersArchitect
 from .debug import debugArchitect
 
