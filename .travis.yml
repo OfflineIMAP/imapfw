@@ -44,5 +44,6 @@ script:
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
   - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
+  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
 
 # vim: expandtab ts=2 :
