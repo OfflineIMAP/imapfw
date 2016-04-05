@@ -5,7 +5,7 @@
 MainConf = {
     # The number of concurrent workers for the accounts. Default is the number
     # of accounts to sync.
-    'max_sync_accounts': 7,
+    'max_sync_accounts': 2,
 }
 
 UI = None

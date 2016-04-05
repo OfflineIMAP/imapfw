@@ -31,9 +31,6 @@ class DriverRunner(object):
 
         self.repositoryName = None
         self.driver = None # Might change over time.
-        self._clear()
-
-    def _clear(self) -> None:
         self.repositoryName = 'UNKOWN_REPOSITORY'
         self.driver = None
 
@@ -51,10 +48,18 @@ class DriverRunner(object):
             if name.startswith('_') or name.startswith('fw_'):
                 continue
 
+            #FIXME: we should clear previous accepted events.
             self.receiver.accept(name, method)
 
     def _info(self, msg: str) -> None:
         runtime.ui.info("%s %s"% (self.repositoryName, msg))
+
+    def _buildDriver(self, repository: Repository) -> None:
+        self.repositoryName = repository.getClassName()
+        self.driver = repository.fw_getDriver()
+        self._driverAccept()
+        self._debugBuild()
+        self._info("driver ready!")
 
     def buildDriver(self, accountName: str, side: str,
             reuse: bool=False) -> None:
@@ -63,16 +68,9 @@ class DriverRunner(object):
         if reuse is True and self.driver is not None:
             return None
 
-        self._clear()
-
-        # Build the driver.
         account = loadAccount(accountName)
         repository = account.fw_getSide(side)
-        self.repositoryName = repository.getClassName()
-        self.driver = repository.fw_getDriver()
-        self._driverAccept()
-        self._debugBuild()
-        self._info("driver ready!")
+        self._buildDriver(repository)
 
     def buildDriverFromRepositoryName(self, repositoryName: str,
             reuse: bool=False) -> None:
@@ -83,16 +81,9 @@ class DriverRunner(object):
         if reuse is True and self.driver is not None:
             return None
 
-        self._clear()
-
-        self.repositoryName = repositoryName
-        # Build the driver.
         cls_repository = runtime.rascal.get(repositoryName, [Repository])
         repository = loadRepository(cls_repository)
-        self.driver = repository.fw_getDriver()
-        self._driverAccept()
-        self._debugBuild()
-        self._info("driver ready!")
+        self._buildDriver(repository)
 
     def isDriverBuilt(self) -> bool:
         return self.driver is not None

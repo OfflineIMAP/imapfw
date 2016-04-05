@@ -41,7 +41,6 @@ class SyncAccounts(SyncEngine):
         """Sync one account."""
 
         accountName = account.getClassName()
-
         runtime.ui.infoL(3, "merging folders for %s"% accountName)
 
         # Get the repository instances from the rascal.
@@ -105,6 +104,11 @@ class SyncAccounts(SyncEngine):
         self.referent.syncFolders_sync(
             accountName, maxFolderWorkers, syncFolders)
 
+        # Wait for all the folders to be synced before processing the next
+        # account.
+        while self.referent.areSyncFoldersDone_sync() is not True:
+            pass
+
     def run(self, taskQueue: Queue) -> None:
         """Sequentially process the accounts."""
 
@@ -112,19 +116,20 @@ class SyncAccounts(SyncEngine):
         # Loop over the available account names.
         #
         for accountName in Channel(taskQueue):
-            self.processing(accountName)
-
-            # The syncer will let expode errors it can't recover from.
+            # The syncer let explode errors it can't recover from.
             try:
+                self.processing(accountName)
                 # Get the account instance from the rascal.
                 account = loadAccount(accountName)
-                self._syncAccount(account)
+                self._syncAccount(account) # Wait until folders are done.
                 self.setExitCode(0)
+                #TODO: Here, we only keep max exit code. Would worth using the
+                # rascal at the end of the process for each account.
 
             except Exception as e:
                 runtime.ui.error("could not sync account %s"% accountName)
                 runtime.ui.exception(e)
-                #TODO: honor hook!
+                #TODO: honor rascal!
                 self.setExitCode(10) # See manual.
 
         self.checkExitCode() # Sanity check.

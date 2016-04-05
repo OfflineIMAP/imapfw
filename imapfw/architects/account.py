@@ -52,7 +52,8 @@ class SyncArchitect(object):
         self.receiver = None
         self.engine = None
         self.exitCode = -1 # Let caller know we are busy.
-        self.accountEngineExitCode = None
+        self.foldersExitCode = -1 # Max from all folders architects.
+        self.syncFoldersDone = False
 
     def _on_accountEngineDone(self, exitCode: int) -> None:
         """React to `done` event for the account engine.
@@ -60,12 +61,23 @@ class SyncArchitect(object):
         This event is triggered when the sync engine has no more task to
         process. Stop worker and set exit code."""
 
-        self.accountEngineExitCode = exitCode
+        # Set exit code.
+        self._setExitCode(exitCode)
+        self._setExitCode(self.foldersExitCode)
+        # Stop both drivers.
+        self.engineArch.getLeftEmitter().stop()
+        self.engineArch.getRightEmitter().stop()
+        # Stop current engine.
+        self.engineArch.stop()
+
+    def _on_areSyncFoldersDone(self) -> bool:
+        return self.syncFoldersDone
 
     def _on_syncFolders(self, accountName: str, maxFolderWorkers: int,
             folders: Folders) -> None:
         """Start syncing of folders in async mode."""
 
+        self.syncFoldersDone = False
         self.foldersArch = SyncFoldersArchitect(self.workerName, accountName)
         # Let the foldersArchitect re-use our drivers.
         self.foldersArch.start(
@@ -76,17 +88,18 @@ class SyncArchitect(object):
             )
 
     def _setExitCode(self, exitCode: int) -> None:
-        if exitCode > self.exitCode:
-            self.exitCode = exitCode
+        self.exitCode = max(exitCode, self.exitCode)
 
     def init(self) -> None:
         """Initialize the architect. Helps to compose components easily."""
+
         self.engineArch = EngineArchitect(self.workerName)
         self.engineArch.init()
 
         self.receiver, emitter = newEmitterReceiver(self.workerName)
 
         # Setup events handling.
+        self.receiver.accept('areSyncFoldersDone', self._on_areSyncFoldersDone)
         self.receiver.accept('accountEngineDone', self._on_accountEngineDone)
         self.receiver.accept('syncFolders', self._on_syncFolders)
 
@@ -111,9 +124,8 @@ class SyncArchitect(object):
                 if exitCode >= 0:
                     # Folders are all done.
                     self.foldersArch = None
-                    self._setExitCode(self.accountEngineExitCode)
-                    self._setExitCode(exitCode)
-                    self.engineArch.stop()
+                    self.syncFoldersDone = True
+                    self.foldersExitCode = max(exitCode, self.foldersExitCode)
 
         except Exception as e:
             #TODO: honor rascal.

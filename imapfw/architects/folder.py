@@ -32,29 +32,30 @@ class SyncFolderArchitect(object):
         self.leftArch = None
         self.rightArch = None
         self.exitCode = -1
+        # Engine might handle both driver.
+        self.reuseLeft = False
+        self.reuseRight = False
 
     def _debug(self, msg) -> None:
         runtime.ui.debugC(ARC, "%s folderArchitect %s"% (self.workerName, msg))
 
     def _on_stop(self, exitCode: int) -> None:
         self._debug("stop(%i)"% exitCode)
+        """Stop architects when approppriate.
 
-        self.leftArch.stop()
-        self.rightArch.stop()
+        When the account engine started us with both side drivers we must NOT
+        stop them so that the account engine can reuse them."""
+
+        if self.reuseLeft is False:
+            self.leftArch.stop()
+        if self.reuseRight is False:
+            self.rightArch.stop()
         self.architect.stop()
         self._setExitCode(exitCode)
 
     def _setExitCode(self, exitCode: int) -> None:
         self._debug("_setExitCode(%i)"% exitCode)
-        if exitCode > self.exitCode:
-            self.exitCode = exitCode
-
-    def kill(self) -> None:
-        self._debug("kill()")
-
-        self.leftArch.stop()
-        self.rightArch.stop()
-        self.architect.kill()
+        self.exitCode = max(exitCode, self.exitCode)
 
     def getExitCode(self) -> int:
         try:
@@ -66,6 +67,13 @@ class SyncFolderArchitect(object):
             self.kill()
             self._setExitCode(10) # See manual.
         return self.exitCode
+
+    def kill(self) -> None:
+        self._debug("kill()")
+
+        self.leftArch.stop()
+        self.rightArch.stop()
+        self.architect.kill()
 
     def start(self, folderTasks: Queue,
             left: Emitter, right: Emitter) -> None:
@@ -80,6 +88,7 @@ class SyncFolderArchitect(object):
             self.leftArch.start()
             left = self.leftArch.getEmitter()
         else:
+            self.reuseLeft = True
             self.leftArch = ReuseDriverArchitect(left)
         if right is None:
             self.rightArch = DriverArchitect("%s.Driver.1"% self.workerName)
@@ -87,6 +96,7 @@ class SyncFolderArchitect(object):
             self.rightArch.start()
             right = self.rightArch.getEmitter()
         else:
+            self.reuseRight = True
             self.rightArch = ReuseDriverArchitect(right)
 
         receiver, emitter = newEmitterReceiver(self.workerName)
