@@ -105,20 +105,11 @@ In order to offer the best, imapfw relies on the latest Python 3 technologies.
 It uses the most usefull of what Python 3 provides.
 
 
-# Feedbacks and contributions
-
-**The user discussions, development, announcements and all the exciting stuff
-take place in the OfflineIMAP's mailing list and github.**
-
-Bugs, issues and contributions can be requested to both the mailing list or the
-[official Github project][imapfw].  While not mandatory to send emails, you can
-[subscribe here][subscribe].
-
-
 # Requirements
 
 * Python 3 (starting from v3.3)
 * typing (for Python < 3.5)
+
 
 # Status
 
@@ -127,7 +118,7 @@ features are not yet implemented. This is still early stage of development.
 
 Last WIP is in the [`next`
 branch](https://github.com/OfflineIMAP/imapfw/tree/next).  Also, you might like
-to read our [CONTRIBUTING][contributing] page and check the [TODO list][wiki]
+to read our [CONTRIBUTING page][contributing] and check the [TODO list][wiki]
 online.
 
 
