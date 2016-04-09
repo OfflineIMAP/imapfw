@@ -11,8 +11,8 @@ The [TODO list][wiki] is open and writable to everybody.
 # Being involved
 
 There are lot of ideas and WIP you might like to contribute to. **We welcome
-newcomers and make our best to help so that everyone become effective with the
-project.**
+newcomers and make our best to help so that everyone become quickly effective
+on the project.**
 
 
 [gitter]: https://gitter.im/OfflineIMAP/imapfw
