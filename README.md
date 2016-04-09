@@ -127,7 +127,7 @@ features are not yet implemented. This is still early stage of development.
 
 Last WIP is in the [`next`
 branch](https://github.com/OfflineIMAP/imapfw/tree/next).  Also, you might like
-to check the [TODO list](https://gist.github.com/nicolas33/003f1b7184c7dfb26192)
+to read our [CONTRIBUTING][contributing] page and check the [TODO list][wiki]
 online.
 
 
@@ -155,3 +155,5 @@ Reviews, feedbacks and pull requests are welcome, too. ,-)
 [website]: http://imapfw.offlineimap.org
 [feed]: http://imapfw.offlineimap.org/feed.xml
 [travis]: https://travis-ci.org/OfflineIMAP/imapfw
+[wiki]: https://github.com/OfflineIMAP/imapfw/wiki
+[contributing]: https://github.com/OfflineIMAP/imapfw/blob/next/CONTRIBUTING.md
