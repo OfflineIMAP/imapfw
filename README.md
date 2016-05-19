@@ -46,6 +46,11 @@ I'm tired to update this. Will reborn once a script for releases will be written
 
 * [![Build Status: "master" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=master)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "master"
 * [![Build Status: "next" branch](https://travis-ci.org/OfflineIMAP/imapfw.svg?branch=next)](https://travis-ci.org/OfflineIMAP/imapfw) for branch "next"
+* [![codecov.io](https://codecov.io/github/OfflineIMAP/imapfw/coverage.svg?branch=master)](https://codecov.io/github/OfflineIMAP/imapfw?branch=master)
+* [![codecov.io "next" branch](https://codecov.io/github/OfflineIMAP/imapfw/coverage.svg?branch=next)](https://codecov.io/github/OfflineIMAP/imapfw?branch=next)
+* [![Coverage Status](https://coveralls.io/repos/github/OfflineIMAP/imapfw/badge.svg?branch=master)](https://coveralls.io/github/OfflineIMAP/imapfw?branch=master)
+* [![Coverage Status "next" branch](https://coveralls.io/repos/github/OfflineIMAP/imapfw/badge.svg?branch=next)](https://coveralls.io/github/OfflineIMAP/imapfw?branch=next)
+
 
 
 ![demo](https://raw.githubusercontent.com/OfflineIMAP/imapfw.github.io/gh-pages/images/imapfw.gif)

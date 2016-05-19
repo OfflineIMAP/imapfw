@@ -11,11 +11,13 @@ python:
 branches:
   only:
     - master
+    - coverage
     - next
     - travis # Let testing travis configuration.
 
 before_install:
   - pip install --upgrade pip
+  - pip install coverage codecov coveralls
 
 # command to install dependencies
 install: "pip install -r requirements.txt"
@@ -33,17 +35,21 @@ notifications:
 
 # command to run tests
 script:
-  - python3 -m imapfw.edmp
-  - python3 -m imapfw.mmp.manager
-  - ./imapfw.py -h
-  - ./imapfw.py noop
-  - ./imapfw.py -c multiprocessing unitTests
-  - ./imapfw.py -c threading unitTests
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all testRascal
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
-  - ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
+  - coverage run --source=imapfw,imapfw.py -p -m imapfw.edmp
+  - coverage run --source=imapfw,imapfw.py -p -m imapfw.mmp.manager
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -h
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py noop
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c multiprocessing unitTests
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c threading unitTests
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all testRascal
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
+  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
+  - coverage combine .coverage*
 
+after_success:
+  - coveralls
+  - codecov
 # vim: expandtab ts=2 :
