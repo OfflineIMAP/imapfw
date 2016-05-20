@@ -15,7 +15,11 @@ BEGIN {
   if (\$1 == "script:") {
     FS="- "
   }
-  else if (\$1 == "  ") {
+  if (FS == "- " && \$1 == "  ") {
+    if (\$2 == "coverage combine .coverage*") {
+      exit 0
+    }
+    sub(/coverage run [^ ]+ -p/, "python3", \$2)
     print \$2
   }
 }
