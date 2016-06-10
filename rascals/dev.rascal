@@ -86,7 +86,6 @@ class Foundation(types.Account):
 # To work on IMAP driver.
 class DriveDriver(shells.DriveDriver):
     def session(self):
-        self.buildDriver()
         d = self.d
 
         d.connect()

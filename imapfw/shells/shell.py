@@ -137,9 +137,14 @@ class DriveDriver(Shell):
         self.driverArchitect = DriverArchitect("%s.Driver"% repositoryName)
         self.driverArchitect.init()
         self.driverArchitect.start()
+        self.driverArch = self.driverArchitect
 
         self.driver = self.driverArchitect.getEmitter()
         self.d = SyncEmitter(self.driver)
+        self.buildDriver()
+
+        self.register('repository')
+        self.register('driverArch')
         self.register('driver')
         self.register('d')
 
