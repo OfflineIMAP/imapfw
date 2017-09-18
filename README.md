@@ -1,7 +1,7 @@
 
 [![imapfw](logo.png)](https://github.com/OfflineIMAP/imapfw)
 
-**imapfw is a simple and powerfull framework to work with mails.**
+**imapfw is a simple and powerful framework to work with mails.**
 
 Also, it comes as a replacement to the [OfflineIMAP syncer][offlineimap].
 **Check out the [official website][website] to get last news *([RSS][feed])* about imapfw.**
