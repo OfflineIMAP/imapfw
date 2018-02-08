@@ -100,7 +100,7 @@ Providing good documentation is a concern.
   - low-level code and modules have unit tests;
   - features like *actions* have black box tests.
 
-* Continous intergration is done with [Travis CI][travis].
+* Continuous integration is done with [Travis CI][travis].
 
 * The project is developed with a proven release cycle and release candidates.
 
