@@ -16,10 +16,11 @@ branches:
 
 before_install:
   - pip install --upgrade pip
-  - pip install coverage codecov coveralls
+  - pip install pipenv
+  - pipenv run python --version
 
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install: pipenv install --dev
 
 #before_script:
   #- cp -a ./tests "$TRAVIS_BUILD_DIR"
@@ -34,21 +35,21 @@ notifications:
 
 # command to run tests
 script:
-  - coverage run --source=imapfw,imapfw.py -p -m imapfw.edmp
-  - coverage run --source=imapfw,imapfw.py -p -m imapfw.mmp.manager
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -h
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py noop
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c multiprocessing unitTests
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c threading unitTests
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all testRascal
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
-  - coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
-  - coverage combine .coverage*
+  - pipenv run coverage run --source=imapfw,imapfw.py -p -m imapfw.edmp
+  - pipenv run coverage run --source=imapfw,imapfw.py -p -m imapfw.mmp.manager
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -h
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py noop
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c multiprocessing unitTests
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c threading unitTests
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all testRascal
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
+  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
+  - pipenv run coverage combine .coverage*
 
 after_success:
-  - coveralls
-  - codecov
+  - pipenv run coveralls
+  - pipenv run codecov
 # vim: expandtab ts=2 :
