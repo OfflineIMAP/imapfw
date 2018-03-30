@@ -1,19 +1,18 @@
 
 language: python
 python:
-  - "3.3"
   - "3.4"
   - "3.5"
-  - "3.5-dev" # 3.5 development branch
-  - "nightly" # currently points to 3.6-dev
+  - "3.6" # currently points to 3.6-dev
+  - "3.6-dev" # 3.6 development branch
+  # - "nightly" # disabled because testing against unstable yields to many false positives
   #- "pypy3"  # won't work since it implements Python 3.2.5.
 
 branches:
   only:
     - master
-    - coverage
     - next
-    - travis # Let testing travis configuration.
+    - support_python_3.6
 
 before_install:
   - pip install --upgrade pip
