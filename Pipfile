@@ -12,5 +12,5 @@ coverage = "*"
 coveralls = "*"
 
 [requires]
-python_version = "3"
+python_version = ">=3.4"
 typing = { version = "*", markers = "python_version < '3.5'" }
