@@ -12,7 +12,7 @@ branches:
   only:
     - master
     - next
-    - support_python_3.6
+    - add_build_system
 
 before_install:
   - pip install --upgrade pip
@@ -20,7 +20,7 @@ before_install:
   - pipenv run python --version
 
 # command to install dependencies
-install: pipenv install --dev
+install: make install
 
 #before_script:
   #- cp -a ./tests "$TRAVIS_BUILD_DIR"
@@ -35,19 +35,10 @@ notifications:
 
 # command to run tests
 script:
-  - pipenv run coverage run --source=imapfw,imapfw.py -p -m imapfw.edmp
-  - pipenv run coverage run --source=imapfw,imapfw.py -p -m imapfw.mmp.manager
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -h
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py noop
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c multiprocessing unitTests
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -c threading unitTests
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all noop
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all testRascal
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all examine
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c multiprocessing syncAccounts -a AccountA
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA
-  - pipenv run coverage run --source=imapfw,imapfw.py -p ./imapfw.py -r ./tests/syncaccounts.1.rascal -d all -c threading syncAccounts -a AccountA -a AccountA -a AccountA
-  - pipenv run coverage combine .coverage*
+  - make test
+  - make install
+  - pipenv run imapfw --help
+  - pipenv run imapfw unitTests
 
 after_success:
   - pipenv run coveralls

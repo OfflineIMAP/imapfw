@@ -10,7 +10,8 @@ typing = "*"
 codecov = "*"
 coverage = "*"
 coveralls = "*"
+docutils = "*"
 
 [requires]
-python_version = ">=3.4"
+python_version = "3"
 typing = { version = "*", markers = "python_version < '3.5'" }
