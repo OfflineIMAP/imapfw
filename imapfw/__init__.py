@@ -1,10 +1,10 @@
 # The MIT License (MIT).
-# Copyright (C) 2015-2016, Nicolas Sebrecht and contributors.
+# Copyright (C) 2015-2018, Nicolas Sebrecht and contributors.
 
 
 __productname__ = 'Imapfw'
-__version__     = "0.026"
-__copyright__   = "Copyright 2015-2016 Nicolas Sebrecht & contributors"
+__version__     = "0.027"
+__copyright__   = "Copyright 2015-2018 Nicolas Sebrecht & contributors"
 __author__      = "Nicolas Sebrecht"
 __author_email__= "nicolas.s-dev@laposte.net"
 __description__ = "Framework for working with IMAP and emails"
